@@ -15,6 +15,8 @@ from utils.singleton import SingletonMeta
 from utils.image_utils import ImageUtils
 from utils.pause import pause_guard
 from module.game import get_game_controller
+from module.game.resolution import scale_base_box as map_base_box
+from module.game.resolution import scale_base_point as map_base_point
 from module.ocr import ocr
 from module.config import cfg
 
@@ -45,6 +47,8 @@ class Automation(metaclass=SingletonMeta):
         self.window_title = window_title
         self.logger = logger
         self.screenshot = None
+        self.screenshot_pos = None
+        self.screenshot_scale_factor = 1
         self._init_input()
         self.img_cache = {}
         self._debug_overlay = None
@@ -526,6 +530,14 @@ class Automation(metaclass=SingletonMeta):
             return None, None
 
         return self.find_target_near_source(target, include, source_pos, position)
+
+    def scale_base_point(self, x, y):
+        """Map one 1920×1080 pixel onto the current window. 2560×1440 uses 4/3."""
+        return map_base_point(x, y, self.screenshot_scale_factor)
+
+    def scale_base_box(self, box):
+        """Map a base-resolution box onto the current window."""
+        return map_base_box(box, self.screenshot_scale_factor)
 
     def calculate_click_position(self, coordinates, offset=(0, 0)):
         """

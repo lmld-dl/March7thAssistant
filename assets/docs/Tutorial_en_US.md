@@ -12,7 +12,7 @@
 | Docker | ❌ | ✅ |
 | Android (Termux) | ❌ | ✅ |
 
-Local game mode supports Windows only. You must use the PC client and run the game in a 1920×1080 window. If windowed mode is unavailable, use fullscreen instead.
+Local game mode supports Windows only. You must use the PC client and run the game in a 16:9 window. 1920×1080 and 2560×1440 are supported, as are other 16:9 sizes at least 1920×1080. If windowed mode is unavailable, use fullscreen instead. UI coordinates use 1920×1080 as the base and scale with width (4/3 at 2560×1440).
 
 The in-game language must be set to Simplified Chinese. You should also disable FPS monitoring HUDs, MSI Afterburner, GamePP, HDR, NVIDIA Freestyle filters, and similar tools that may overlay or alter the captured image.
 
@@ -316,7 +316,7 @@ Headless mode does not support Simulated Universe (not including Divergent Unive
 The `Miscellaneous` page mainly contains helper switches that improve stability and automation. Common ones include:
 
 - `Enable auto battle and 2x speed detection`: Try to enable auto battle and 2x speed before the game starts, and keep them active during built-in combat scenes such as Trailblaze Power farming and Currency Wars.
-- `Enable automatic resolution change and disable Auto HDR`: When launching the game through the assistant, automatically switch to 1920×1080 and disable Auto HDR. Recommended for local mode users.
+- `Enable automatic resolution change and disable Auto HDR`: When launching the game through the assistant, automatically switch to 1920×1080 and disable Auto HDR. You can leave this off when the game is already running at a supported 16:9 size such as 1920×1080 or 2560×1440.
 - `Enable automatic game-path configuration`: Try to detect the path automatically from shortcuts, the official launcher, or a running game process.
 - `Prefer background screenshots`: Recommended by default. It can reduce interference from overlays and floating windows.
 - `Launch when user signs in`: Start through Windows Task Scheduler at sign-in. For truly unattended use, you usually also need to configure system auto-login yourself.

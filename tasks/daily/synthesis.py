@@ -157,7 +157,7 @@ class Synthesis:
                 "./assets/images/share/synthesis/filter.png",
                 "image",
                 0.9,
-                offset=(150, 0),
+                offset=auto.scale_base_point(150, 0),
             ):
                 time.sleep(1)
                 log.info("按稀有度排序")

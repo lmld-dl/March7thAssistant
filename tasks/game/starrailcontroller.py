@@ -2,6 +2,13 @@ import time
 from typing import Literal, Optional
 from module.config.config import Config
 from module.game.local import LocalGameController
+from module.game.resolution import (
+    BASE_HEIGHT,
+    BASE_WIDTH,
+    accepted_resolution_message,
+    is_supported_resolution,
+    unsupported_resolution_message,
+)
 import sys
 if sys.platform == 'win32':
     from utils.registry.star_rail_setting import get_game_resolution, set_game_resolution, get_auto_battle_open_setting, get_is_save_battle_speed_setting, get_user_speed_up_open_setting, set_auto_battle_open_setting, set_is_save_battle_speed_setting, set_user_speed_up_open_setting
@@ -67,20 +74,22 @@ class StarRailController(LocalGameController):
         except Exception as e:
             self.log_debug(f"恢复游戏自动 HDR 设置时发生错误：{e}")
 
-    def check_resolution(self, target_width: int, target_height: int) -> None:
+    def check_resolution(self, target_width: int = BASE_WIDTH, target_height: int = BASE_HEIGHT) -> None:
         """
-        检查游戏窗口的分辨率是否匹配目标分辨率。
+        检查游戏窗口是否为可用的 16:9 分辨率。
 
-        如果游戏窗口的分辨率与目标分辨率不匹配，则记录错误并抛出异常。
-        如果桌面分辨率小于目标分辨率，也会记录错误建议。
+        1920×1080 与 2560×1440 可以直接运行。其他不小于 target 的 16:9
+        也会接受，点击和 OCR 按宽度相对 1920 缩放。比例不对或小于 target
+        时记录错误，重试后抛出异常。桌面小于 target 时额外给出提示。
 
         参数:
-            target_width (int): 目标分辨率的宽度。
-            target_height (int): 目标分辨率的高度。
+            target_width (int): 最低分辨率宽度，默认 1920。
+            target_height (int): 最低分辨率高度，默认 1080。
         """
         max_checks = 5
         check_interval = 10
         screen_width, screen_height = self.screen_resolution
+        minimum = (target_width, target_height)
 
         for attempt in range(1, max_checks + 1):
             resolution = self.get_resolution()
@@ -88,13 +97,11 @@ class StarRailController(LocalGameController):
                 raise RuntimeError("游戏分辨率获取失败")
             window_width, window_height = resolution
 
-            if window_width == target_width and window_height == target_height:
-                self.log_debug(f"游戏分辨率: {window_width}x{window_height}")
+            if is_supported_resolution(window_width, window_height, minimum):
+                self.log_debug(accepted_resolution_message(window_width, window_height))
                 return
 
-            self.log_error(
-                f"游戏分辨率: {window_width}x{window_height}，请在游戏设置内手动切换为 {target_width}x{target_height} 窗口（没有窗口再选择全屏幕）运行"
-            )
+            self.log_error(unsupported_resolution_message(window_width, window_height))
             if screen_width < target_width or screen_height < target_height:
                 self.log_error(f"桌面分辨率: {screen_width}x{screen_height}，你可能需要更大的显示器或使用 HDMI/VGA 显卡欺骗器（或尝试将显示器缩放修改为 100%）")
 
@@ -104,16 +111,12 @@ class StarRailController(LocalGameController):
 
         raise ValueError("游戏分辨率不正确")
 
-    def check_resolution_ratio(self, target_width: int, target_height: int) -> None:
+    def check_resolution_ratio(self, target_width: int = BASE_WIDTH, target_height: int = BASE_HEIGHT) -> None:
         """
         检查游戏窗口的分辨率和比例是否符合目标设置。
 
-        如果游戏窗口的分辨率小于目标分辨率或比例不正确，则记录错误并抛出异常。
-        如果桌面分辨率不符合最小推荐值，也会记录错误建议。
-
-        参数:
-            target_width (int): 目标分辨率的宽度。
-            target_height (int): 目标分辨率的高度。
+        不小于 target 的 16:9（含 1920×1080 与 2560×1440）直接通过。
+        分辨率过低或比例不是 16:9 时记录错误并抛出异常。
         """
         resolution = self.get_resolution()
         if not resolution:
@@ -122,21 +125,18 @@ class StarRailController(LocalGameController):
 
         screen_width, screen_height = self.screen_resolution
 
+        if is_supported_resolution(window_width, window_height, (target_width, target_height)):
+            self.log_debug(accepted_resolution_message(window_width, window_height))
+            self.log_debug(f"桌面分辨率: {screen_width}x{screen_height}")
+            return
+
         if window_width < target_width or window_height < target_height:
-            self.log_error(f"游戏分辨率: {window_width}x{window_height} 请在游戏设置内切换为 {target_width}x{target_height} 窗口或全屏运行")
-            if screen_width < 1920 or screen_height < 1080:
+            self.log_error(unsupported_resolution_message(window_width, window_height))
+            if screen_width < BASE_WIDTH or screen_height < BASE_HEIGHT:
                 self.log_error(f"桌面分辨率: {screen_width}x{screen_height} 你可能需要更大的显示器或使用 HDMI/VGA 显卡欺骗器")
             raise ValueError("游戏分辨率过低")
-        elif abs(window_width / window_height - (target_width / target_height)) > 0.01:
-            self.log_error(f"游戏分辨率: {window_width}x{window_height} 请在游戏设置内切换为 {target_width}:{target_height} 比例")
-            raise ValueError("游戏分辨率比例不正确")
-        else:
-            if window_width != target_width or window_height != target_height:
-                self.log_error(f"游戏分辨率: {window_width}x{window_height} ≠ {target_width}x{target_height} 可能出现未预期的错误")
-                time.sleep(2)
-            else:
-                self.log_debug(f"游戏分辨率: {window_width}x{window_height}")
-            self.log_debug(f"桌面分辨率: {screen_width}x{screen_height}")
+        self.log_error(unsupported_resolution_message(window_width, window_height))
+        raise ValueError("游戏分辨率比例不正确")
 
     def change_auto_battle(self, status: bool) -> None:
         auto_battle_status = get_auto_battle_open_setting()
