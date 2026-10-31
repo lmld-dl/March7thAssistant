@@ -416,7 +416,7 @@ class WindowsInputApi:
             raise _message_error(ctypes.get_last_error())
 
     def send_mouse(self, window, message, wparam=0, lparam=0):
-        """鼠标消息有序处理，避免旧 WM_MOUSEMOVE 在下一次定位后回写旧光标。"""
+        """同步把鼠标消息交给目标窗口。坐标在 lParam 中，不移动系统光标。"""
         result = ctypes.c_size_t()
         ctypes.set_last_error(0)
         # SMTO_BLOCK | SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT；不允许无限等待游戏线程。

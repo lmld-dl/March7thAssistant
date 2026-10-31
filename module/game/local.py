@@ -104,6 +104,7 @@ class LocalGameController(GameControllerBase):
         from module.automation.input_base import background_enabled
         if background_enabled(self._config):
             from module.automation.background_input import BackgroundInput
+            # protect_mouse 只保留旧配置的读取结果，后台指针已不再锁定系统鼠标。
             return BackgroundInput(self.logger, self.window_name, self.process_name,
                                    protect_mouse=self._config.get_value('background_mouse_protection', False))
         from module.automation.local_input import LocalInput
