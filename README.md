@@ -31,12 +31,12 @@
 
 ## 功能简介
 
-- **日常**：清体力、每日实训、领取奖励、委托、锄大地
-- **周常**：历战余响、模拟宇宙、差分宇宙、货币战争、混沌回忆、虚构叙事、末日幻影
-- **云·星穹铁道**：支持后台运行、无窗口运行和 [Docker](https://m7a.top/docs/#/assets/docs/Docker) 运行
+- **日常**：清体力、每日实训、领取奖励、委托
+- **周常**：历战余响、差分宇宙、货币战争、混沌回忆、虚构叙事、末日幻影
 - **抽卡记录导出**：支持 [UIGF](https://uigf.org/zh/standards/uigf.html)/[SRGF](https://uigf.org/zh/standards/srgf.html) 标准
 - **工具箱**：自动对话、解锁帧率、兑换码、触屏模式
-- 每日实训等任务的完成情况支持**消息推送**
+- 本地游戏启停、通过启动器更新游戏、开机自启与定时任务
+- 每日实训等任务的完成情况支持 **Windows 原生通知**
 - 任务刷新或体力恢复到指定值后**自动启动**
 - 任务完成后**声音提示、自动关闭游戏或关机等**
 
@@ -74,7 +74,7 @@ Windows 下如果通过终端启动，建议使用管理员模式打开 PowerShe
 
 ```cmd
 # 安装（推荐使用虚拟环境）
-git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
+git clone https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 pip install -r requirements.txt
 
@@ -86,14 +86,13 @@ python main.py
 
 # 更新
 git pull
-git submodule update --init --recursive
 ```
 
 如果使用 `uv`，推荐直接使用项目自带的 `pyproject.toml` 工作流：
 
 ```cmd
 # 安装（使用 uv）
-git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
+git clone https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 uv sync
 
@@ -131,11 +130,8 @@ uv run python main.py daily
 
 March7thAssistant 离不开以下开源项目和运行时依赖的帮助，感谢所有维护者与贡献者：
 
-- 模拟宇宙自动化 [https://github.com/CHNZYX/Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe) ：提供模拟宇宙相关能力
-- 锄大地自动化 [https://github.com/linruowuyin/Fhoe-Rail](https://github.com/linruowuyin/Fhoe-Rail) ：提供锄大地相关能力
 - OCR 文字识别 [https://github.com/RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR) ：提供游戏内文字识别能力
 - 图形界面组件库 [https://github.com/zhiyiYo/PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets) ：提供主要界面组件与交互体验
-- Mirror酱 [https://github.com/MirrorChyan/docs](https://github.com/MirrorChyan/docs) ：提供更新检查与下载分发以及 CDN 加速相关能力
 - 图像处理与自动化相关依赖 `OpenCV`、`PyAutoGUI` 等：提供截图采集、图像处理与基础自动化能力
 - 推理加速相关依赖 `ONNX Runtime`、`OpenVINO` ：为 OCR 和模型推理提供 CPU / GPU 加速支持
 

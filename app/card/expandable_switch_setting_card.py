@@ -451,9 +451,8 @@ class ExpandableComboBoxSettingCardUpdateSource(ExpandSettingCard):
 
         # Import config here to avoid circular import
         from module.config import cfg
-        from app.tools.check_update import checkUpdate
         self.cfg = cfg
-        self.checkUpdate = checkUpdate
+        self.checkUpdate = lambda *_args, **_kwargs: None
 
         self.secondaryComboBox = None
         if secondary_configname and secondary_texts:

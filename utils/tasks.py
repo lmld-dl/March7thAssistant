@@ -19,11 +19,8 @@ AVAILABLE_TASKS = {
     "power": "清体力",
     "game_update": "更新游戏",
     "game_pre_download": "预下载游戏",
-    "app_update": "更新三月七小助手",
     "currencywars": "货币战争",
     "divergent": "差分宇宙",
-    "fight": "锄大地",
-    "universe": "模拟宇宙",
     "forgottenhall": "混沌回忆",
     "purefiction": "虚构叙事",
     "apocalyptic": "末日幻影",
@@ -31,13 +28,8 @@ AVAILABLE_TASKS = {
     "currencywarstemp": "货币战争中途接管",
     "divergentloop": "差分宇宙循环",
     "divergenttemp": "差分宇宙中途接管",
-    "universe_gui": "模拟宇宙原生界面",
-    "fight_gui": "锄大地原生界面",
-    "universe_update": "模拟宇宙更新",
-    "fight_update": "锄大地更新",
     "mobileui_update": "触屏模式更新",
     "game": "启动游戏",
-    "notify": "测试消息推送",
     "redemption": "兑换码",
     "screen_test": "界面可切换性测试",
 }
@@ -46,9 +38,8 @@ AVAILABLE_TASKS = {
 TASK_NAMES = AVAILABLE_TASKS
 
 # 支持「暂停/继续」的内置任务白名单。
-# 仅针对内置任务 ID；workflow（用户自定义流程）经 workflow 启动路径单独启用
-# （运行于 main.py 进程内、走同一套动作卡点），外部/自定义程序与更新、
-# 启动器、原生界面类子任务不支持暂停。判定逻辑见 LogInterface._resolvePauseSupport。
+# 外部/自定义程序、游戏更新与启动器类子任务不支持暂停。
+# 判定逻辑见 LogInterface._resolvePauseSupport。
 PAUSABLE_TASKS = frozenset({
     "main",
     "routine",
@@ -60,8 +51,6 @@ PAUSABLE_TASKS = frozenset({
     "divergent",
     "divergentloop",
     "divergenttemp",
-    "fight",
-    "universe",
     "forgottenhall",
     "purefiction",
     "apocalyptic",

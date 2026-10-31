@@ -15,15 +15,8 @@ from utils.tasks import AVAILABLE_TASKS
 from module.localization import tr
 from app.common.style_sheet import StyleSheet
 
-# 仅主页可用的特殊操作（不在 AVAILABLE_TASKS 中）
-HOME_EXTRA_TASKS = {
-    "_reset_universe_config": "重置模拟宇宙配置文件",
-    "_open_universe_dir": "打开模拟宇宙目录",
-    "_open_universe_homepage": "打开模拟宇宙项目主页",
-    "_reset_fight_config": "重置锄大地配置文件",
-    "_open_fight_dir": "打开锄大地程序目录",
-    "_open_fight_homepage": "打开锄大地项目主页",
-}
+# 仅主页可用的特殊操作（不在 AVAILABLE_TASKS 中）。精简客户端不再挂锄大地/模拟宇宙入口。
+HOME_EXTRA_TASKS = {}
 
 # 合并所有可选任务（值为中文原文 msgid，显示时再 tr()）
 ALL_TASKS = {**AVAILABLE_TASKS, **HOME_EXTRA_TASKS}
@@ -67,26 +60,7 @@ DEFAULT_CARDS = [
             {"label": "差分宇宙运行一次 ⭐", "task_id": "divergent"},
             {"label": "差分宇宙循环运行 ⭐", "task_id": "divergentloop"},
             {"label": "差分宇宙中途接管", "task_id": "divergenttemp"},
-            {"label": "模拟宇宙快速启动（停止维护）", "task_id": "universe"},
-            {"label": "模拟宇宙原版运行（停止维护）", "task_id": "universe_gui"},
-            {"label": "更新模拟宇宙（停止维护）", "task_id": "universe_update"},
-            {"label": "重置模拟宇宙配置文件（停止维护）", "task_id": "_reset_universe_config"},
-            {"label": "打开模拟宇宙目录（停止维护）", "task_id": "_open_universe_dir"},
-            {"label": "打开模拟宇宙项目主页（停止维护）", "task_id": "_open_universe_homepage"},
         ]
-    },
-    {
-        "icon": "./assets/app/images/SilverWolf.jpg",
-        "title": "锄大地",
-        "action_type": "menu",
-        "task_id": "",
-        "menu_items": [
-            {"label": "快速启动 ⭐", "task_id": "fight"},
-            {"label": "原版运行", "task_id": "fight_gui"},
-            {"label": "更新锄大地", "task_id": "fight_update"},
-            {"label": "重置配置文件", "task_id": "_reset_fight_config"},
-            {"label": "打开程序目录", "task_id": "_open_fight_dir"},
-            {"label": "打开项目主页", "task_id": "_open_fight_homepage"},]
     },
     {
         "icon": "./assets/app/images/Bronya.jpg",

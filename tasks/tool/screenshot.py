@@ -1,5 +1,4 @@
 from module.ocr import ocr
-from module.workflow import build_crop_expression, generate_capture_path, to_workflow_relative_path
 from module.localization import tr, tn
 from PySide6.QtWidgets import QMainWindow, QLabel, QHBoxLayout, QWidget, QScrollArea, QApplication, QStyle, QFileDialog
 from PySide6.QtCore import Qt, QTimer
@@ -166,7 +165,6 @@ class ScreenshotApp(QMainWindow):
                 (tr("识别事件"), self.detect_events),
                 (tr("保存完整截图"), self.save_full_screenshot),
                 (tr("保存选取截图"), self.save_selection_screenshot),
-                *self._build_workflow_capture_buttons()
             ]
 
             for text, slot in buttons_config:
@@ -231,14 +229,6 @@ class ScreenshotApp(QMainWindow):
             import traceback
             log.error(traceback.format_exc())
             raise
-
-    def _build_workflow_capture_buttons(self):
-        workflow_capture_kind = self.window_options.get("workflow_capture_kind")
-        if workflow_capture_kind == "template":
-            return [(tr("⭐保存为流程图像模板⭐"), self.save_workflow_template)]
-        if workflow_capture_kind == "ocr":
-            return [(tr("⭐保存为流程 OCR 区域⭐"), self.save_workflow_ocr_region)]
-        return []
 
     def remove_topmost(self):
         """取消保持最前面状态"""
@@ -515,42 +505,6 @@ class ScreenshotApp(QMainWindow):
             self._start_file(os.path.dirname(screenshot_path))
         else:
             _show_msg(self, tr("保存选区截图"), tr("还没有选择区域呢"))
-
-    def save_workflow_template(self):
-        self._save_workflow_capture("template")
-
-    def save_workflow_ocr_region(self):
-        self._save_workflow_capture("ocr")
-
-    def _save_workflow_capture(self, kind: str):
-        selection_info = self.get_selection_info()
-        if not selection_info:
-            _show_msg(self, tr("保存流程素材"), tr("请先框选一个区域"))
-            return
-
-        x, y, width, height = selection_info
-        cropped_image = self.screenshot.crop((x, y, x + width, y + height))
-        workflow_name = self.window_options.get("workflow_name")
-        file_path = generate_capture_path(kind, workflow_name)
-        cropped_image.save(file_path)
-
-        relative_path = to_workflow_relative_path(file_path, workflow_name)
-        crop_expression = build_crop_expression(x, y, width, height, self.screenshot.width, self.screenshot.height)
-
-        if kind == "template":
-            clipboard.copy(relative_path)
-            clipboard_hint = tr("模板路径")
-            title = tr("流程图像模板")
-        else:
-            clipboard.copy(crop_expression)
-            clipboard_hint = tr("Crop 表达式")
-            title = tr("流程 OCR 区域")
-
-        _show_msg(
-            self,
-            title,
-            tr("已保存到") + f"：{relative_path}\nCrop：{crop_expression}\n" + tr("已复制到剪贴板") + f"：{clipboard_hint}"
-        )
 
     def format_ocr_result(self, result):
         """

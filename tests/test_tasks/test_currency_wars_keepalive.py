@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import patch
 from tests.test_tasks.test_currency_wars_settlement import load_currency_wars
 
 
@@ -23,23 +23,11 @@ class TestBattleKeepalive(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def test_only_two_mouse_moves_every_sixty_seconds(self):
+    def test_battle_keepalive_does_not_send_input(self):
         self.assertTrue(self.war.check_battle_keepalive())
-        self.now = 59
-        self.war.check_battle_keepalive()
-        self.module.auto.click_element_with_pos.assert_not_called()
-        self.now = 60
-        self.war.check_battle_keepalive()
-        self.module.auto.click_element_with_pos.assert_has_calls([
-            call((0.49, 0.05, 0.002, 0.002), action='move'),
-            call((0.50, 0.05, 0.002, 0.002), action='move'),
-        ])
-        self.now = 119
-        self.war.check_battle_keepalive()
-        self.assertEqual(self.module.auto.click_element_with_pos.call_count, 2)
         self.now = 120
-        self.war.check_battle_keepalive()
-        self.assertEqual(self.module.auto.click_element_with_pos.call_count, 4)
+        self.assertTrue(self.war.check_battle_keepalive())
+        self.module.auto.click_element_with_pos.assert_not_called()
         self.module.auto.press_key.assert_not_called()
         self.module.auto.mouse_click.assert_not_called()
         self.module.auto.mouse_down.assert_not_called()
@@ -79,7 +67,7 @@ class TestBattleKeepalive(unittest.TestCase):
         self.module.auto.take_screenshot.return_value = True
         self.assertTrue(self.war.check_battle_keepalive())
         self.module.auto.take_screenshot.assert_called_once_with()
-        self.assertEqual(self.module.auto.click_element_with_pos.call_count, 2)
+        self.module.auto.click_element_with_pos.assert_not_called()
 
     def test_missing_full_frame_after_text_match_does_not_move(self):
         self.war._last_battle_keepalive = 0
@@ -106,7 +94,7 @@ class TestBattleKeepalive(unittest.TestCase):
                 self.module.auto.take_screenshot.return_value = True
                 self.module.auto.click_element_with_pos.reset_mock()
                 self.assertTrue(self.war.check_battle_keepalive())
-                self.assertEqual(self.module.auto.click_element_with_pos.call_count, 2)
+                self.module.auto.click_element_with_pos.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()

@@ -13,29 +13,11 @@ class TestGetEnvOverride:
         assert has_override is False
         assert value is None
 
-    def test_env_not_set(self, monkeypatch):
-        monkeypatch.delenv("MARCH7TH_CLOUD_GAME_ENABLE", raising=False)
+    def test_removed_cloud_env_is_ignored(self, monkeypatch):
+        monkeypatch.setenv("MARCH7TH_CLOUD_GAME_ENABLE", "true")
         has_override, value = _get_env_override("cloud_game_enable")
         assert has_override is False
         assert value is None
-
-    def test_bool_true(self, monkeypatch):
-        monkeypatch.setenv("MARCH7TH_CLOUD_GAME_ENABLE", "true")
-        has_override, value = _get_env_override("cloud_game_enable")
-        assert has_override is True
-        assert value is True
-
-    def test_bool_false(self, monkeypatch):
-        monkeypatch.setenv("MARCH7TH_CLOUD_GAME_ENABLE", "false")
-        has_override, value = _get_env_override("cloud_game_enable")
-        assert has_override is True
-        assert value is False
-
-    def test_bool_1(self, monkeypatch):
-        monkeypatch.setenv("MARCH7TH_CLOUD_GAME_ENABLE", "1")
-        has_override, value = _get_env_override("cloud_game_enable")
-        assert has_override is True
-        assert value is True
 
     def test_string_passthrough(self, monkeypatch):
         monkeypatch.setenv("MARCH7TH_LOG_LEVEL", "debug")

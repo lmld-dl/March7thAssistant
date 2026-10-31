@@ -111,8 +111,6 @@ def _entrypoints(install_dir: str) -> dict:
 
 def collect_status() -> dict:
     """汇总安装、配置与运行状态。只读：以只读方式加载配置，不写 config.yaml。"""
-    import base64
-
     os.environ["MARCH7TH_CONFIG_READONLY"] = "1"
     from module.config import cfg
     from utils.admin import is_user_admin
@@ -133,8 +131,7 @@ def collect_status() -> dict:
         "config_exists": os.path.exists(config_path),
         "config_writable": _dir_writable(install_dir),
         "config_reference": os.path.abspath(os.path.join("assets", "config", "config.example.yaml")),
-        "first_run_completed": bool(cfg.get_value(base64.b64decode("YXV0b191cGRhdGU=").decode("utf-8"))),
-        "cloud_game_enable": bool(cfg.get_value("cloud_game_enable", False)),
+        "first_run_completed": bool(cfg.get_value("disclaimer_accepted", False)),
         "game_path": game_path,
         "game_path_exists": bool(game_path) and os.path.exists(game_path),
         "after_finish": cfg.get_value("after_finish"),

@@ -162,13 +162,8 @@ class TestDeclaredSources:
     def test_table_literals_collected(self):
         from tools.i18n import collect_table_literals
         literals, refs = collect_table_literals()
-        # 工作流步骤/条件标签（module/workflow/__init__.py）
-        assert {"点击图片", "条件循环", "上一步成功", "终止流程"} <= literals
-        # Mirror酱 CDK 错误文案（module/update/version_check.py）
-        assert {"Mirror酱 CDK 已过期", "Mirror酱 CDK 已被封禁"} <= literals
-        assert refs["点击图片"].startswith("module/workflow/__init__.py:")
-        assert refs["Mirror酱 CDK 已过期"].startswith("module/update/version_check.py:")
-        # dict 的键是程序标识，不能当成文案登记
+        assert {"完整运行", "每日实训", "差分宇宙"} <= literals
+        assert refs["完整运行"].startswith("utils/tasks.py:")
         assert "click_image" not in literals
         assert "7001" not in literals
 

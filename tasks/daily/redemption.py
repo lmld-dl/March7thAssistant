@@ -135,17 +135,14 @@ class Redemption:
         """尝试从本地或远程加载有效的兑换码，并兑换它们。"""
         log.hr("获取最新兑换码", 0)
 
-        # 如果云游戏启用，默认使用国服
-        if cfg.cloud_game_enable:
-            server = 'cn'
-        elif sys.platform == 'win32':
+        if sys.platform == 'win32':
             from utils.registry.star_rail_setting import get_server_by_registry
             server = get_server_by_registry()
             if server is None:
                 log.error("无法判断游戏服务器类型，跳过兑换码任务")
                 return False
         else:
-            server = 'cn'  # 云游戏默认国服
+            server = 'cn'
 
         try:
             codes = valid_codes_for_server(server)

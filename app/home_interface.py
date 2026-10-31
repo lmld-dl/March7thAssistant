@@ -214,19 +214,7 @@ class HomeInterface(ScrollArea):
 
     @staticmethod
     def _get_extra_task_action(task_id):
-        """获取特殊主页操作的 lambda"""
-        if task_id == "_reset_universe_config":
-            return lambda: [os.remove(p) for p in map(lambda f: os.path.join(cfg.universe_path, f), ["info.yml", "info_old.yml"]) if os.path.exists(p)]
-        elif task_id == "_open_universe_dir":
-            return lambda: os.startfile(cfg.universe_path)
-        elif task_id == "_open_universe_homepage":
-            return lambda: os.startfile("https://github.com/CHNZYX/Auto_Simulated_Universe")
-        elif task_id == "_reset_fight_config":
-            return lambda: os.path.exists(os.path.join(cfg.fight_path, "config.json")) and os.remove(os.path.join(cfg.fight_path, "config.json"))
-        elif task_id == "_open_fight_dir":
-            return lambda: os.startfile(cfg.fight_path)
-        elif task_id == "_open_fight_homepage":
-            return lambda: os.startfile("https://github.com/linruowuyin/Fhoe-Rail")
+        """获取特殊主页操作的 lambda。精简客户端不再提供锄大地/模拟宇宙入口。"""
         return lambda: None
 
     def _on_edit_cards(self):

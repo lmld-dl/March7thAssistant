@@ -5,8 +5,6 @@ from utils.date import Date
 from tasks.daily.photo import Photo
 from tasks.weekly.currency_wars import CurrencyWars
 from tasks.weekly.divergent_universe import DivergentUniverse
-from tasks.daily.fight import Fight
-from tasks.weekly.universe import Universe
 import tasks.reward as reward
 import tasks.activity as activity
 from tasks.daily.synthesis import Synthesis
@@ -80,37 +78,6 @@ class Daily:
         reward.start()
 
     @staticmethod
-    def _run_scheduled_divergent_universe(divergent: DivergentUniverse):
-        target_count = int(cfg.universe_count)
-        cycle = "weekly" if cfg.universe_frequency == "weekly" else "daily"
-        cycle_label = "本周" if cycle == "weekly" else "今日"
-
-        if target_count <= 0:
-            log.info("差分宇宙固定次数为 0，跳过执行并记录本轮时间")
-            cfg.save_timestamp("universe_timestamp")
-            return
-
-        completed_count = DivergentUniverse.get_recorded_run_count(cycle)
-        if completed_count >= target_count:
-            log.info(f"差分宇宙固定次数（{cycle_label}）已完成 {completed_count}/{target_count}，跳过执行")
-            cfg.save_timestamp("universe_timestamp")
-            return
-
-        remaining_runs = target_count - completed_count
-        log.info(f"差分宇宙固定次数进度（{cycle_label}）：{completed_count}/{target_count}，继续运行剩余 {remaining_runs} 次")
-
-        for _ in range(remaining_runs):
-            if not divergent.start(universe_type=cfg.divergent_type):
-                log.warning(f"差分宇宙本轮未完成，不计入固定次数，下次将从 {cycle_label} {completed_count}/{target_count} 继续")
-                return
-
-            completed_count = DivergentUniverse.get_recorded_run_count(cycle)
-            log.info(f"差分宇宙固定次数（{cycle_label}）已完成 {completed_count}/{target_count}")
-
-        cfg.save_timestamp("universe_timestamp")
-        log.info("差分宇宙固定次数已全部完成，记录本轮执行时间")
-
-    @staticmethod
     def start():
         Daily.prepare_daily()
 
@@ -153,37 +120,6 @@ class Daily:
                 log.info("「差分宇宙」积分奖励尚未刷新")
         else:
             log.info("「差分宇宙」积分奖励未开启")
-
-        if cfg.fight_enable:
-            if Date.is_next_x_am(cfg.fight_timestamp, cfg.refresh_hour):
-                Fight.start()
-            else:
-                log.info("锄大地尚未刷新")
-        else:
-            log.info("锄大地未开启")
-
-        if cfg.universe_frequency == "weekly":
-            if Date.is_next_mon_x_am(cfg.universe_timestamp, cfg.refresh_hour):
-                if cfg.universe_enable:
-                    if cfg.universe_category == "divergent":
-                        Daily._run_scheduled_divergent_universe(divergent)
-                    else:
-                        Universe.start()
-                else:
-                    log.info("模拟宇宙/差分宇宙未开启")
-            else:
-                log.info("模拟宇宙/差分宇宙尚未刷新")
-        elif cfg.universe_frequency == "daily":
-            if Date.is_next_x_am(cfg.universe_timestamp, cfg.refresh_hour):
-                if cfg.universe_enable:
-                    if cfg.universe_category == "divergent":
-                        Daily._run_scheduled_divergent_universe(divergent)
-                    else:
-                        Universe.start()
-                else:
-                    log.info("模拟宇宙/差分宇宙未开启")
-            else:
-                log.info("模拟宇宙/差分宇宙尚未刷新")
 
         if Date.is_next_mon_x_am(cfg.forgottenhall_timestamp, cfg.refresh_hour):
             if cfg.forgottenhall_enable:

@@ -35,12 +35,12 @@
 
 ## 功能簡介
 
-- **日常**：清體力、每日實訓、領取獎勵、委託、鋤大地
-- **周常**：歷戰餘響、模擬宇宙、差分宇宙、貨幣戰爭、混沌回憶、虛構敘事、末日幻影
-- **雲·星穹鐵道**：支援背景執行、無視窗執行與 [Docker](https://m7a.top/docs/#/assets/docs/Docker) 執行
+- **日常**：清體力、每日實訓、領取獎勵、委託
+- **周常**：歷戰餘響、差分宇宙、貨幣戰爭、混沌回憶、虛構敘事、末日幻影
 - **抽卡記錄導出**：支援 [UIGF](https://uigf.org/zh/standards/uigf.html) / [SRGF](https://uigf.org/zh/standards/srgf.html) 標準
 - **工具箱**：自動對話、解鎖幀率、兌換碼、觸控模式
-- 每日實訓等任務的完成情況支援 **訊息推送**
+- 本地遊戲啟停、透過啟動器更新遊戲、開機自啟與定時任務
+- 每日實訓等任務的完成情況支援 **Windows 原生通知**
 - 任務刷新或體力恢復到指定值後支援 **自動啟動**
 - 任務完成後支援 **聲音提示、自動關閉遊戲或關機等**
 
@@ -126,11 +126,8 @@ uv run python main.py daily
 
 March7thAssistant 離不開以下開源專案與執行期依賴的幫助，感謝所有維護者與貢獻者：
 
-- 模擬宇宙自動化 [https://github.com/CHNZYX/Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe)：提供模擬宇宙相關能力
-- 鋤大地自動化 [https://github.com/linruowuyin/Fhoe-Rail](https://github.com/linruowuyin/Fhoe-Rail)：提供鋤大地相關能力
 - OCR 文字識別 [https://github.com/RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR)：提供遊戲內文字識別能力
 - 圖形介面元件庫 [https://github.com/zhiyiYo/PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets)：提供主要介面元件與互動體驗
-- Mirror醬 [https://github.com/MirrorChyan/docs](https://github.com/MirrorChyan/docs)：提供更新檢查、下載分發與 CDN 加速相關能力
 - 圖像處理與自動化相關依賴 `OpenCV`、`PyAutoGUI` 等：提供截圖採集、圖像處理與基礎自動化能力
 - 推理加速相關依賴 `ONNX Runtime`、`OpenVINO`：為 OCR 和模型推理提供 CPU / GPU 加速支援
 

@@ -48,21 +48,6 @@ class TestCurrencyWarsWatchdog(unittest.TestCase):
         self.assert_aborts('连续5分钟')
         self.assertEqual(self.seconds, 300)
 
-    def test_disconnected_cloud_stops_before_game_actions(self):
-        self.module.cfg.cloud_game_enable = True
-        self.module.auto.find_element.side_effect = lambda target, *a, **kw: (
-            (1, 2, 3, 4) if target in ('连接中断', '退出游戏') else None)
-        self.assert_aborts('云游戏连接中断')
-        self.war.check_main_screen.assert_not_called()
-        self.assertEqual(self.seconds, 0)
-
-    def test_cloud_loading_failure_stops_before_board_actions(self):
-        self.module.cfg.cloud_game_enable = True
-        self.module.auto.find_element.side_effect = lambda target, *a, **kw: (
-            (1, 2, 3, 4) if target in ('加载失败', '立即切换') else None)
-        self.assert_aborts('云游戏加载失败')
-        self.war.check_main_screen.assert_not_called()
-
     def test_connection_title_alone_does_not_abort(self):
         self.module.auto.find_element.side_effect = lambda target, *a, **kw: (
             (1, 2, 3, 4) if target == '连接中断' else None)
@@ -84,24 +69,18 @@ class TestCurrencyWarsWatchdog(unittest.TestCase):
         self.module.auto.screenshot.save.assert_not_called()
 
     def test_keepalive_does_not_extend_total_deadline(self):
-        self.module.cfg.cloud_game_enable = True
         self.module.auto.find_element.side_effect = lambda target, kind, *a, **kw: (
-            ((10, 10), (20, 20)) if kind == 'crop' or
-            (isinstance(target, str) and target.endswith('/pause.png')) else None)
+            ((10, 10), (20, 20)) if isinstance(target, str) and target.endswith('/pause.png') else None)
         self.assert_aborts('120分钟')
-        self.assertGreater(self.module.auto.click_element_with_pos.call_count, 100)
-        self.assertTrue(all(c.kwargs == {'action': 'move'} for c in
-                            self.module.auto.click_element_with_pos.call_args_list))
+        self.module.auto.click_element_with_pos.assert_not_called()
 
     def test_normal_actions_postpone_keepalive(self):
-        self.module.cfg.cloud_game_enable = True
         self.module.auto.find_element.side_effect = lambda target, kind, *a, **kw: (
-            ((10, 10), (20, 20)) if kind == 'crop' or
-            (isinstance(target, str) and target.endswith('/pause.png')) else None)
+            ((10, 10), (20, 20)) if isinstance(target, str) and target.endswith('/pause.png') else None)
         self.war.check_click_continue.side_effect = lambda: self.seconds == 60
         self.war.check_return_home.side_effect = lambda: self.seconds >= 180
         self.assertFalse(self.war.loop())
-        self.assertEqual(self.module.auto.click_element_with_pos.call_count, 2)
+        self.module.auto.click_element_with_pos.assert_not_called()
 
     def test_intervening_activity_resets_unknown_timer(self):
         self.war.check_click_continue.side_effect = lambda: self.seconds == 240

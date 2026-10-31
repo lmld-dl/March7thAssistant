@@ -35,7 +35,6 @@ metadata:
 | `.\m7a.exe --status` | 版本、首次使用是否已确认、游戏路径是否有效、图形界面是否在运行、正在运行的任务、最近 5 次运行（JSON） |
 | `.\m7a.exe --list --json` | 全部任务 ID 与名称 |
 | `.\m7a.exe <任务ID> --after-finish None` | 运行任务并等待结束 |
-| `.\m7a.exe --workflow-name "流程名称"` | 运行用户在「流程编排」里建好的流程（`--list-workflows` 查看名称） |
 | `.\m7a.exe <任务ID> --after-finish None --detach` | 启动后立即返回运行编号，不等待（长任务用） |
 | `.\m7a.exe --follow latest` | 跟随最近一次运行的输出直到结束（也可写运行编号） |
 | `.\m7a.exe --control current pause` | 暂停 / 继续 / 停止正在运行的任务（`pause` / `resume` / `stop`），图形界面启动的任务也可以 |
@@ -58,25 +57,25 @@ metadata:
 
 1. 执行 `--status`：
    - `first_run_completed` 为 false：小助手要求用户先在图形界面阅读并确认免责声明（其中包含使用自动化工具的账号风险提示）。**由用户本人完成，不要代为确认，也不要用修改文件之类的方式绕过。**
-   - `game_path_exists` 为 false 且 `cloud_game_enable` 为 false：先修正 `config.yaml` 的 `game_path`（找 `StarRail.exe` 或问用户）。
+   - `game_path_exists` 为 false：先修正 `config.yaml` 的 `game_path`（找 `StarRail.exe` 或问用户）。
    - `active_run` 不为空：已有任务在操控游戏，不要再启动第二个。
 2. **默认加 `--after-finish None`**：用户配置里的「完成后操作」可能是关机、睡眠或运行脚本，只在用户明确要求时才去掉。
 3. 运行期间小助手会操控键盘鼠标并切换到游戏窗口，提醒用户不要同时操作电脑。
-4. 耗时参考：`daily` 几分钟，`main`（完整运行）常见 10～40 分钟，模拟宇宙 / 锄大地可能数小时。
+4. 耗时参考：`daily` 几分钟，`main`（完整运行）常见 10～40 分钟，差分宇宙 / 货币战争可能更久。
    你的命令有超时限制时用 `--detach`，再用 `--follow` 或 `--status` 跟进；命令超时不会中断任务。
 5. 用户不在电脑前时没人能点 UAC：这种需求改用小助手自己的定时任务（见第 5 节）。
 
 常用任务 ID：`main` 完整运行、`daily` 每日实训（含领奖励）、`power` 清体力、`routine` 日常、`divergent` 差分宇宙、
-`currencywars` 货币战争、`universe` 模拟宇宙、`fight` 锄大地、`forgottenhall` 混沌回忆、`purefiction` 虚构叙事、
-`apocalyptic` 末日幻影、`redemption` 兑换码、`game` 启动游戏、`app_update` 更新小助手。
-每个任务做什么见 `assets/docs/TasksTable.md`。
+`currencywars` 货币战争、`forgottenhall` 混沌回忆、`purefiction` 虚构叙事、
+`apocalyptic` 末日幻影、`redemption` 兑换码、`game` 启动游戏、`game_update` 更新游戏、`game_pre_download` 预下载游戏。
+每日实训条目见 `assets/docs/TasksTable.md`。精简客户端不包含锄大地、模拟宇宙、云游戏、流程编排、自动更新和小助手自更新。
 
 ## 4. 修改配置
 
 - 直接编辑安装目录的 `config.yaml`（YAML）。改之前先在 `assets/config/config.example.yaml` 里找到同名配置项，读它的注释与可选值。
 - 只改需要改的键，保留其余内容和注释，不要整份重写。图形界面会自动重新加载被外部修改的配置；**正在运行的任务不一定读取新值**，下次运行生效。
-- 推送令牌、Mirror酱 CDK、账号等敏感值不要显示在对话中；需要填写时让用户在图形界面里输入。
-- 常见修改（体力计划、副本、定时任务、消息推送、云游戏）见 [配置说明](references/config.md)。
+- 推送相关和账号等敏感值不要显示在对话中；需要填写时让用户在图形界面里输入。
+- 常见修改（体力计划、副本、定时任务、Windows 通知）见 [配置说明](references/config.md)。
 
 ## 5. 定时与无人值守
 
@@ -90,8 +89,7 @@ metadata:
 3. 完整输出 `logs\runs\<运行编号>.log`；当天全部日志 `logs\<日期>.log`（含图形界面启动的任务）。
 4. 对照 `assets/docs/FAQ.md` 与 [排查说明](references/troubleshooting.md)。确认原因、修正配置后再重跑；不确定时把证据和推测分开告诉用户。
 
-## 7. 更新与其他
+## 7. 其他
 
-- 更新小助手：`.\m7a.exe app_update` 或在图形界面检查更新；不要用完整包覆盖已有安装。
+- 精简客户端不包含小助手自动更新。游戏本体更新用 `.\m7a.exe game_update`（通过启动器）。
 - 打开图形界面：运行 `March7th Launcher.exe`（会弹 UAC）。
-- Mirror酱 是可选的付费下载加速（支持项目维护），只在 GitHub 下载困难时提及，不要索要或代填 CDK。

@@ -22,9 +22,6 @@ autoplot_hero_chronicle_enable: false # 是否自动阅读如我所书中的翁�
 debug_mode_enable: false # 是否启用调试模式。开启后会在屏幕对应位置实时绘制检测范围框（透明悬浮窗），用于调试自动化识别。仅 Windows 生效。
 
 # 更新检查
-check_update: true # 是否检查更新。true 检查，false 不检查。
-
-# 成功后暂停
 pause_after_success: true # 是否在成功后暂停程序。true 若非循环执行则暂停程序，false 直接退出。
 
 # 失败后直接退出
@@ -59,38 +56,6 @@ update_via_launcher: False # 是否通过启动器更新游戏。 true 通过启
 start_game_timeout: 10 # 启动游戏超时时间（分）。
 update_game_timeout: 12 # 更新游戏超时时间（时）。
 
-# 云崩铁配置
-cloud_game_enable: False # 是否启动云游戏
-cloud_game_fullscreen_enable: True # 云崩铁是否全屏运行
-cloud_game_use_paid_time: False # 是否使用付费时长
-cloud_game_max_queue_time: 60 # 最大排队等待时间（分钟）
-cloud_game_login_timeout: 20 # 等待登录的超时时间（分钟），超时后终止运行
-# cloud_game_video_quality: '0' # 云崩铁画质 '0'(超高清)，'1'（高清）, '2'（标清）, '3'（低清）
-# cloud_game_smooth_first_enable: False # 是否流畅优先
-# cloud_game_status_bar_enable: False # 是否显示网速
-# cloud_game_status_bar_type: "verbose" # 网速显示类型，可选值 "verbose" (详细), "brief" （简洁）
-# 云游戏无法关闭小浮球，只能将其固定到一个不影响脚本运行的位置
-# cloud_game_fab_pos_x: 0.0   # 云游戏小浮球位置（x 坐标）
-# cloud_game_fab_pos_y: 0.35  # 云游戏小浮球位置（y 坐标）
-
-# 云崩铁浏览器配置
-# integrated 模式下，启动时会自己自动下载一个浏览器专门用于执行脚本，
-browser_type: integrated # 云崩铁使用的浏览器类型，可选值：["integrated"（集成）, "edge", "chrome"]。
-browser_headless_enable: False # 是否启用无窗口模式。
-browser_headless_restart_on_not_logged_in: True # 无窗口模式下若未登录，是否自动以有窗口模式重启浏览器以便登录。
-browser_dump_cookies_enable: False # （用于调试）是否转储 Cookies
-browser_persistent_enable: True # 是否允许浏览器保存数据（登录状态/游戏本地数据）
-browser_scale_factor: 1.0 # 浏览器的缩放比，如果云游戏画面过小/过大，可调整这个选项
-browser_launch_argument: [] # 浏览器启动的额外参数，如 "--auto-open-devtools-for-tabs"
-browser_debug_port: 9222 # 浏览器 Debug 端口，应确保该端口不被占用
-browser_download_use_mirror: True # 是否使用镜像下载浏览器和驱动
-browser_mirror_urls:
-  chrome: https://registry.npmmirror.com/-/binary/chrome-for-testing/
-  chromedriver: https://registry.npmmirror.com/-/binary/chrome-for-testing/
-  edgedriver: https://registry.npmmirror.com/-/binary/edgedriver/
-
-# 副本设置
-# 体力计划列表，每项包含副本类型、副本名称和剩余次数，例如：[["拟造花萼（金）", "回忆之蕾", 10], ["侵蚀隧洞", "睿治之径", 5]]
 power_enable: true # 是否启用清体力总开关。false 时完整运行和“日常”中的历战余响与清体力都会跳过，但单独执行“清体力”任务不受影响。
 power_plan: []
 power_plan_keep: false # 是否在执行后保留整份体力计划。true 保留，false 按剩余次数更新并删除已完成计划。
@@ -228,7 +193,7 @@ weekly_divergent_type: cycle # 积分奖励时执行的差分宇宙模式，可�
 weekly_divergent_level: 5 # 执行差分宇宙时的难度等级，取值范围 1-6，数值越大难度越高，其中难度 6 对应常规演算星阶模式。
 weekly_divergent_timestamp: 0 # 上次检测到完成差分宇宙积分奖励的时间戳，用于记录和控制运行频率。
 weekly_divergent_bonus_enable: false # 在领取积分奖励后自动执行饰品提取消耗沉浸器。true 开启，false 关闭。
-weekly_divergent_stable_mode: false # 是否启用差分宇宙低性能兼容模式，建议仅在低性能设备开启，可以提高事件和随意门交互的成功率（云游戏强制使用此模式）。true 开启，false 关闭。
+weekly_divergent_stable_mode: false # 是否启用差分宇宙低性能兼容模式，建议仅在低性能设备开启，可以提高事件和随意门交互的成功率。true 开启，false 关闭。
 divergent_auto_save_enable: true # 探索成功后自动保存到第一个空存档位；没有空位时跳过。true 开启，false 关闭。
 
 # 差分宇宙站点优先级配置
@@ -245,43 +210,10 @@ divergent_station_priority:
   财富: 3
 divergent_station_disabled: [] # 禁用的站点列表，在有重抽次数时会尝试重抽避开这些站点
 
-universe_enable: false # 是否启用模拟宇宙功能。true 开启，false 关闭。
-universe_operation_mode: exe # 模拟宇宙运行方式，可选 "源码"（source）或 "集成"（exe）。
-universe_category: divergent # 模拟宇宙类型，可选 "差分宇宙"（divergent）或 "模拟宇宙"（universe）。
-universe_enable_gpu: false # 是否启用 GPU 加速。开启后可能提升运行速度，若出现错误、异常或不稳定，请关闭此选项。
-universe_bonus_enable: false # 类别为“模拟宇宙”时，自动领取沉浸奖励。类别为“差分宇宙”时，在领取积分奖励后自动执行饰品提取消耗沉浸器。true 开启，false 关闭。
-universe_frequency: weekly # 模拟宇宙运行频率，可选 "每周"（weekly）或 "每天"（daily）。
-universe_count: 34 # 模拟宇宙运行次数，设置每次启动时尝试运行的次数。
-universe_path: .\3rdparty\Auto_Simulated_Universe # 模拟宇宙路径，指向模拟宇宙脚本或程序的位置。
-universe_timeout: 20 # 模拟宇宙超时时间（单位：小时），设置脚本或程序的最长运行时间。
-universe_requirements: false # 是否已安装模拟宇宙依赖。true 表示已安装，false 表示未安装或需要重新安装。
-universe_timestamp: 0 # 上次运行模拟宇宙的时间戳，用于记录和控制运行频率。
 divergent_universe_daily_completed_count: 0 # 当日成功通关差分宇宙的次数，任何方式运行并成功通关都会记录此值。
 divergent_universe_daily_completed_timestamp: 0 # 上次更新差分宇宙每日计数的时间戳，用于在次日刷新后自动重置次数。
 divergent_universe_weekly_completed_count: 0 # 当周成功通关差分宇宙的次数，任何方式运行并成功通关都会记录此值。
 divergent_universe_weekly_completed_timestamp: 0 # 上次更新差分宇宙每周计数的时间戳，用于在周刷新后自动重置次数。
-divergent_type: normal # 差分宇宙模式，可选值："normal"（常规演算）或 "cycle"（周期演算）。
-divergent_team_type: 终结技 # 差分宇宙队伍类型，可选值：追击/dot/终结技/击破/盾反
-universe_fate: 不配置 # 模拟宇宙使用的命途
-universe_difficulty: 0 # 模拟宇宙使用的难度
-
-# 锄大地配置
-fight_enable: false # 是否启用锄大地功能。true 开启，false 关闭。
-fight_operation_mode: exe # 锄大地运行方式，可选 "源码"（source）或 "集成"（exe）。
-fight_path: .\3rdparty\Fhoe-Rail # 锄大地路径，指向锄大地脚本或程序的位置。
-fight_timeout: 12 # 锄大地超时时间（单位：小时），设置脚本或程序的最长运行时间。
-fight_team_enable: false # 是否在锄大地时自动切换队伍。true 开启，false 关闭。
-fight_team_number: "7" # 自动切换到的队伍编号。
-fight_requirements: false # 是否已安装锄大地依赖。true 表示已安装，false 表示未安装或需要重新安装。
-fight_timestamp: 0 # 上次运行锄大地的时间戳，用于记录和控制运行频率。
-fight_allow_map_buy: 不配置 # 每周获得特殊物品：购买代币与过期邮包
-fight_allow_snack_buy: 不配置 # 每日获得特殊物品：购买秘技零食并合成零食
-fight_allow_memory_token: 不配置 # 每周获得特殊物品：获得翁法罗斯记忆代币
-fight_reward_enable: false # 是否启用「特殊物品领取」。true 开启，false 关闭；关闭时不向锄大地写入上面三项。
-fight_main_map: "0" # 优先星球 {"空间站": "1", "雅利洛": "2", "仙舟": "3", "匹诺康尼": "4", "翁法罗斯": "5"}, "不配置": "0"
-fight_map_version: 不配置 # 地图版本，可选值：不配置、default（默认，疾跑）、HuangQuan（黄泉专用）或 reward（获得特殊物品）
-
-# Genshin_StarRail_fps_unlocker 配置
 genshin_starRail_fps_unlocker_allow: false
 genshin_starRail_fps_unlocker_path: .\3rdparty\Genshin_StarRail_fps_unlocker
 
@@ -475,21 +407,11 @@ window_height: 640 # 窗口高度
 window_x: null # 窗口左上角 X 坐标
 window_y: null # 窗口左上角 Y 坐标
 window_maximized: false # 窗口是否最大化
+disclaimer_accepted: false # 是否已在图形界面确认免责声明。首次使用前必须确认。
 banner_path: ./assets/app/images/bg37.jpg # 背景图片路径
 
-# 更新配置
 redemption_code: [] # 兑换码列表
 already_used_codes: [] # 已使用兑换码列表
-update_prerelease_enable: false # 是否加入预览版更新渠道。true 加入，false 不加入。
-update_full_enable: true # 更新时是否下载完整包。true 下载，false 不下载。
-auto_update: false
-
-update_source: GitHub # 更新源，可选值："GitHub"（海外源）, "MirrorChyan"（Mirror 酱）
-mirrorchyan_cdk: "" # MirrorChyan CDK
-update_download_proxy: "" # 更新下载代理，留空则使用系统代理。支持 http://127.0.0.1:7890 和 socks5://127.0.0.1:1080，仅在下载更新文件时生效，且优先于系统代理。
-
-# 消息推送配置
-# 消息推送格式配置
 notify_template:
   Title: 三月七小助手|･ω･)
   TestMessage: "这是一条测试消息"
@@ -523,190 +445,3 @@ notify_send_images: true # 是否在推送消息时发送图片。true 发送，
 
 # Windows 原生通知
 notify_winotify_enable: true # 是否启用 Windows 原生通知。true 开启，false 关闭。
-
-# Telegram 通知配置
-# 支持发送截图，依赖科学上网环境
-notify_telegram_enable: false # 是否启用 Telegram 通知。true 开启，false 关闭。
-notify_telegram_token: "" # Telegram bot 的 token。
-notify_telegram_userid: "" # 接收通知的用户或群组 ID。
-notify_telegram_api_url: "" # 可选参数，Telegram API 的自定义URL，默认为空。
-notify_telegram_proxies: "" # 可选参数，请求 Telegram API 是否使用代理。默认为空(使用系统PAC或不使用)。例如："127.0.0.1:10808", "socks5://127.0.0.1:1080/" 。
-notify_telegram_thread_id: "" # 可选参数，Telegram Topics 群组的 message_thread_id，不填则不使用。
-
-notify_matrix_enable: false # 是否启用 Matrix 通知。true 开启，false 关闭。
-notify_matrix_homeserver: "" # 服务器的地址 例如官方地址 https://matrix.org
-notify_matrix_device_id: "" # 一个十位大写字母或数字组成的设备ID，登录后由服务器分发 例如： 01234ABCDE
-notify_matrix_user_id: "" # 用户ID 例如：@user_id:matrix.org
-notify_matrix_access_token: "" # access_token，登录后由服务器分发，例如 syt_abcdefghijk_lmNOPQRSTUVWXYZ_123Ab4
-notify_matrix_room_id: "" # 消息发到哪个房间， 例如: !abcdefGHIJKlmnoPQRST:matrix.org
-notify_matrix_proxy: "" # 代理，例如 socks5://127.0.0.1:1080 ，不填则用系统PAC代理
-notify_matrix_separately_text_media: true # 分开发送文字和媒体（图片），如果你使用FluffyChat可能不显示Caption，可以设置为True避免不显示文字。
-
-# Server酱·Turbo版通知配置
-# 微信推送，适合小白，免费版每天限制五条
-# https://sct.ftqq.com/
-notify_serverchanturbo_enable: false # 是否启用 Server酱·Turbo 版通知。true 开启，false 关闭。
-notify_serverchanturbo_sctkey: "" # Server酱·Turbo 版的 SendKey。
-notify_serverchanturbo_channel: "" # 可选参数
-notify_serverchanturbo_openid: "" # 可选参数
-
-# Server酱·3版通知配置
-# Server酱的APP推送
-# https://sc3.ft07.com/
-notify_serverchan3_enable: false # 是否启用 Server酱·3 版通知。true 开启，false 关闭。
-notify_serverchan3_sendkey: "" # Server酱·3 版的 SendKey。
-
-# Bark 通知配置
-# 推荐 iOS 用户使用，直接在 App Store 下载安装
-notify_bark_enable: false # 是否启用 Bark 通知。true 开启，false 关闭。
-notify_bark_key: ""
-notify_bark_group: "March7thAssistant" # 可选参数，Bark 通知的分组名。
-notify_bark_icon: "https://cdn.jsdelivr.net/gh/moesnow/March7thAssistant@main/assets/screenshot/March7th.png" # 可选参数，Bark 通知的图标 URL。
-notify_bark_isarchive: "1" # 可选参数，Bark 通知是否归档。
-notify_bark_sound: "" # 可选参数
-notify_bark_url: "" # 可选参数，通知点击后跳转的 URL。
-notify_bark_base_url: "" # 可选参数，自定义 Bark 服务的 URL。
-notify_bark_copy: "" # 可选参数
-notify_bark_autocopy: "" # 可选参数
-notify_bark_cipherkey: "" # 可选参数，推送加密密钥，用于保护推送内容。需先在 Bark APP 中配置相同的密钥。
-notify_bark_ciphermethod: "" # 可选参数，加密算法，可选值：cbc, ecb。需与 Bark APP 中配置的算法一致。
-
-# SMTP 邮箱通知配置
-# 支持发送截图，注意部分邮箱密码部分需要填写授权码（比如 QQ邮箱）
-notify_smtp_enable: false # 是否启用 SMTP 邮箱通知。true 开启，false 关闭。
-notify_smtp_host: "" # SMTP 服务器地址。
-notify_smtp_user: "" # SMTP 用户名/邮箱。
-notify_smtp_password: "" # SMTP 密码或授权码。
-notify_smtp_From: "" # 发件人邮箱，默认为 smtp_user。
-notify_smtp_To: "" # 收件人邮箱，默认为 smtp_user。
-notify_smtp_port: "" # SMTP 服务器端口，默认为 465。
-notify_smtp_ssl: true # 是否使用 SSL 连接 SMTP 服务器。默认为 True，可设置为 False 关闭。
-notify_smtp_starttls: false # 是否使用 SSL 连接 SMTP 服务器。默认为 False，可设置为 True 关闭。
-notify_smtp_ssl_unverified: false # 是否使用不经验证的 SSL 连接。默认为 False，可设置为 True 关闭。除非您使用自签名邮箱,否则不推荐启用。
-notify_smtp_plain_text: false # 是否以纯文本格式发送邮件。默认为 False（发送 HTML 格式）。true 开启后将以纯文本发送，适用于 Outlook 等将 HTML 邮件作为附件处理的邮箱。
-
-# OneBot 通知配置（QQ 机器人）
-# 已测试 NapCatQQ(https://github.com/NapNeko/NapCatQQ) 和 OpenShamrock(https://github.com/whitechi73/OpenShamrock) 可用
-# 支持发送截图
-notify_onebot_enable: false # 是否启用 OneBot 通知。true 开启，false 关闭。
-notify_onebot_endpoint: "" # OneBot 的服务端点 URL，例如 http://127.0.0.1:3000
-notify_onebot_token: "" # 可选参数，验证请求的 Access Token。
-notify_onebot_user_id: "" # 可选参数，私聊消息的接收用户 ID。
-notify_onebot_group_id: "" # 可选参数，群消息的接收群组 ID。
-
-# QQ 官方机器人通知配置（QQ 开放平台）
-# 仅需 AppID + AppSecret，无需部署 NapCat / Lagrange 等 OneBot 协议端，无封号风险
-# 支持发送截图（官方分片上传）
-# openid / group_openid 无法通过接口查询，可在软件内「自动绑定收件标识」，或从机器人收到的事件（如私聊、@ 机器人、机器人入群）中获取
-notify_qqbot_enable: false # 是否启用 QQ 官方机器人通知。true 开启，false 关闭。
-notify_qqbot_appid: "" # QQ 开放平台的机器人 AppID（纯数字时建议加引号填写）。
-notify_qqbot_client_secret: "" # QQ 开放平台的机器人 AppSecret（敏感凭证，请勿泄露；建议加引号填写）。
-notify_qqbot_openid: "" # 可选参数，单聊消息的接收用户 openid。
-notify_qqbot_group_openid: "" # 可选参数，群聊消息的接收群 group_openid。
-
-# Go-cqhttp 通知配置（已停止维护）
-# 支持发送截图
-# https://github.com/Mrs4s/go-cqhttp
-notify_gocqhttp_enable: false # 是否启用 Go-cqhttp 通知。true 开启，false 关闭。
-notify_gocqhttp_endpoint: "" # Go-cqhttp 的服务端点 URL。
-notify_gocqhttp_message_type: "" # 消息类型，填写 "private"（私聊消息）或 "group"（群消息）。
-notify_gocqhttp_token: "" # 可选参数，验证请求的 Access Token。
-notify_gocqhttp_user_id: "" # 可选参数，私聊消息的接收用户 ID。
-notify_gocqhttp_group_id: "" # 可选参数，群消息的接收群组 ID。
-
-# 钉钉通知配置
-notify_dingtalk_enable: false # 是否启用钉钉通知。true 开启，false 关闭。
-notify_dingtalk_token: "" # 钉钉机器人的 Access Token。
-notify_dingtalk_secret: "" # 可选参数，钉钉机器人的安全设置中的加签密钥。
-
-# Pushplus 通知配置
-notify_pushplus_enable: false # 是否启用 Pushplus 通知。true 开启，false 关闭。
-notify_pushplus_token: "" # Pushplus 的 Token。
-notify_pushplus_channel: "" # 可选参数，Pushplus 的通知渠道。
-notify_pushplus_webhook: "" # 可选参数，Pushplus 的 Webhook URL。
-notify_pushplus_callbackUrl: "" # 可选参数，Pushplus 的回调 URL。
-
-# Qmsg 通知配置
-notify_qmsg_enable: false # 是否启用 Qmsg 通知。true 开启，false 关闭。
-notify_qmsg_key: "" # Qmsg 酱的 Key。
-notify_qmsg_qq: "" # 可选参数，指定接收通知的 QQ 号，不填则发送到该 Key 绑定的默认 QQ。
-notify_qmsg_mode: "" # 可选参数，发送模式，例如 send（默认）或 group。
-
-# 企业微信应用通知配置
-# 支持发送截图
-notify_wechatworkapp_enable: false # 是否启用企业微信应用通知。true 开启，false 关闭。
-notify_wechatworkapp_corpid: "" # 企业微信的企业ID。
-notify_wechatworkapp_corpsecret: "" # 企业微信应用的密钥。
-notify_wechatworkapp_agentid: "" # 企业微信应用的AgentId。
-notify_wechatworkapp_touser: "" # 可选参数，企业微信应用通知的目标用户，"@all" 表示发送给所有人。
-notify_wechatworkapp_base_url: "" # 可选参数，自定义企业微信 API 地址，用于反向代理绕过可信 IP 限制。
-
-# 企业微信机器人通知配置
-notify_wechatworkbot_enable: false # 是否启用企业微信机器人通知。true 开启，false 关闭。
-notify_wechatworkbot_key: "" # 企业微信机器人的 Key。
-notify_wechatworkbot_webhook_url: "" # 可选参数，企业微信机器人的 Webhook URL。
-
-# Gotify 通知配置
-notify_gotify_enable: false # 是否启用 Gotify 通知。true 开启，false 关闭。
-notify_gotify_url: "" # Gotify 服务器的 URL。
-notify_gotify_token: "" # Gotify 应用的 Access Token。
-notify_gotify_priority: 3 # 可选参数，通知优先级，范围从 1 到 10，越高优先级越高。以安卓为例，1-3 仅有通知栏图标，4-7 为图标+声音， 8-10 为图标+声音+震动。
-
-# Discord 通知配置
-notify_discord_enable: false # 是否启用 Discord 通知。true 开启，false 关闭。
-notify_discord_webhook: "" # Discord 通知的 Webhook URL。
-notify_discord_username: "" # 可选参数，自定义 Discord 通知的用户名。
-notify_discord_avatar_url: "" # 可选参数，自定义 Discord 通知的用户头像 URL。
-notify_discord_color: "" # 可选参数，Discord 通知嵌入消息的颜色。
-
-# Pushdeer 通知配置
-notify_pushdeer_enable: false # 是否启用 Pushdeer 通知。true 开启，false 关闭。
-notify_pushdeer_token: "" # Pushdeer 的 Token。
-notify_pushdeer_url: "" # 可选参数，自定义 Pushdeer 服务的 URL。
-
-# 飞书通知配置
-notify_lark_enable: false # 是否启用飞书通知。true 开启，false 关闭。
-notify_lark_webhook: "" # 飞书通知的 Webhook URL。
-notify_lark_content: "" # 飞书通知的内容。
-notify_lark_keyword: "" # 可选参数，如果设置了关键词安全设置，此处填写关键词，如无关键词请设置为空。
-notify_lark_sign: "" # 可选参数，如果设置了签名安全设置，此处填写签名。
-notify_lark_imageenable: false # 是否启用图片信息发送，true 开启，false 关闭，默认为关闭
-notify_lark_appid: "" # 如启用图片信息发送，则必填，需自建飞书应用获取，详见https://open.feishu.cn/document/server-docs/api-call-guide/terminology
-notify_lark_secret: "" # 同上，需自建飞书应用获取，详见https://open.feishu.cn/document/server-docs/api-call-guide/terminology
-
-# KOOK 通知配置
-# 支持发送截图，无需上线机器人，仅通过HTTP请求即可推送消息
-# https://developer.kookapp.cn/doc/intro
-notify_kook_enable: false # 是否启用 KOOK 通知。true 开启，false 关闭。
-notify_kook_token: "" # KOOK 机器人的 Token。
-notify_kook_target_id: "" # 接收消息的目标ID（用户ID或频道ID）。
-notify_kook_chat_type: "1" # 可选参数，消息类型，"1" 表示私聊，"9" 表示频道聊天，默认为 "1"。
-
-# MeoW 配置
-notify_meow_enable: false
-notify_meow_nickname: ""
-
-# Webhook 通知配置
-# 支持发送截图，支持自定义HTTP请求方法、Headers和Body
-# 如果不配置 notify_webhook_method、notify_webhook_headers、notify_webhook_body，则默认使用POST方法发送JSON格式数据 {title, content}
-notify_webhook_enable: false # 是否启用 Webhook 通知。true 开启，false 关闭。
-notify_webhook_url: "" # Webhook 接收地址，例如 http://localhost:8080/notify
-notify_webhook_method: "" # 可选参数，HTTP请求方法，支持 GET/POST/PUT/DELETE 等，默认为 POST
-notify_webhook_headers: "" # 可选参数，自定义HTTP Headers，JSON格式字符串，例如 {"Authorization": "Bearer token", "Custom-Header": "value"}。如果body为字符串且需要特定Content-Type，请明确指定。
-notify_webhook_body: "" # 可选参数，自定义请求体模板，JSON格式或字符串。支持占位符 {title}、{content}、{image}（Base64编码）。例如 {"msg": "{title}: {content}", "img": "{image}"}
-
-# 自定义通知配置
-# 支持发送截图
-notify_custom_enable: false # 是否启用自定义通知。true 开启，false 关闭。
-notify_custom_url: "" # onebot 请输入包含 api 的网址,如 http://localhost:3000/send_msg
-notify_custom_method: "" # 请求类型 [get/post], onebot 请输入 post
-notify_custom_datatype: "" # 数据类型 [data/json], onebot 请输入 json,默认 data
-# image项如果非空,请确保 data 项为 json 对象,并在最外层拥有一个 message 数组, json类型时 {image} 将会替换为 base64 数据
-notify_custom_image: "" #可选参数, 图片将转换为 base64 格式, onebot请参考 {type: image, data: {file: 'base64://{image}'}}
-# 如果 datatype 为 json,请确保 data 为准确的 json 格式,如果 datatype 为 data 则直接输出, json类型时 {message} 将会替换为 title+"\n"+content
-notify_custom_data: "" #onebot 请参考{user_id: 114514, message_type: private, message: [{type: text,data: {text: '{message}'}}]}
-
-# 遥测配置
-telemetry_enable: true # 是否启用匿名使用数据收集，帮助改进程序。true 开启，false 关闭。
-telemetry_id: "" # 自动生成的匿名标识符，无需手动修改。
-telemetry_secret: "" # 自动生成的签名密钥，无需手动修改。

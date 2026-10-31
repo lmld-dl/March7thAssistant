@@ -37,8 +37,6 @@ scheduled_tasks:
 
 - 只有图形界面运行时（包括最小化到托盘）定时任务才会触发；提醒用户保持图形界面运行，或开启开机自启（图形界面「设置 → 杂项」）。
 - 新增时保留已有项与它们的 `id`；`scheduled_on_conflict` 决定触发时已有任务在运行怎么办（`skip` 跳过 / `stop` 停止正在运行的任务）。
-- 流程也可以定时：在图形界面的定时任务里选择流程更稳妥（会写入流程名称等字段）。
-
 ## 完成后操作
 
 `after_finish`：`None`、`Exit`、`Loop`（循环运行，按 `loop_mode` 等待下一轮）、`Shutdown`、`Sleep`、`Hibernate`、`Restart`、`Logoff`、`TurnOffDisplay`、`RunScript`。
@@ -46,21 +44,11 @@ scheduled_tasks:
 
 ## 消息推送
 
-- 总开关 `notification_enable`，各渠道 `notify_<渠道>_enable`（如 `notify_wechatworkbot_enable`、`notify_bark_enable`），渠道参数紧挨在开关下面。
-- 令牌、密钥、Webhook 地址属于敏感信息：不要在对话里显示或复述；需要填写时让用户在图形界面「设置 → 消息推送」中输入。
-- 测试推送：`.\m7a.exe notify`。
+- 精简客户端只保留 Windows 原生通知：总开关 `notification_enable`，开关 `notify_winotify_enable`。
+- 图形界面「设置 → 推送」里可以发送一条测试通知。
 
-## 云游戏
-
-`cloud_game_enable: true` 使用云·星穹铁道（无需本地安装游戏），相关参数以 `cloud_game_` 开头；首次使用需要用户在打开的浏览器里登录。
-
-## 日常、周常与外部工具
+## 日常与周常
 
 - 每日实训、奖励领取、活动等开关分别在「日常任务设置」「奖励领取设置」「活动设置」几段（`daily_*`、`reward_*`、`activity_*`）。
-- 差分宇宙 `weekly_divergent_*` / `divergent_*`，货币战争 `currencywars_*`，模拟宇宙 `universe_*`，锄大地 `fight_*`。
-  模拟宇宙与锄大地调用外部开源工具，首次使用可能需要在图形界面中下载或更新。
-
-## 流程编排
-
-流程保存在 `config/workflows/<目录>/workflow.yaml`，说明见 `assets/docs/Workflow.md`。
-包含图片识别、截图模板的步骤建议在图形界面「流程编排」里创建；运行已有流程用 `.\m7a.exe --workflow-name "名称"`。
+- 差分宇宙 `weekly_divergent_*` / `divergent_*`，货币战争 `currencywars_*`，历战余响 `echo_of_war_*`。
+- 游戏本体更新用任务 `game_update` / `game_pre_download`（通过启动器），不是小助手自更新。

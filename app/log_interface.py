@@ -1193,16 +1193,17 @@ class LogInterface(ScrollArea):
 
         # 如果传入的是任务字典，则作为外部/自定义任务处理
         if isinstance(command_or_task, dict):
-            # workflow 运行于 main.py 进程内支持暂停；外部/自定义程序不支持
+            # 外部/自定义程序不支持暂停；本体任务在 _startTask 里按白名单判断
             self._pause_supported = self._resolvePauseSupport(command_or_task)
             task = command_or_task
             if not task.get('id') and self._pending_task_meta is None:
                 self._active_task_chain = []
             program = str(task.get('program', '')).strip()
             args = str(task.get('args', '') or '')
-            workflow_launch = program.lower() == 'workflow'
-            if workflow_launch:
-                program, args = self._resolveWorkflowLaunch(task)
+            if program.lower() == 'workflow':
+                self.clearLog()
+                self.appendLog("流程编排已从精简客户端移除，该任务未执行\n")
+                return
             timeout = int(task.get('timeout', 0) or 0)
             if program.lower() == 'self':
                 self._startTask(args, timeout)
@@ -1234,7 +1235,7 @@ class LogInterface(ScrollArea):
             env.insert("PYTHONUNBUFFERED", "1")
             # 与 _startTask 分支保持一致写 "true"（is_gui_started() 宽容接受 "true"/"1"）
             env.insert("MARCH7TH_GUI_STARTED", "true")
-            # 支持暂停的目标（workflow）：注入暂停控制文件路径并清理陈旧状态
+            # 支持暂停的目标：注入暂停控制文件路径并清理陈旧状态
             if self._pause_supported:
                 self._injectPauseControlEnv(env)
             # 避免将当前进程的 Qt 环境变量传给子进程（会造成 "no qt platform plugin could be initialized" 错误）
@@ -1249,7 +1250,7 @@ class LogInterface(ScrollArea):
 
             # 参数拆分
             try:
-                args_list = split_task_arguments(args, posix=workflow_launch or self._pause_supported)
+                args_list = split_task_arguments(args, posix=self._pause_supported)
             except Exception:
                 args_list = [args] if args else []
 
@@ -1627,45 +1628,17 @@ class LogInterface(ScrollArea):
     # ---------- 任务暂停/继续 ----------
 
     @staticmethod
-    def _resolveWorkflowLaunch(task):
-        """把 workflow 标记形态（program='workflow'）解析为实际启动命令（唯一的解析收口点）。
-
-        支持 workflow_name / workflow_step_path 字段（经 module.workflow.build_workflow_task 构造）；
-        兼容旧数据：workflow_name 缺失时回退读取 args，无 step_path 则运行整个流程。
-        """
-        args = str(task.get('args', '') or '')
-        workflow_name = str(task.get('workflow_name') or args).strip()
-        command = ['--workflow-name', workflow_name]
-        step_path = task.get('workflow_step_path')
-        if step_path not in (None, ''):
-            command.extend(['--workflow-step-path', str(step_path)])
-        if getattr(sys, 'frozen', False):
-            program = os.path.abspath('./March7th Assistant.exe')
-            return program, shlex.join(command)
-        program = sys.executable
-        return program, shlex.join([os.path.abspath('main.py'), *command])
-
-    @staticmethod
     def _resolvePauseSupport(command_or_task):
         """判断启动目标是否支持暂停。
 
         - 内置任务：按 utils.tasks.PAUSABLE_TASKS 白名单；
-        - workflow：运行于 main.py 进程内、走同一套动作卡点，支持。
-          覆盖两种启动形态：定时任务的 program='workflow' 标记，以及流程编排
-          直接给出可执行文件 + `--workflow-name` 参数；
-        - 外部/自定义程序（BetterGI 等独立进程）：不支持。
+        - 外部/自定义程序：不支持。
         """
         if isinstance(command_or_task, dict):
             program = str(command_or_task.get('program', '')).strip().lower()
-            if program == 'workflow':
-                return True
-            args_text = str(command_or_task.get('args', '') or '')
-            try:
-                args_tokens = shlex.split(args_text) if args_text else []
-            except Exception:
-                args_tokens = args_text.split()
-            # legacy fallback：兼容手写 --workflow-name 的自定义任务/历史启动形态
-            return '--workflow-name' in args_tokens
+            if program == 'self':
+                return str(command_or_task.get('args', '') or '').strip() in PAUSABLE_TASKS
+            return False
         return str(command_or_task) in PAUSABLE_TASKS
 
     def _pauseControlPath(self):

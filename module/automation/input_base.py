@@ -4,8 +4,7 @@ import sys
 
 def background_enabled(config):
     return (sys.platform == 'win32'
-            and config.get_value('local_control_mode', 'foreground') == 'background'
-            and not config.get_value('cloud_game_enable', False))
+            and config.get_value('local_control_mode', 'foreground') == 'background')
 
 
 class InputBase(ABC):

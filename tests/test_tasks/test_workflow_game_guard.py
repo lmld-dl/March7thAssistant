@@ -64,30 +64,3 @@ class TestEnsureGameReady:
         assert game.ensure_game_ready() is True
         assert calls == ['is_game_running', 'switch_to_game']
         assert log_stub.errors == []
-
-
-class TestRunWorkflowActionGuardsGame:
-    """main.py 无法安全导入（模块级 parse_args/提权），用源码结构断言守卫存在且在最前。"""
-
-    def _workflow_action_source(self):
-        source = (Path(__file__).resolve().parents[2] / 'main.py').read_text(encoding='utf-8')
-        start = source.index('def run_workflow_action')
-        end = source.index('\ndef ', start + 1)
-        return source[start:end]
-
-    def test_guard_present(self):
-        assert 'ensure_game_ready' in self._workflow_action_source()
-
-    def test_guard_precedes_workflow_execution(self):
-        body = self._workflow_action_source()
-        assert body.index('ensure_game_ready') < body.index('WorkflowRunner')
-
-    def test_user_input_validated_before_game_check(self):
-        # 名称/步骤路径写错时不需要游戏在运行就能得到反馈
-        body = self._workflow_action_source()
-        assert body.index('ValueError') < body.index('ensure_game_ready')
-        assert 'describe_available_workflows' in body
-
-    def test_guard_failure_exits_nonzero(self):
-        body = self._workflow_action_source()
-        assert 'sys.exit(1)' in body

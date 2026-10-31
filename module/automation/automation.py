@@ -82,9 +82,6 @@ class Automation(metaclass=SingletonMeta):
             return False
         if not bool(cfg.get_value('debug_mode_enable', False)):
             return False
-        # 云游戏无窗口模式下没有可见画面，无需显示叠加层
-        if cfg.get_value('cloud_game_enable', False) and cfg.get_value('browser_headless_enable', False):
-            return False
         return True
 
     def _ensure_debug_overlay(self):

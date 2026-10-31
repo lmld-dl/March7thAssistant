@@ -14,23 +14,23 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: tools.i18n\n"
 
-#: app/main_window.py:336
+#: app/main_window.py:328
 msgid "设置"
 msgstr "Settings"
 
-#: app/main_window.py:297
+#: app/main_window.py:290
 msgid "主页"
 msgstr "Home"
 
-#: app/help_interface.py:34
+#: app/help_interface.py:33
 msgid "帮助"
 msgstr "Help"
 
-#: app/help_interface.py:218
+#: app/help_interface.py:200
 msgid "使用教程"
 msgstr "Usage Guide"
 
-#: app/help_interface.py:220
+#: app/help_interface.py:201
 msgid "常见问题"
 msgstr "FAQ"
 
@@ -38,19 +38,19 @@ msgstr "FAQ"
 msgid "更新日志"
 msgstr "Changelog"
 
-#: app/main_window.py:300
+#: app/main_window.py:293
 msgid "抽卡记录"
 msgstr "Warp"
 
-#: app/main_window.py:301
+#: app/main_window.py:294
 msgid "工具箱"
 msgstr "Toolbox"
 
-#: app/main_window.py:306
+#: app/main_window.py:298
 msgid "启动游戏"
 msgstr "Launch"
 
-#: app/main_window.py:310
+#: app/main_window.py:302
 msgid "日志"
 msgstr "Log"
 
@@ -62,7 +62,7 @@ msgstr "Task Log"
 msgid "等待任务..."
 msgstr "Waiting for task..."
 
-#: app/log_interface.py:1809
+#: app/log_interface.py:1782
 msgid "清空日志"
 msgstr "Clear Log"
 
@@ -73,71 +73,69 @@ msgstr "Configure Scheduled Tasks"
 msgid "尚未配置定时任务"
 msgstr "No scheduled tasks configured"
 
-#: app/log_interface.py:2357
+#: app/log_interface.py:2330
 msgid "任务完成"
 msgstr "Task Completed"
 
-#: app/log_interface.py:2360
+#: app/log_interface.py:2333
 msgid "任务已停止"
 msgstr "Task Stopped"
 
-#: app/main_window.py:326
+#: app/main_window.py:318
 msgid "赞赏"
 msgstr "Donate"
 
-#: app/setting_interface.py:2897
+#: app/setting_interface.py:1262
 msgid "体力"
 msgstr "Power"
 
-#: app/setting_interface.py:2899
+#: app/setting_interface.py:1264
 msgid "日常"
 msgstr "Daily"
 
-#: app/setting_interface.py:2900
+#: app/setting_interface.py:1265
 msgid "货币战争"
 msgstr "Currency Wars"
 
-#: app/setting_interface.py:634
+#: app/setting_interface.py:607
 msgid "差分宇宙"
 msgstr "Divergent Universe"
 
-#: app/setting_interface.py:2903
 msgid "锄大地"
 msgstr "Fhoe-Rail"
 
-#: app/setting_interface.py:869
+#: app/setting_interface.py:655
 msgid "逐光捡金"
 msgstr "Treasures Lightward"
 
-#: app/schedule_dialog.py:745
+#: app/schedule_dialog.py:688
 msgid "程序"
 msgstr "Program"
 
-#: app/setting_interface.py:2915
 msgid "云游戏"
 msgstr "Cloud Game"
 
-#: app/setting_interface.py:2916
+#: app/setting_interface.py:1276
 msgid "推送"
 msgstr "Notification"
 
-#: app/setting_interface.py:2473
+#: app/setting_interface.py:947
 msgid "杂项"
 msgstr "Misc"
 
-#: app/setting_interface.py:2922
+#: app/setting_interface.py:1282
 msgid "账号"
 msgstr "Account"
 
-#: app/setting_interface.py:2547
+#: app/setting_interface.py:1021
 msgid "关于"
 msgstr "About"
 
-#: app/setting_interface.py:212
+#: app/setting_interface.py:185
 msgid "体力设置"
 msgstr "Power Settings"
 
-#: app/setting_interface.py:216
+#: app/setting_interface.py:189
 msgid "体力计划"
 msgstr "Power Plan"
 
@@ -145,47 +143,47 @@ msgstr "Power Plan"
 msgid "配置"
 msgstr "Config"
 
-#: app/setting_interface.py:222
+#: app/setting_interface.py:195
 msgid "副本类型"
 msgstr "Dungeon Type"
 
-#: app/setting_interface.py:236
+#: app/setting_interface.py:209
 msgid "副本名称"
 msgstr "Dungeon Name"
 
-#: app/setting_interface.py:248
+#: app/setting_interface.py:221
 msgid "自动切换队伍"
 msgstr "Auto Switch Team"
 
-#: app/setting_interface.py:253
+#: app/setting_interface.py:226
 msgid "清体力前传送至任意锚点"
 msgstr "Teleport to anchor before clearing power"
 
-#: app/setting_interface.py:259
+#: app/setting_interface.py:232
 msgid "启用清体力"
 msgstr "Enable Spend Power"
 
-#: app/setting_interface.py:260
+#: app/setting_interface.py:233
 msgid "仅影响完整运行和“日常”中的历战余响与清体力，不影响单独执行“清体力”任务"
 msgstr ""
 "Only affects Echo of War and Spend Power inside Full Run and Daily. Does not"
 " affect running Spend Power as a standalone task"
 
-#: app/setting_interface.py:272
+#: app/setting_interface.py:245
 msgid "使用后备开拓力"
 msgstr "Use Reserved Trailblaze Power"
 
-#: app/setting_interface.py:273
+#: app/setting_interface.py:246
 msgid "单次上限300点，全部使用需要将“任务完成后”选项修改为“循环”，然后点击“完整运行”"
 msgstr ""
 "Max 300 power per run. To use all, change 'After Task' to 'Loop' and click "
 "'Full Run'"
 
-#: app/setting_interface.py:278
+#: app/setting_interface.py:251
 msgid "使用燃料"
 msgstr "Use Fuel"
 
-#: app/setting_interface.py:279
+#: app/setting_interface.py:252
 msgid "单次上限5个，全部使用需要将“任务完成后”选项修改为“循环”，然后点击“完整运行”"
 msgstr ""
 "Max 5 per run. To use all, change 'After Task' to 'Loop' and click 'Full "
@@ -200,326 +198,314 @@ msgstr ""
 "Auto salvage 4-star and below Relics after Cavern of Corrosion, Ornament "
 "Extraction, Echo of War, and Simulated Universe"
 
-#: app/setting_interface.py:296
+#: app/setting_interface.py:269
 msgid "体力优先合成沉浸器（建议直接通过饰品提取获取位面饰品）"
 msgstr ""
 "Prioritize power for Immersifier (Recommended to get Ornaments via "
 "Extraction)"
 
-#: app/setting_interface.py:297
+#: app/setting_interface.py:270
 msgid "达到指定上限后停止"
 msgstr "Stop after reaching limit"
 
-#: app/setting_interface.py:303
+#: app/setting_interface.py:276
 msgid "副本最大连续挑战次数（通常不建议修改保持默认即可）"
 msgstr "Max consecutive dungeon runs (Default recommended)"
 
-#: app/setting_interface.py:309
+#: app/setting_interface.py:282
 msgid "启用使用支援角色"
 msgstr "Enable Support Character"
 
-#: app/setting_interface.py:314
+#: app/setting_interface.py:287
 msgid "强制使用支援角色"
 msgstr "Force Support Character"
 
-#: app/setting_interface.py:315
+#: app/setting_interface.py:288
 msgid "无论何时都要使用支援角色，即使日常实训中的要求已经完成"
 msgstr ""
 "Always use Support Character, even if Daily Training requirement is met"
 
-#: app/setting_interface.py:321
+#: app/setting_interface.py:294
 msgid "支援列表"
 msgstr "Support List"
 
-#: app/setting_interface.py:328
+#: app/setting_interface.py:301
 msgid "滚动查找次数"
 msgstr "Scroll Search Count"
 
-#: app/setting_interface.py:334
+#: app/setting_interface.py:307
 msgid "启用培养目标"
 msgstr "Enable Cultivation Target"
 
-#: app/setting_interface.py:335
+#: app/setting_interface.py:308
 msgid "根据培养目标刷取行迹与遗器副本，如果无法获取培养目标则回退到默认的副本设置"
 msgstr ""
 "Farm Trace and Relic dungeons based on targets. Fallback to default if "
 "targets unavailable"
 
-#: app/setting_interface.py:351
+#: app/setting_interface.py:324
 msgid "每周饰品提取次数"
 msgstr "Weekly Ornament Extraction Count"
 
-#: app/setting_interface.py:352
+#: app/setting_interface.py:325
 msgid "目标有足够资源后，执行饰品提取的次数，其余时间执行侵蚀隧洞"
 msgstr ""
 "Run Ornament Extraction this many times after target has enough resources, "
 "otherwise run Cavern of Corrosion"
 
-#: app/setting_interface.py:363
+#: app/setting_interface.py:336
 msgid "启用历战余响"
 msgstr "Enable Echo of War"
 
-#: app/setting_interface.py:364
+#: app/setting_interface.py:337
 msgid "每周体力优先完成三次「历战余响」，支持配置从周几后开始执行，仅限完整运行生效"
 msgstr ""
 "Prioritize 3 Echo of War runs weekly. Configurable start day. Only effective"
 " in Full Run"
 
-#: app/setting_interface.py:369
+#: app/setting_interface.py:342
 msgid "上次完成历战余响的时间"
 msgstr "Last Echo of War completion time"
 
-#: app/setting_interface.py:398
+#: app/setting_interface.py:371
 msgid "日常设置"
 msgstr "Daily Settings"
 
-#: app/setting_interface.py:403
+#: app/setting_interface.py:376
 msgid "启用每日实训"
 msgstr "Enable Daily Training"
 
-#: app/setting_interface.py:409
+#: app/setting_interface.py:382
 msgid "通过 “合成材料” 完成任务"
 msgstr "Complete via 'Synthesize Material'"
 
-#: app/setting_interface.py:410
+#: app/setting_interface.py:383
 msgid "请确保背包中有足够的 “熄灭原核” 用于合成 “微光原核” "
 msgstr ""
 "Ensure enough 'Extinguished Core' in inventory to synthesize 'Glimmering "
 "Core'"
 
-#: app/setting_interface.py:421
+#: app/setting_interface.py:394
 msgid "通过 “回忆一” 完成任务"
 msgstr "Complete via 'Memory Stage 1'"
 
-#: app/setting_interface.py:422
+#: app/setting_interface.py:395
 msgid "请解锁混沌回忆并配置了队伍后再打开该选项"
 msgstr "Unlock Forgotten Hall and configure team before enabling"
 
-#: app/setting_interface.py:428
+#: app/setting_interface.py:401
 msgid "回忆一队伍"
 msgstr "Memory Stage 1 Team"
 
-#: app/setting_interface.py:404
+#: app/setting_interface.py:377
 msgid "上次检测到完成日常的时间"
 msgstr "Last Daily completion time"
 
-#: app/setting_interface.py:434
+#: app/setting_interface.py:407
 msgid "启用活动检测"
 msgstr "Enable Event Check"
 
-#: app/setting_interface.py:439
+#: app/setting_interface.py:412
 msgid "每日签到"
 msgstr "Daily Check-in"
 
-#: app/setting_interface.py:440
+#: app/setting_interface.py:413
 msgid "自动领取「星轨专票」或「星琼」，包含巡星之礼、巡光之礼和庆典祝礼活动"
 msgstr ""
 "Auto claim 'Star Rail Special Pass' or 'Stellar Jade' from log-in events"
 
-#: app/setting_interface.py:445
+#: app/setting_interface.py:418
 msgid "花藏繁生"
 msgstr "Garden of Plenty"
 
-#: app/setting_interface.py:446
+#: app/setting_interface.py:419
 msgid "存在双倍次数时体力优先「拟造花萼」"
 msgstr "Prioritize 'Calyx' when double rewards available"
 
-#: app/setting_interface.py:451
+#: app/setting_interface.py:424
 msgid "异器盈界"
 msgstr "Realm of the Strange"
 
-#: app/setting_interface.py:452
+#: app/setting_interface.py:425
 msgid "存在双倍次数时体力优先「侵蚀隧洞」"
 msgstr "Prioritize 'Cavern of Corrosion' when double rewards available"
 
-#: app/setting_interface.py:457
+#: app/setting_interface.py:430
 msgid "位面分裂"
 msgstr "Planar Fissure"
 
-#: app/setting_interface.py:458
+#: app/setting_interface.py:431
 msgid "存在双倍次数时体力优先「饰品提取」"
 msgstr "Prioritize 'Ornament Extraction' when double rewards available"
 
-#: app/setting_interface.py:470
+#: app/setting_interface.py:443
 msgid "启用奖励领取"
 msgstr "Enable Reward Claim"
 
-#: app/setting_interface.py:475
+#: app/setting_interface.py:448
 msgid "委托"
 msgstr "Assignments"
 
-#: app/setting_interface.py:481
+#: app/setting_interface.py:454
 msgid "邮件"
 msgstr "Mail"
 
-#: app/setting_interface.py:487
+#: app/setting_interface.py:460
 msgid "支援"
 msgstr "Support"
 
-#: app/help_interface.py:222
+#: app/help_interface.py:203
 msgid "每日实训"
 msgstr "Daily Training"
 
-#: app/setting_interface.py:499
+#: app/setting_interface.py:472
 msgid "无名勋礼"
 msgstr "Nameless Honor"
 
-#: app/setting_interface.py:505
+#: app/setting_interface.py:478
 msgid "成就"
 msgstr "Achievements"
 
-#: app/setting_interface.py:513
+#: app/setting_interface.py:486
 msgid "兑换码"
 msgstr "Redemption Code"
 
-#: app/setting_interface.py:529
+#: app/setting_interface.py:502
 msgid "启用资产管理"
 msgstr "Enable Asset Management"
 
-#: app/setting_interface.py:541
+#: app/setting_interface.py:514
 msgid "启用「每月自动合成自塑尘脂」"
 msgstr "Enable 'Monthly Auto Synthesize Self-Molding Resin'"
 
-#: app/setting_interface.py:542
+#: app/setting_interface.py:515
 msgid "每月自动尝试合成 2 个自塑尘脂，成功后记录时间，并在每月 1 号刷新"
 msgstr ""
 "Automatically try to synthesize 1 Self-Molding Resin every month, record the"
 " time after success, and reset on the 1st of each month"
 
-#: app/setting_interface.py:545
+#: app/setting_interface.py:518
 msgid "上次完成自塑尘脂合成的时间"
 msgstr "Last Self-Molding Resin synthesis time"
 
-#: app/setting_interface.py:549
+#: app/setting_interface.py:522
 msgid "星轨专票"
 msgstr "Star Rail Special Pass"
 
-#: app/setting_interface.py:557
+#: app/setting_interface.py:530
 msgid "星轨通票"
 msgstr "Star Rail Pass"
 
-#: app/setting_interface.py:565
+#: app/setting_interface.py:538
 msgid "命运的足迹"
 msgstr "Tracks of Destiny"
 
-#: app/setting_interface.py:549
+#: app/setting_interface.py:522
 msgid "启用「每月自动购买{item}」"
 msgstr "Enable 'Monthly Auto Buy {item}'"
 
-#: app/setting_interface.py:553
+#: app/setting_interface.py:526
 msgid "上次完成{item}购买的时间"
 msgstr "Last {item} purchase time"
 
-#: app/setting_interface.py:550
+#: app/setting_interface.py:523
 msgid "每月自动尝试在余烬兑换中购买「{item}」，点击最大值并确认后记录时间，并在每月 1 号刷新"
 msgstr ""
 "Automatically try to buy '{item}' from Ember Exchange every month, click Max"
 " and confirm, then record the time and refresh on the 1st of each month"
 
-#: app/setting_interface.py:535
+#: app/setting_interface.py:508
 msgid "启用「3星光锥自动叠加」"
 msgstr "Enable 'Auto Superimpose 3-star Light Cones'"
 
-#: app/setting_interface.py:536
+#: app/setting_interface.py:509
 msgid "自动将3星光锥进行叠加以节省背包空间"
 msgstr "Auto superimpose 3-star Light Cones to save inventory space"
 
-#: app/setting_interface.py:572
+#: app/setting_interface.py:545
 msgid "货币"
 msgstr "Currency"
 
-#: app/setting_interface.py:575
+#: app/setting_interface.py:548
 msgid "启用「货币战争」积分奖励"
 msgstr "Enable 'Currency Wars' Point Rewards"
 
-#: app/setting_interface.py:579
+#: app/setting_interface.py:552
 msgid "上次检测到完成货币战争积分奖励的时间"
 msgstr "Last Currency Wars reward claim time"
 
-#: app/setting_interface.py:590
+#: app/setting_interface.py:563
 msgid "类别"
 msgstr "Category"
 
-#: app/setting_interface.py:592
+#: app/setting_interface.py:565
 msgid "标准博弈"
 msgstr "Standard Game"
 
-#: app/setting_interface.py:592
+#: app/setting_interface.py:565
 msgid "超频博弈"
 msgstr "Overclocked Game"
 
-#: app/setting_interface.py:596
+#: app/setting_interface.py:569
 msgid "自动执行位面饰品快速提取"
 msgstr "Auto Quick Ornament Extraction"
 
-#: app/setting_interface.py:597
+#: app/setting_interface.py:570
 msgid "在领取积分奖励后自动执行位面饰品快速提取消耗深度沉浸器"
 msgstr ""
 "Auto Quick Ornament Extraction using Immersifiers after claiming point "
 "rewards"
 
-#: app/setting_interface.py:700
 msgid "模拟宇宙"
 msgstr "Simulated Universe"
 
-#: app/setting_interface.py:637
+#: app/setting_interface.py:610
 msgid "启用「差分宇宙」积分奖励"
 msgstr "Enable 'Divergent Universe' Point Rewards"
 
-#: app/setting_interface.py:648
+#: app/setting_interface.py:621
 msgid "常规演算"
 msgstr "Ordinary Extrapolation"
 
-#: app/setting_interface.py:648
+#: app/setting_interface.py:621
 msgid "周期演算"
 msgstr "Cyclical Extrapolation"
 
-#: app/setting_interface.py:641
+#: app/setting_interface.py:614
 msgid "上次检测到完成差分宇宙积分奖励的时间"
 msgstr "Last Divergent Universe reward claim time"
 
-#: app/setting_interface.py:685
 msgid "启用模拟宇宙/差分宇宙 (Auto_Simulated_Universe)"
 msgstr "Enable Simulated/Divergent Universe (Auto_Simulated_Universe)"
 
-#: app/setting_interface.py:686
 msgid "通常用于反复刷取遗器经验和灵之珠泪（代替敌方掉落素材）直到每周上限"
 msgstr ""
 "Used to farm Relic XP and Lost Dust (replacing enemy drops) until weekly cap"
 
-#: app/setting_interface.py:691
 msgid "运行模式"
 msgstr "Run Mode"
 
-#: app/setting_interface.py:693
 msgid "集成"
 msgstr "Integrated"
 
-#: app/setting_interface.py:693
 msgid "源码"
 msgstr "Source Code"
 
-#: app/setting_interface.py:705
 msgid "选择差分宇宙时类别"
 msgstr "Select category for Divergent Universe"
 
-#: app/setting_interface.py:713
 msgid "模拟宇宙/差分宇宙超时"
 msgstr "Simulated/Divergent Universe Timeout"
 
-#: app/setting_interface.py:714
 msgid "超过设定时间强制停止（单位小时）"
 msgstr "Force stop after set time (hours)"
 
-#: app/setting_interface.py:719
 msgid "上次运行模拟宇宙/差分宇宙的时间"
 msgstr "Last Simulated/Divergent Universe run time"
 
-#: app/setting_interface.py:731
 msgid "运行频率"
 msgstr "Run Frequency"
 
-#: app/setting_interface.py:733
 msgid "每周"
 msgstr "Weekly"
 
@@ -527,75 +513,57 @@ msgstr "Weekly"
 msgid "每天"
 msgstr "Daily"
 
-#: app/setting_interface.py:739
 msgid "运行次数"
 msgstr "Run Count"
 
-#: app/setting_interface.py:740
 msgid "注意中途停止不会计数，0 代表不指定，使用模拟宇宙原版逻辑"
 msgstr "Note: Stops mid-run don't count. 0 means unspecified (original logic)"
 
-#: app/setting_interface.py:758
 msgid "不配置"
 msgstr "Not Configured"
 
-#: app/setting_interface.py:758
 msgid "存护"
 msgstr "Preservation"
 
-#: app/setting_interface.py:758
 msgid "记忆"
 msgstr "Remembrance"
 
-#: app/setting_interface.py:758
 msgid "虚无"
 msgstr "Nihility"
 
-#: app/setting_interface.py:758
 msgid "丰饶"
 msgstr "Abundance"
 
-#: app/setting_interface.py:758
 msgid "巡猎"
 msgstr "The Hunt"
 
-#: app/setting_interface.py:758
 msgid "毁灭"
 msgstr "Destruction"
 
-#: app/setting_interface.py:758
 msgid "欢愉"
 msgstr "Elation"
 
-#: app/setting_interface.py:758
 msgid "繁育"
 msgstr "Propagation"
 
-#: app/setting_interface.py:758
 msgid "智识"
 msgstr "Erudition"
 
-#: app/setting_interface.py:763
 msgid "命途（仅模拟宇宙生效）"
 msgstr "Path (Simulated Universe only)"
 
-#: app/setting_interface.py:771
 msgid "难度 (0为不配置，仅模拟宇宙生效)"
 msgstr "Difficulty (0 for not configured, Simulated Universe only)"
 
-#: app/setting_interface.py:780
 msgid "启用锄大地 (Fhoe-Rail)"
 msgstr "Enable Fhoe-Rail"
 
-#: app/setting_interface.py:802
 msgid "锄大地超时"
 msgstr "Fhoe-Rail Timeout"
 
-#: app/setting_interface.py:781
 msgid "上次运行锄大地的时间"
 msgstr "Last Fhoe-Rail run time"
 
-#: app/setting_interface.py:849
 msgid "购买代币与过期邮包"
 msgstr "Buy Tokens and Expired Parcels"
 
@@ -603,39 +571,31 @@ msgstr "Buy Tokens and Expired Parcels"
 msgid "启用"
 msgstr "Enable"
 
-#: app/setting_interface.py:844
 msgid "停用"
 msgstr "Disable"
 
-#: app/setting_interface.py:842
 msgid "购买秘技零食并合成零食"
 msgstr "Buy Trick Snack and Synthesize"
 
-#: app/setting_interface.py:829
 msgid "优先星球"
 msgstr "Priority Planet"
 
-#: app/setting_interface.py:831
 msgid "空间站"
 msgstr "Herta Space Station"
 
-#: app/setting_interface.py:831
 msgid "雅利洛"
 msgstr "Jarilo-VI"
 
-#: app/setting_interface.py:831
 msgid "仙舟"
 msgstr "The Xianzhou Luofu"
 
-#: app/setting_interface.py:831
 msgid "匹诺康尼"
 msgstr "Penacony"
 
-#: app/setting_interface.py:831
 msgid "翁法罗斯"
 msgstr "Amphoreus"
 
-#: app/setting_interface.py:874
+#: app/setting_interface.py:660
 msgid "启用混沌回忆"
 msgstr "Enable Memory of Chaos"
 
@@ -643,212 +603,190 @@ msgstr "Enable Memory of Chaos"
 msgid "关卡范围"
 msgstr "Stage Range"
 
-#: app/setting_interface.py:892
+#: app/setting_interface.py:678
 msgid "混沌回忆队伍配置"
 msgstr "Memory of Chaos Team Config"
 
-#: app/setting_interface.py:875
+#: app/setting_interface.py:661
 msgid "上次运行混沌回忆的时间"
 msgstr "Last Memory of Chaos run time"
 
-#: app/setting_interface.py:900
+#: app/setting_interface.py:686
 msgid "启用虚构叙事"
 msgstr "Enable Pure Fiction"
 
 msgid "虚构叙事队伍配置"
 msgstr "Pure Fiction Team Config"
 
-#: app/setting_interface.py:901
+#: app/setting_interface.py:687
 msgid "上次运行虚构叙事的时间"
 msgstr "Last Pure Fiction run time"
 
-#: app/setting_interface.py:912
+#: app/setting_interface.py:698
 msgid "启用末日幻影"
 msgstr "Enable Apocalyptic Shadow"
 
-#: app/setting_interface.py:924
+#: app/setting_interface.py:710
 msgid "末日幻影队伍配置"
 msgstr "Apocalyptic Shadow Team Config"
 
-#: app/setting_interface.py:913
+#: app/setting_interface.py:699
 msgid "上次运行末日幻影的时间"
 msgstr "Last Apocalyptic Shadow run time"
 
-#: app/setting_interface.py:929
 msgid "云崩铁设置"
 msgstr "Cloud StarRail Settings"
 
-#: app/setting_interface.py:934
 msgid "使用“云·星穹铁道”"
 msgstr "Use 'Cloud StarRail'"
 
-#: app/setting_interface.py:935
 msgid "开启后，将改用云·星穹铁道来执行清体力等自动化任务。无需固定窗口，可在后台运行。（模拟宇宙和锄大地仍需保持窗口全屏）"
 msgstr ""
 "Enable to use Cloud StarRail for automation. Runs in background. (Simulated "
 "Universe and Fhoe-Rail still need full screen)"
 
-#: app/setting_interface.py:940
 msgid "全屏运行"
 msgstr "Run Fullscreen"
 
-#: app/setting_interface.py:946
 msgid "使用付费时长"
 msgstr "Use Paid Time"
 
-#: app/setting_interface.py:947
 msgid "打开后可在使用云游戏时使用付费时长免除排队"
 msgstr "Enable to use paid time for cloud gaming to skip queue"
 
-#: app/setting_interface.py:954
 msgid "最大排队等待时间（分钟）"
 msgstr "Max Queue Wait Time (Minutes)"
 
-#: app/setting_interface.py:961
 msgid "登录超时时间（分钟）"
 msgstr "Login Timeout (Minutes)"
 
-#: app/setting_interface.py:962
 msgid "等待用户完成登录的最长时间，超时后将终止运行"
 msgstr "Maximum time to wait for login. The run will stop after timeout."
 
-#: app/setting_interface.py:987
 msgid "浏览器类型"
 msgstr "Browser Type"
 
-#: app/setting_interface.py:988
 msgid "建议保持默认的“集成（Chrome For Testing）”效果最好"
 msgstr "Recommended to keep default 'Integrated (Chrome For Testing)'"
 
-#: app/setting_interface.py:989
 msgid "集成（Chrome For Testing）"
 msgstr "Integrated (Chrome For Testing)"
 
-#: app/setting_interface.py:993
 msgid "使用国内镜像下载浏览器和驱动"
 msgstr "Use CN Mirror for Browser/Driver Download"
 
-#: app/setting_interface.py:999
 msgid "保存浏览器数据（游戏的登录状态和本地数据）"
 msgstr "Save Browser Data (Login state and local data)"
 
-#: app/setting_interface.py:1006
 msgid "浏览器画面缩放（DPI）"
 msgstr "Browser Zoom (DPI)"
 
-#: app/setting_interface.py:1007
 msgid "非 1920x1080 屏幕下，云游戏画面无法铺满屏幕，可以调整这个值改变画面缩放"
 msgstr ""
 "Adjust zoom if cloud game doesn't fill screen on non-1920x1080 displays"
 
-#: app/setting_interface.py:1008
 msgid "无缩放（100%）"
 msgstr "No Zoom (100%)"
 
-#: app/setting_interface.py:1014
 msgid "浏览器启动参数"
 msgstr "Browser Launch Args"
 
-#: app/setting_interface.py:1020
 msgid "启用无窗口模式（后台运行）"
 msgstr "Enable Headless Mode (Background Run)"
 
-#: app/setting_interface.py:1021
 msgid "不支持模拟宇宙和锄大地"
 msgstr "Not supported for Simulated Universe and Fhoe-Rail"
 
-#: app/setting_interface.py:1025
 msgid "未登录时自动切换为有窗口模式"
 msgstr "Auto switch to windowed if not logged in"
 
-#: app/setting_interface.py:1026
 msgid "开启后：在无窗口模式检测到未登录时，将自动以有窗口模式重启浏览器以便登录；关闭后：将在无窗口模式下尝试二维码登录。"
 msgstr ""
 "Enabled: Reopens in windowed mode if login needed. Disabled: Tries QR login "
 "in headless mode."
 
-#: app/setting_interface.py:1036
+#: app/setting_interface.py:714
 msgid "程序设置"
 msgstr "Program Settings"
 
-#: app/setting_interface.py:1048
+#: app/setting_interface.py:726
 msgid "通过启动器更新游戏"
 msgstr "Update Game via Launcher"
 
 msgid "米哈游启动器路径"
 msgstr "HoYoPlay Path"
 
-#: app/setting_interface.py:1068
+#: app/setting_interface.py:746
 msgid "启动游戏超时时间（分）"
 msgstr "Launch Game Timeout (Min)"
 
-#: app/setting_interface.py:1075
+#: app/setting_interface.py:753
 msgid "更新游戏超时时间（时）"
 msgstr "Update Game Timeout (Hour)"
 
-#: app/setting_interface.py:1086
+#: app/setting_interface.py:764
 msgid "成功后暂停程序"
 msgstr "Pause program on success"
 
-#: app/setting_interface.py:1087
+#: app/setting_interface.py:765
 msgid "如果勾选，除非循环模式，执行成功后暂停程序。"
 msgstr "If checked, pauses program after success (except in Loop mode)."
 
-#: app/setting_interface.py:1092
+#: app/setting_interface.py:770
 msgid "失败后直接退出"
 msgstr "Exit on failure"
 
-#: app/setting_interface.py:1093
+#: app/setting_interface.py:771
 msgid "如果勾选，那么失败后直接退出，否则失败后暂停程序。"
 msgstr "If checked, exits on failure. Otherwise pauses program."
 
-#: app/setting_interface.py:1099
+#: app/setting_interface.py:777
 msgid "任务完成后"
 msgstr "After Task"
 
-#: app/setting_interface.py:1100
+#: app/setting_interface.py:778
 msgid "“退出”指退出游戏，不再建议使用循环模式，请改用日志界面的定时运行功能"
 msgstr ""
 "'Exit' means exit game. Loop mode not recommended, use Scheduled Tasks in "
 "Log interface instead."
 
-#: app/card/messagebox_custom.py:1296
+#: app/card/messagebox_custom.py:1137
 msgid "无"
 msgstr "None"
 
-#: app/log_interface.py:2283
+#: app/log_interface.py:2256
 msgid "关机"
 msgstr "Shutdown"
 
-#: app/log_interface.py:2284
+#: app/log_interface.py:2257
 msgid "睡眠"
 msgstr "Sleep"
 
-#: app/log_interface.py:2285
+#: app/log_interface.py:2258
 msgid "休眠"
 msgstr "Hibernate"
 
-#: app/log_interface.py:2286
+#: app/log_interface.py:2259
 msgid "重启"
 msgstr "Restart"
 
-#: app/log_interface.py:2287
+#: app/log_interface.py:2260
 msgid "注销"
 msgstr "Log off"
 
-#: app/log_interface.py:2288
+#: app/log_interface.py:2261
 msgid "关闭显示器"
 msgstr "Turn off Monitor"
 
-#: app/setting_interface.py:1101
+#: app/setting_interface.py:779
 msgid "运行脚本"
 msgstr "Run Script"
 
-#: app/setting_interface.py:1101
+#: app/setting_interface.py:779
 msgid "循环"
 msgstr "Loop"
 
-#: app/setting_interface.py:1106
+#: app/setting_interface.py:784
 msgid "循环模式（请改用日志界面的定时运行功能）"
 msgstr "Loop Mode (Use Scheduled Tasks instead)"
 
@@ -856,152 +794,152 @@ msgstr "Loop Mode (Use Scheduled Tasks instead)"
 msgid "定时任务"
 msgstr "Scheduled Tasks"
 
-#: app/setting_interface.py:1108
+#: app/setting_interface.py:786
 msgid "根据开拓力"
 msgstr "Based on Trailblaze Power"
 
-#: app/setting_interface.py:1113
+#: app/setting_interface.py:791
 msgid "定时任务时间"
 msgstr "Scheduled Time"
 
-#: app/setting_interface.py:1119
+#: app/setting_interface.py:797
 msgid "循环运行再次启动所需开拓力"
 msgstr "Trailblaze Power needed to restart loop"
 
-#: app/setting_interface.py:1120
+#: app/setting_interface.py:798
 msgid "游戏刷新后优先级更高"
 msgstr "Higher priority after game reset"
 
-#: app/setting_interface.py:1126
+#: app/setting_interface.py:804
 msgid "游戏刷新时间"
 msgstr "Game Reset Time"
 
-#: app/setting_interface.py:1127
+#: app/setting_interface.py:805
 msgid "用于循环运行及判断任务状态，默认凌晨四点"
 msgstr "Used for loop runs and task status, default 4 AM"
 
-#: app/setting_interface.py:1132
+#: app/setting_interface.py:810
 msgid "脚本或程序路径(选择运行脚本时生效)"
 msgstr "Script/Program Path (Effective when 'Run Script' selected)"
 
-#: app/setting_interface.py:1137
+#: app/setting_interface.py:815
 msgid "声音提示"
 msgstr "Sound Alert"
 
-#: app/setting_interface.py:1138
+#: app/setting_interface.py:816
 msgid "任务完成后列车长唱歌提示帕！"
 msgstr "Conductor sings when task complete!"
 
-#: app/setting_interface.py:1144
+#: app/setting_interface.py:822
 msgid "关闭窗口时"
 msgstr "On Close Window"
 
-#: app/setting_interface.py:1145
+#: app/setting_interface.py:823
 msgid "选择关闭窗口时的默认行为，也可以在关闭时由对话框询问"
 msgstr "Choose default behavior when closing window, or ask every time"
 
-#: app/setting_interface.py:1146
+#: app/setting_interface.py:824
 msgid "询问"
 msgstr "Ask"
 
-#: app/card/messagebox_custom.py:1343
+#: app/card/messagebox_custom.py:1184
 msgid "最小化到托盘"
 msgstr "Minimize to Tray"
 
-#: app/card/messagebox_custom.py:1344
+#: app/card/messagebox_custom.py:1185
 msgid "关闭程序"
 msgstr "Exit Program"
 
-#: app/setting_interface.py:1156
+#: app/setting_interface.py:834
 msgid "消息推送"
 msgstr "Push Notification"
 
-#: app/setting_interface.py:1166
+#: app/setting_interface.py:844
 msgid "测试消息推送"
 msgstr "Test Push Notification"
 
-#: app/setting_interface.py:1164
+#: app/setting_interface.py:842
 msgid "发送消息"
 msgstr "Send Message"
 
-#: app/setting_interface.py:1172
+#: app/setting_interface.py:850
 msgid "通知级别"
 msgstr "Notification Level"
 
-#: app/setting_interface.py:1174
+#: app/setting_interface.py:852
 msgid "推送所有通知"
 msgstr "Push All Notifications"
 
-#: app/setting_interface.py:1174
+#: app/setting_interface.py:852
 msgid "仅推送错误通知"
 msgstr "Push Error Notifications Only"
 
-#: app/setting_interface.py:1191
+#: app/setting_interface.py:869
 msgid "消息推送格式"
 msgstr "Notification Format"
 
-#: app/setting_interface.py:2476
+#: app/setting_interface.py:950
 msgid "启用自动战斗和二倍速检测"
 msgstr "Enable Auto-Battle and 2x Speed Check"
 
-#: app/setting_interface.py:2477
+#: app/setting_interface.py:951
 msgid "游戏启动前通过修改注册表或本地存储开启自动战斗和二倍速，并在清体力、货币战争和逐光捡金场景中检测并保持自动战斗状态"
 msgstr ""
 "Enables Auto-Battle/2x Speed via registry/storage before launch. "
 "Checks/maintains state during Power runs, Currency Wars, and Treasures "
 "Lightward"
 
-#: app/setting_interface.py:2483
+#: app/setting_interface.py:957
 msgid "OCR 加速模式"
 msgstr "OCR Acceleration Mode"
 
-#: app/setting_interface.py:2484
+#: app/setting_interface.py:958
 msgid "设置 OCR 引擎与加速后端。自动模式会优先尝试 DirectML，若不可用则回退到 CPU 引擎。"
 msgstr ""
 "Choose OCR engine/backend. Auto tries DirectML first, then falls back to a "
 "CPU engine if unavailable."
 
-#: app/setting_interface.py:2487
+#: app/setting_interface.py:961
 msgid "GPU"
 msgstr "GPU"
 
-#: app/setting_interface.py:2488
+#: app/setting_interface.py:962
 msgid "ONNXRuntime（DirectML）"
 msgstr "ONNXRuntime (DirectML)"
 
-#: app/setting_interface.py:2489
+#: app/setting_interface.py:963
 msgid "CPU"
 msgstr "CPU"
 
-#: app/setting_interface.py:2490
+#: app/setting_interface.py:964
 msgid "OpenVINO（CPU）"
 msgstr "OpenVINO (CPU)"
 
-#: app/setting_interface.py:2491
+#: app/setting_interface.py:965
 msgid "ONNXRuntime（CPU）"
 msgstr "ONNXRuntime (CPU)"
 
-#: app/setting_interface.py:2496
+#: app/setting_interface.py:970
 msgid "启用自动修改分辨率并关闭自动 HDR"
 msgstr "Auto Change Resolution & Disable Auto HDR"
 
-#: app/setting_interface.py:2497
+#: app/setting_interface.py:971
 msgid "通过软件启动游戏会自动修改 1920x1080 分辨率并关闭自动 HDR，不影响手动启动游戏（支持国服和国际服）"
 msgstr ""
 "Auto set 1920x1080 & disable Auto HDR when launching via app. Doesn't affect"
 " manual launch (CN & Global supported)"
 
-#: app/setting_interface.py:2502
+#: app/setting_interface.py:976
 msgid "启用自动配置游戏路径"
 msgstr "Auto Config Game Path"
 
-#: app/setting_interface.py:2503
+#: app/setting_interface.py:977
 msgid "通过快捷方式、官方启动器、运行中的游戏进程等方式尝试自动配置游戏路径（支持国服和国际服）"
 msgstr ""
 "Try auto-config game path via shortcuts, launcher, or running process (CN & "
 "Global supported)"
 
-#: app/setting_interface.py:2531
+#: app/setting_interface.py:1005
 msgid "在用户登录时启动"
 msgstr "Launch on User Login"
 
@@ -1010,63 +948,54 @@ msgstr ""
 "Auto execute Full Run on startup via Task Scheduler (may need auto-login "
 "config)"
 
-#: app/setting_interface.py:2543
+#: app/setting_interface.py:1017
 msgid "修改按键"
 msgstr "Modify Keybindings"
 
-#: app/setting_interface.py:2544
+#: app/setting_interface.py:1018
 msgid "配置秘技、地图、跃迁、停止任务等按键设置"
 msgstr "Config keys for Technique, Map, Warp, Stop Task, etc."
 
-#: app/setting_interface.py:2549
+#: app/setting_interface.py:1023
 msgid "项目主页"
 msgstr "Project Homepage"
 
-#: app/setting_interface.py:2567
+#: app/setting_interface.py:1041
 msgid "加入群聊"
 msgstr "Join Group Chat"
 
-#: app/setting_interface.py:2569
+#: app/setting_interface.py:1043
 msgid "QQ群"
 msgstr "QQ Group"
 
-#: app/setting_interface.py:2579
 msgid "检查更新"
 msgstr "Check for Updates"
 
-#: app/setting_interface.py:2582
+#: app/setting_interface.py:1056
 msgid "当前版本："
 msgstr "Current Version:"
 
-#: app/setting_interface.py:2587
 msgid "更新源"
 msgstr "Update Source"
 
-#: app/setting_interface.py:2590
 msgid "海外源"
 msgstr "Global Source"
 
-#: app/setting_interface.py:2590
 msgid "Mirror 酱"
 msgstr "Mirror Chan"
 
-#: app/setting_interface.py:2592
 msgid "正式版"
 msgstr "Stable"
 
-#: app/setting_interface.py:2592
 msgid "公测版"
 msgstr "Beta"
 
-#: app/setting_interface.py:2596
 msgid "启动时检测更新"
 msgstr "Check Update on Launch"
 
-#: app/setting_interface.py:3057
 msgid "关闭更新检测前请确认"
 msgstr "Confirm Before Disabling Update Check"
 
-#: app/setting_interface.py:3058
 msgid ""
 "仍然建议保留“启动时检测更新”。\n"
 "\n"
@@ -1084,29 +1013,25 @@ msgstr ""
 "\n"
 "Many cases that look like the app \"suddenly stopped working\" are actually caused by using an outdated version. If you understand these implications, you can continue disabling update checks."
 
-#: app/setting_interface.py:3061
 msgid "我已了解，继续关闭"
 msgstr "I Understand, Disable Anyway"
 
-#: app/setting_interface.py:2602
 msgid "更新时下载完整包"
 msgstr "Download Full Package Update"
 
-#: app/setting_interface.py:2603
 msgid "更新将包含依赖组件，建议保持开启。若关闭此选项，需自行手动更新依赖组件，可能会导致出现不可预期的错误。"
 msgstr ""
 "Update includes dependencies. Recommended to keep on. If off, manual "
 "dependency update required, may cause errors."
 
-#: app/setting_interface.py:2616
 msgid "Mirror 酱 CDK"
 msgstr "Mirror Chan CDK"
 
-#: app/main_window.py:328
+#: app/main_window.py:320
 msgid "支持作者🥰"
 msgstr "Support Author 🥰"
 
-#: app/main_window.py:329
+#: app/main_window.py:321
 msgid ""
 "此程序为免费开源项目，如果你付了钱请立刻退款\n"
 "如果喜欢本项目，可以微信赞赏送作者一杯咖啡☕\n"
@@ -1116,79 +1041,76 @@ msgstr ""
 "If you like it, consider buying the author a coffee ☕\n"
 "Your support powers development! 🚀"
 
-#: app/main_window.py:355
+#: app/main_window.py:347
 msgid "显示主界面"
 msgstr "Show Main Interface"
 
-#: app/main_window.py:360
+#: app/main_window.py:352
 msgid "完整运行"
 msgstr "Full Run"
 
-#: app/card/messagebox_custom.py:501
+#: app/card/messagebox_custom.py:342
 msgid "退出"
 msgstr "Exit"
 
-#: app/log_interface.py:1289
+#: app/log_interface.py:1290
 msgid "任务正在运行"
 msgstr "Task Running"
 
-#: app/main_window.py:457
+#: app/main_window.py:448
 msgid "请先停止当前任务后再启动新任务"
 msgstr "Please stop current task before starting new one"
 
-#: app/main_window.py:733
+#: app/main_window.py:721
 msgid "配置已更新"
 msgstr "Config Updated"
 
-#: app/main_window.py:734
+#: app/main_window.py:722
 msgid "检测到配置文件变化，已自动重新加载"
 msgstr "Config file change detected, reloaded automatically"
 
-#: app/main_window.py:639
+#: app/main_window.py:627
 msgid "配置加载失败"
 msgstr "Config Load Failed"
 
-#: app/main_window.py:915
+#: app/main_window.py:882
 msgid "启动成功(＾∀＾●)"
 msgstr "Process started (＾∀＾●)"
 
-#: app/main_window.py:955
+#: app/main_window.py:922
 msgid "启动失败"
 msgstr "Start Failed"
 
-#: app/main_window.py:945
+#: app/main_window.py:912
 msgid "游戏路径配置错误(╥╯﹏╰╥)"
 msgstr "Game path config error (╥╯﹏╰╥)"
 
-#: app/main_window.py:925
+#: app/main_window.py:892
 msgid "浏览器或驱动下载失败 (╥╯﹏╰╥)"
 msgstr "Browser/Driver download failed (╥╯﹏╰╥)"
 
-#: app/main_window.py:926
+#: app/main_window.py:893
 msgid "请检查网络连接是否正常"
 msgstr "Please check network connection"
 
-#: app/main_window.py:935
+#: app/main_window.py:902
 msgid "云游戏启动失败(╥╯﹏╰╥)"
 msgstr "Cloud Game start failed (╥╯﹏╰╥)"
 
-#: app/main_window.py:936
+#: app/main_window.py:903
 msgid "请检查所选浏览器是否存在，网络连接是否正常"
 msgstr "Check if browser exists and network is normal"
 
-#: app/main_window.py:884
 msgid "正在下载内置浏览器(ง •̀_•́)ง"
 msgstr "Downloading built-in browser (ง •̀_•́)ง"
 
-#: app/main_window.py:885
 msgid "下载成功后，将自动启动云·星穹铁道"
 msgstr "Will auto start Cloud StarRail after download"
 
-#: app/main_window.py:894
 msgid "正在启动游戏(❁´◡`❁)"
 msgstr "Launching Game (❁´◡`❁)"
 
-#: app/main_window.py:824
+#: app/main_window.py:812
 msgid "程序已最小化到托盘"
 msgstr "Program minimized to tray"
 
@@ -1216,47 +1138,41 @@ msgstr "Select Image"
 msgid "任务 >"
 msgstr "Task >"
 
-#: app/card/card_edit_dialog.py:32
+#: app/card/card_edit_dialog.py:25
 msgid "运行一次"
 msgstr "Run Once"
 
-#: app/card/card_edit_dialog.py:32
+#: app/card/card_edit_dialog.py:25
 msgid "循环运行"
 msgstr "Loop Run"
 
-#: app/card/card_edit_dialog.py:32
 msgid "快速启动 ⭐"
 msgstr "Quick Start ⭐"
 
-#: app/card/card_edit_dialog.py:32
 msgid "原版运行"
 msgstr "Original Run"
 
-#: app/card/card_edit_dialog.py:32
 msgid "更新锄大地"
 msgstr "Update Fhoe-Rail"
 
-#: app/card/card_edit_dialog.py:32
 msgid "重置配置文件"
 msgstr "Reset Config"
 
-#: app/card/card_edit_dialog.py:32
 msgid "打开程序目录"
 msgstr "Open Program Dir"
 
-#: app/card/card_edit_dialog.py:32
 msgid "打开项目主页"
 msgstr "Open Project Page"
 
-#: app/setting_interface.py:1040
+#: app/setting_interface.py:718
 msgid "日志等级"
 msgstr "Log Level"
 
-#: app/setting_interface.py:1042
+#: app/setting_interface.py:720
 msgid "简洁"
 msgstr "Simple"
 
-#: app/setting_interface.py:1042
+#: app/setting_interface.py:720
 msgid "详细"
 msgstr "Detailed"
 
@@ -1268,15 +1184,15 @@ msgstr "Game Path"
 msgid "修改"
 msgstr "Modify"
 
-#: app/card/messagebox_custom.py:1337
+#: app/card/messagebox_custom.py:1178
 msgid "关闭确认"
 msgstr "Close Confirmation"
 
-#: app/card/messagebox_custom.py:1338
+#: app/card/messagebox_custom.py:1179
 msgid "您希望如何处理程序?"
 msgstr "How do you want to handle the program?"
 
-#: app/card/messagebox_custom.py:1347
+#: app/card/messagebox_custom.py:1188
 msgid "记住我的选择,下次不再询问"
 msgstr "Remember my choice, don't ask again"
 
@@ -1380,7 +1296,7 @@ msgstr "Final Confirm: Proceed with caution"
 msgid "确认继续并允许启用触屏模式？"
 msgstr "Confirm continue and enable Touch Mode?"
 
-#: app/card/messagebox_custom.py:549
+#: app/card/messagebox_custom.py:390
 msgid "确认"
 msgstr "Confirm"
 
@@ -1400,79 +1316,79 @@ msgstr "Auto Dialogue Started"
 msgid "自动对话已停止"
 msgstr "Auto Dialogue Stopped"
 
-#: app/card/pushsettingcard1.py:395
+#: app/card/pushsettingcard1.py:389
 msgid "暂无已使用兑换码"
 msgstr "No used redemption codes"
 
-#: app/card/pushsettingcard1.py:399
+#: app/card/pushsettingcard1.py:393
 msgid "已使用兑换码"
 msgstr "Used Redemption Codes"
 
-#: app/card/messagebox_custom.py:381
+#: app/card/messagebox_custom.py:230
 msgid "关闭"
 msgstr "Close"
 
-#: app/card/pushsettingcard1.py:415
+#: app/card/pushsettingcard1.py:409
 msgid "确认清空已使用兑换码"
 msgstr "Confirm clear used redemption codes"
 
-#: app/card/pushsettingcard1.py:416
+#: app/card/pushsettingcard1.py:410
 msgid "此操作不可撤销，是否继续？"
 msgstr "Irreversible operation. Continue?"
 
-#: app/card/pushsettingcard1.py:424
+#: app/card/pushsettingcard1.py:418
 msgid "已清空已使用兑换码"
 msgstr "Used redemption codes cleared"
 
-#: app/card/pushsettingcard1.py:445
+#: app/card/pushsettingcard1.py:439
 msgid "兑换码为空"
 msgstr "Redemption code is empty"
 
-#: app/card/pushsettingcard1.py:459
+#: app/card/pushsettingcard1.py:450
 msgid "无法判断服务器类型"
 msgstr "Cannot determine server type"
 
-#: app/card/pushsettingcard1.py:460
+#: app/card/pushsettingcard1.py:451
 msgid "无法获取最新兑换码"
 msgstr "Cannot get latest codes"
 
-#: app/card/pushsettingcard1.py:467
+#: app/card/pushsettingcard1.py:458
 msgid "获取服务器信息失败"
 msgstr "Failed to get server info"
 
-#: app/card/pushsettingcard1.py:545
+#: app/card/pushsettingcard1.py:536
 msgid "时间无效"
 msgstr "Invalid Time"
 
-#: app/card/pushsettingcard1.py:546
+#: app/card/pushsettingcard1.py:537
 msgid "所选时间无法转换为时间戳，已使用默认时间"
 msgstr "Selected time invalid, used default"
 
-#: app/card/pushsettingcard1.py:566
+#: app/card/pushsettingcard1.py:557
 msgid "按下要绑定的按键"
 msgstr "Press key to bind"
 
-#: app/card/pushsettingcard1.py:569
+#: app/card/pushsettingcard1.py:560
 msgid "按住以修改"
 msgstr "Hold to modify"
 
-#: app/card/pushsettingcard1.py:577
+#: app/card/pushsettingcard1.py:568
 msgid "已改为 {key}"
 msgstr "Changed to {key}"
 
-#: app/card/pushsettingcard1.py:763
+#: app/card/pushsettingcard1.py:754
 msgid "修改队伍1"
 msgstr "Edit Team 1"
 
-#: app/card/pushsettingcard1.py:769
+#: app/card/pushsettingcard1.py:760
 msgid "修改队伍2"
 msgstr "Edit Team 2"
 
-#: app/card/pushsettingcard1.py:775
+#: app/card/pushsettingcard1.py:766
 msgid "交换队伍"
 msgstr "Swap Teams"
 
-#: app/card/pushsettingcard1.py:789
+#: app/card/pushsettingcard1.py:780
 msgid ""
 "队伍1: {team1}\n"
 "队伍2: {team2}"
@@ -1480,27 +1396,27 @@ msgstr ""
 "Team 1: {team1}\n"
 "Team 2: {team2}"
 
-#: app/card/pushsettingcard1.py:804
+#: app/card/pushsettingcard1.py:795
 msgid "交换成功"
 msgstr "Swap Success"
 
-#: app/card/pushsettingcard1.py:805
+#: app/card/pushsettingcard1.py:796
 msgid "队伍1和队伍2已成功交换"
 msgstr "Team 1 and Team 2 swapped"
 
-#: app/card/pushsettingcard1.py:814
+#: app/card/pushsettingcard1.py:805
 msgid "队伍1"
 msgstr "Team 1"
 
-#: app/card/pushsettingcard1.py:817
+#: app/card/pushsettingcard1.py:808
 msgid "队伍2"
 msgstr "Team 2"
 
-#: app/card/pushsettingcard1.py:843
+#: app/card/pushsettingcard1.py:834
 msgid "暂无计划"
 msgstr "No Plan"
 
-#: app/card/pushsettingcard1.py:844
+#: app/card/pushsettingcard1.py:835
 msgid "已配置 {count} 项计划"
 msgid_plural "已配置 {count} 项计划|plural"
 msgstr[0] "Configured {count} plan"
@@ -1602,7 +1518,7 @@ msgstr "Unknown"
 msgid "时间"
 msgstr "Time"
 
-#: app/schedule_dialog.py:745
+#: app/schedule_dialog.py:688
 msgid "名称"
 msgstr "Name"
 
@@ -1614,11 +1530,11 @@ msgstr "Rarity"
 msgid "卡池"
 msgstr "Pool"
 
-#: app/setting_interface.py:3405
+#: app/setting_interface.py:1684
 msgid "复制成功(＾∀＾●)"
 msgstr "Copy Success (＾∀＾●)"
 
-#: app/setting_interface.py:3415
+#: app/setting_interface.py:1694
 msgid "复制失败(╥╯﹏╰╥)"
 msgstr "Copy Failed (╥╯﹏╰╥)"
 
@@ -1804,94 +1720,94 @@ msgstr "Account info cleared from registry"
 msgid "账户设置"
 msgstr "Account Settings"
 
-#: app/schedule_dialog.py:113
+#: app/schedule_dialog.py:112
 msgid "添加/编辑定时任务"
 msgstr "Add/Edit Scheduled Task"
 
-#: app/schedule_dialog.py:134
+#: app/schedule_dialog.py:133
 msgid "例如：完整运行"
 msgstr "e.g., Full Run"
 
-#: app/schedule_dialog.py:144
+#: app/schedule_dialog.py:142
 msgid "本体"
 msgstr "Main App"
 
-#: app/schedule_dialog.py:144
+#: app/schedule_dialog.py:142
 msgid "外部程序"
 msgstr "External App"
 
-#: app/schedule_dialog.py:152
+#: app/schedule_dialog.py:150
 msgid "外部程序或脚本的完整路径"
 msgstr "Full path to external app/script"
 
-#: app/schedule_dialog.py:153
+#: app/schedule_dialog.py:151
 msgid "选择程序"
 msgstr "Select Program"
 
-#: app/schedule_dialog.py:163
+#: app/schedule_dialog.py:161
 msgid "外部程序启动参数（可选）"
 msgstr "External App Args (Optional)"
 
-#: app/schedule_dialog.py:184
+#: app/schedule_dialog.py:176
 msgid " 分钟（0 表示不启用）"
 msgstr " Min (0 to disable)"
 
-#: app/schedule_dialog.py:212
+#: app/schedule_dialog.py:204
 msgid "完成后推送通知"
 msgstr "Notify on completion"
 
-#: app/card/messagebox_custom.py:874
+#: app/card/messagebox_custom.py:715
 msgid "无操作"
 msgstr "No Action"
 
-#: app/schedule_dialog.py:188
+#: app/schedule_dialog.py:180
 msgid "按时启动"
 msgstr "Time-based Start"
 
-#: app/schedule_dialog.py:189
+#: app/schedule_dialog.py:181
 msgid "链式启动"
 msgstr "Chained Start"
 
-#: app/schedule_dialog.py:356
+#: app/schedule_dialog.py:347
 msgid "错误"
 msgstr "Error"
 
-#: app/schedule_dialog.py:356
+#: app/schedule_dialog.py:347
 msgid "任务名称不能为空"
 msgstr "Task name required"
 
 msgid "已存在相同时间的任务，请选择其他时间"
 msgstr "Task at this time exists, choose another"
 
-#: app/schedule_dialog.py:400
+#: app/schedule_dialog.py:384
 msgid "程序路径不能为空"
 msgstr "Program path required"
 
-#: app/schedule_dialog.py:414
+#: app/schedule_dialog.py:398
 msgid "选择程序或脚本"
 msgstr "Select Program/Script"
 
-#: app/schedule_dialog.py:414
+#: app/schedule_dialog.py:398
 msgid "可执行文件 (*.exe *.bat *.ps1);;所有文件 (*.*)"
 msgstr "Executables (*.exe *.bat *.ps1);;All Files (*.*)"
 
-#: app/schedule_dialog.py:529
+#: app/schedule_dialog.py:492
 msgid "{exe} 的完整路径"
 msgstr "Full path of {exe}"
 
-#: app/schedule_dialog.py:725
+#: app/schedule_dialog.py:668
 msgid "定时任务配置"
 msgstr "Scheduled Task Config"
 
-#: app/schedule_dialog.py:745
+#: app/schedule_dialog.py:688
 msgid "参数/任务"
 msgstr "Args/Task"
 
-#: app/schedule_dialog.py:745
+#: app/schedule_dialog.py:688
 msgid "通知"
 msgstr "Notify"
 
-#: app/card/messagebox_custom.py:1435
+#: app/card/messagebox_custom.py:1276
 msgid "添加"
 msgstr "Add"
 
@@ -1899,39 +1815,38 @@ msgstr "Add"
 msgid "编辑"
 msgstr "Edit"
 
-#: app/card/messagebox_custom.py:1166
+#: app/card/messagebox_custom.py:1007
 msgid "删除"
 msgstr "Del"
 
-#: app/schedule_dialog.py:772
+#: app/schedule_dialog.py:715
 msgid "立即运行"
 msgstr "Run Now"
 
-#: app/schedule_dialog.py:784
+#: app/schedule_dialog.py:727
 msgid "跳过需要运行的任务"
 msgstr "Skip required task"
 
-#: app/schedule_dialog.py:784
+#: app/schedule_dialog.py:727
 msgid "停止正在运行的任务"
 msgstr "Stop running task"
 
-#: app/schedule_dialog.py:943
+#: app/schedule_dialog.py:886
 msgid "是"
 msgstr "Yes"
 
-#: app/schedule_dialog.py:943
+#: app/schedule_dialog.py:886
 msgid "否"
 msgstr "No"
 
-#: app/schedule_dialog.py:1033
+#: app/schedule_dialog.py:976
 msgid "提示"
 msgstr "Tip"
 
-#: app/workflow_interface.py:657
 msgid "说明"
 msgstr "Info"
 
-#: app/schedule_dialog.py:201
+#: app/schedule_dialog.py:193
 msgid "启动方式说明"
 msgstr "Start Mode Help"
 
@@ -1944,27 +1859,27 @@ msgstr ""
 "Chained Start: does not trigger by time on its own. Place it after a previous task, and it will start immediately in list order after that task finishes normally.\n"
 "Run Now: starts from the current task, and any consecutive chained tasks after it will run as well."
 
-#: app/schedule_dialog.py:1052
+#: app/schedule_dialog.py:995
 msgid "请先选择要编辑的任务"
 msgstr "Select task to edit first"
 
-#: app/schedule_dialog.py:1068
+#: app/schedule_dialog.py:1011
 msgid "请先选择要删除的任务"
 msgstr "Select task to delete first"
 
-#: app/schedule_dialog.py:1073
+#: app/schedule_dialog.py:1016
 msgid "确认删除选中的定时任务？"
 msgstr "Delete selected scheduled tasks?"
 
-#: app/schedule_dialog.py:1086
+#: app/schedule_dialog.py:1029
 msgid "请先选择要运行的任务"
 msgstr "Select task to run first"
 
-#: app/schedule_dialog.py:1093
+#: app/schedule_dialog.py:1036
 msgid "确认立即运行任务 \"{name}\" 吗？"
 msgstr "Run task \"{name}\" now?"
 
-#: app/schedule_dialog.py:1126
+#: app/schedule_dialog.py:1069
 msgid "无法运行任务：父组件不支持 runScheduledTask"
 msgstr "Cannot run: Parent doesn't support runScheduledTask"
 
@@ -1984,85 +1899,78 @@ msgstr "Off"
 msgid "开"
 msgstr "On"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周一"
 msgstr "Mon"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周二"
 msgstr "Tue"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周三"
 msgstr "Wed"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周四"
 msgstr "Thu"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周五"
 msgstr "Fri"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周六"
 msgstr "Sat"
 
-#: app/card/expandable_switch_setting_card.py:644
+#: app/card/expandable_switch_setting_card.py:643
 msgid "周日"
 msgstr "Sun"
 
-#: app/card/messagebox_custom.py:188
+#: app/card/messagebox_custom.py:184
 msgid "下次一定"
 msgstr "Next Time"
 
-#: app/card/messagebox_custom.py:196
+#: app/card/messagebox_custom.py:192
 msgid "收到"
 msgstr "Confirmed"
 
-#: app/card/messagebox_custom.py:250
 msgid "立即更新"
 msgstr "Update Now"
 
-#: app/card/messagebox_custom.py:252
 msgid "开源渠道"
 msgstr "Open Source Channel"
 
-#: app/card/messagebox_custom.py:253
 msgid "直接从 GitHub 下载并更新"
 msgstr "Download & Update from GitHub"
 
-#: app/card/messagebox_custom.py:259
 msgid "Mirror酱 服务 ⚡"
 msgstr "MirrorChan Service ⚡"
 
-#: app/card/messagebox_custom.py:260
 msgid "Mirror酱 用户可以通过 CDK 高速更新（支持任意版本间增量更新）"
 msgstr ""
 "High-speed update via CDK for MirrorChan users (Incremental update "
 "supported)"
 
-#: app/card/messagebox_custom.py:493
 msgid "手动下载"
 msgstr "Manual Download"
 
-#: app/card/messagebox_custom.py:494
 msgid "好的"
 msgstr "OK"
 
-#: app/card/messagebox_custom.py:502
+#: app/card/messagebox_custom.py:343
 msgid "我已知晓"
 msgstr "I Understand"
 
-#: app/card/messagebox_custom.py:574
+#: app/card/messagebox_custom.py:415
 msgid "获取最新兑换码"
 msgstr "Get Latest Codes"
 
-#: app/card/messagebox_custom.py:575
+#: app/card/messagebox_custom.py:416
 msgid "查看已使用兑换码"
 msgstr "View Used Codes"
 
-#: app/card/messagebox_custom.py:576
+#: app/card/messagebox_custom.py:417
 msgid "清空已使用兑换码"
 msgstr "Clear Used Codes"
 
@@ -2074,129 +1982,127 @@ msgstr "Not run yet"
 msgid "重置时间"
 msgstr "Reset Time"
 
-#: app/card/messagebox_custom.py:619
+#: app/card/messagebox_custom.py:460
 msgid "设置为当前时间"
 msgstr "Set to Current Time"
 
-#: app/card/messagebox_custom.py:693
+#: app/card/messagebox_custom.py:534
 msgid "说明：清体力是根据选择的副本类型来判断，副本名称也会用于双倍活动"
 msgstr ""
 "Note: Power clear based on Dungeon Type. Name also used for double events."
 
-#: app/card/messagebox_custom.py:712
+#: app/card/messagebox_custom.py:553
 msgid "输入错误"
 msgstr "Input Error"
 
-#: app/card/messagebox_custom.py:713
+#: app/card/messagebox_custom.py:554
 msgid "\"{type}\"的输入\"{input_text}\"不在可选项中，请重新选择"
 msgstr "Input \"{input_text}\" for \"{type}\" invalid, please re-select"
 
-#: app/setting_interface.py:224
+#: app/setting_interface.py:197
 msgid "拟造花萼（金）"
 msgstr "Calyx (Golden)"
 
-#: app/setting_interface.py:224
+#: app/setting_interface.py:197
 msgid "拟造花萼（赤）"
 msgstr "Calyx (Crimson)"
 
-#: app/setting_interface.py:224
+#: app/setting_interface.py:197
 msgid "凝滞虚影"
 msgstr "Stagnant Shadow"
 
-#: app/setting_interface.py:224
+#: app/setting_interface.py:197
 msgid "侵蚀隧洞"
 msgstr "Cavern of Corrosion"
 
-#: app/setting_interface.py:224
+#: app/setting_interface.py:197
 msgid "饰品提取"
 msgstr "Ornament Extraction"
 
-#: app/card/messagebox_custom.py:1064
+#: app/card/messagebox_custom.py:905
 msgid "历战余响"
 msgstr "Echo of War"
 
-#: app/card/messagebox_custom.py:850
+#: app/card/messagebox_custom.py:691
 msgid "说明：{ } 中的内容会在实际发送时被替换，\\n 代表换行"
 msgstr "Note: { } content replaced on send, \\n is newline"
 
-#: app/card/messagebox_custom.py:873
+#: app/card/messagebox_custom.py:714
 msgid "秘技 / 开怪"
 msgstr "Technique / Start"
 
-#: app/card/messagebox_custom.py:875
+#: app/card/messagebox_custom.py:716
 msgid "秘技 1 次"
 msgstr "Technique x1"
 
-#: app/card/messagebox_custom.py:876
+#: app/card/messagebox_custom.py:717
 msgid "秘技 2 次"
 msgstr "Technique x2"
 
-#: app/card/messagebox_custom.py:884
+#: app/card/messagebox_custom.py:725
 msgid "{index}号位"
 msgstr "Pos {index}"
 
-#: app/card/messagebox_custom.py:907
+#: app/card/messagebox_custom.py:748
 msgid "每个队伍只允许一名角色配置为“秘技 / 开怪”"
 msgstr "Only one character per team can be 'Technique / Start'"
 
-#: app/card/messagebox_custom.py:923
+#: app/card/messagebox_custom.py:764
 msgid "第{i}号位角色\"{char_text}\"不在可选项中，请重新选择"
 msgstr "Pos {i} character \"{char_text}\" invalid, re-select"
 
-#: app/card/messagebox_custom.py:935
+#: app/card/messagebox_custom.py:776
 msgid "第{i}号位秘技\"{tech_text}\"不在可选项中，请重新选择"
 msgstr "Pos {i} technique \"{tech_text}\" invalid, re-select"
 
-#: app/card/messagebox_custom.py:1014
+#: app/card/messagebox_custom.py:855
 msgid "第{i}个好友角色\"{char_text}\"不在可选项中，请重新选择"
 msgstr "Friend Chara {i} \"{char_text}\" invalid, re-select"
 
-#: app/card/messagebox_custom.py:1074
+#: app/card/messagebox_custom.py:915
 msgid "体力计划会在清体力前优先执行，未勾选保留时，完成后会自动从列表中删除"
 msgstr ""
 "Power Plans run before spending Power. Unless Keep Power Plan is selected, "
 "completed plans are deleted automatically."
 
-#: app/card/messagebox_custom.py:1079
+#: app/card/messagebox_custom.py:920
 msgid "保留体力计划"
 msgstr "Keep Power Plan"
 
-#: app/card/messagebox_custom.py:1094
+#: app/card/messagebox_custom.py:935
 msgid "添加计划"
 msgstr "Add Plan"
 
-#: app/card/messagebox_custom.py:1133
+#: app/card/messagebox_custom.py:974
 msgid "无法添加"
 msgstr "Cannot Add"
 
-#: app/card/messagebox_custom.py:1134
+#: app/card/messagebox_custom.py:975
 msgid "已达到最大计划数量"
 msgstr "Max plans reached"
 
-#: app/card/messagebox_custom.py:1282
+#: app/card/messagebox_custom.py:1123
 msgid "第{i}个计划的副本类型无效"
 msgstr "Plan {i} Dungeon Type invalid"
 
-#: app/card/messagebox_custom.py:1303
+#: app/card/messagebox_custom.py:1144
 msgid "第{i}个计划的副本名称\"{input_text}\"不在可选项中，请重新选择"
 msgstr "Plan {i} Dungeon Name \"{input_text}\" invalid, re-select"
 
-#: app/setting_interface.py:989
 msgid "Chrome"
 msgstr "Chrome"
 
-#: app/setting_interface.py:989
 msgid "Edge"
 msgstr "Edge"
 
-#: app/setting_interface.py:3374
+#: app/setting_interface.py:1653
 msgid "选择游戏路径"
 msgstr "Select Game Path"
 
 msgid "选择米哈游启动器路径"
 msgstr "Select HoYoPlay Path"
 
-#: app/setting_interface.py:3434
+#: app/setting_interface.py:1713
 msgid "脚本或程序路径"
 msgstr "Script/Program Path"
 
@@ -2272,27 +2178,21 @@ msgstr "Fetching warp data..."
 msgid "跃迁数据获取完成(＾∀＾●)"
 msgstr "Warp data fetch complete(＾∀＾●)"
 
-#: module/update/version_check.py:194
 msgid "Mirror酱 CDK 已过期"
 msgstr "MirrorChan CDK expired"
 
-#: module/update/version_check.py:194
 msgid "Mirror酱 CDK 错误"
 msgstr "MirrorChan CDK error"
 
-#: module/update/version_check.py:194
 msgid "Mirror酱 CDK 今日下载次数已达上限"
 msgstr "MirrorChan CDK daily limit reached"
 
-#: module/update/version_check.py:194
 msgid "Mirror酱 CDK 类型和待下载的资源不匹配"
 msgstr "MirrorChan CDK type mismatch"
 
-#: module/update/version_check.py:194
 msgid "Mirror酱 CDK 已被封禁"
 msgstr "MirrorChan CDK banned"
 
-#: app/tools/check_update.py:149
 msgid ""
 "发现新版本：{cfg.version} ——> {version}\n"
 "更新日志 |･ω･)"
@@ -2300,23 +2200,18 @@ msgstr ""
 "New version found: {cfg.version} -> {version}\n"
 "Changelog |･ω･)"
 
-#: app/tools/check_update.py:237
 msgid "尚未配置 Mirror酱 更新源 (╥╯﹏╰╥)"
 msgstr "MirrorChan source not configured (╥╯﹏╰╥)"
 
-#: app/tools/check_update.py:272
 msgid "当前是最新版本(＾∀＾●)"
 msgstr "Current version is latest(＾∀＾●)"
 
-#: app/tools/check_update.py:285
 msgid "检测更新失败(╥╯﹏╰╥)"
 msgstr "Check update failed (╥╯﹏╰╥)"
 
-#: app/tools/check_update.py:301
 msgid "正在检测更新"
 msgstr "Checking for updates"
 
-#: app/tools/check_update.py:302
 msgid "请稍候，更新检查仍在进行中"
 msgstr "Please wait, update check in progress"
 
@@ -2332,7 +2227,7 @@ msgstr "Spend Power"
 msgid "混沌回忆"
 msgstr "Memory of Chaos"
 
-#: app/card/messagebox_custom.py:1001
+#: app/card/messagebox_custom.py:842
 msgid ""
 "说明：左侧选择角色后，在右侧对应的文本框中填写好友名称。\n"
 "例如好友名称为“持明上網”，填写“持明上”也可以匹配成功，\n"
@@ -2342,7 +2237,6 @@ msgstr ""
 "Partial match supported (e.g. 'Dan' for 'Dan Heng').\n"
 "If empty, search char only."
 
-#: app/setting_interface.py:775
 msgid "锄地"
 msgstr "Fhoe-Rail"
 
@@ -2374,19 +2268,15 @@ msgstr "Currency War Loop"
 msgid "货币战争中途接管"
 msgstr "Currency War Mid-takeover"
 
-#: utils/tasks.py:15
 msgid "模拟宇宙原生界面"
 msgstr "Simulated Universe Native Interface"
 
-#: utils/tasks.py:15
 msgid "锄大地原生界面"
 msgstr "Fhoe-Rail Native Interface"
 
-#: utils/tasks.py:15
 msgid "模拟宇宙更新"
 msgstr "Simulated Universe Update"
 
-#: utils/tasks.py:15
 msgid "锄大地更新"
 msgstr "Update Fhoe-Rail"
 
@@ -2394,29 +2284,29 @@ msgstr "Update Fhoe-Rail"
 msgid "触屏模式更新"
 msgstr "Touchscreen Mode Update"
 
-#: app/card/pushsettingcard1.py:302
+#: app/card/pushsettingcard1.py:296
 msgid "批量使用兑换码，每行一个，自动过滤空格等无效字符"
 msgstr ""
 "Use redemption codes in bulk, one per line. Invalid characters like spaces "
 "will be filtered automatically"
 
-#: app/card/comboboxsettingcard2.py:65
+#: app/card/comboboxsettingcard2.py:63
 msgid "打开日志文件夹"
 msgstr "Open Log Folder"
 
-#: app/setting_interface.py:2425
+#: app/setting_interface.py:899
 msgid "启用 {name} 通知"
 msgstr "Enable {name} Notification"
 
-#: app/setting_interface.py:2414
+#: app/setting_interface.py:888
 msgid "（支持图片）"
 msgstr " (Supports Images)"
 
-#: app/card/pushsettingcard1.py:161
+#: app/card/pushsettingcard1.py:155
 msgid "交流反馈"
 msgstr "Feedback"
 
-#: app/card/pushsettingcard1.py:167
+#: app/card/pushsettingcard1.py:161
 msgid "获取 CDK"
 msgstr "Get CDK"
 
@@ -2640,7 +2530,7 @@ msgstr "Tingyun"
 msgid "瓦尔特"
 msgstr "Welt"
 
-#: app/setting_interface.py:612
+#: app/setting_interface.py:585
 msgid "希儿"
 msgstr "Seele"
 
@@ -2712,7 +2602,7 @@ msgstr "Fugue"
 msgid "大黑塔"
 msgstr "The Herta"
 
-#: app/setting_interface.py:612
+#: app/setting_interface.py:585
 msgid "阿格莱雅"
 msgstr "Aglaea"
 
@@ -2776,7 +2666,7 @@ msgstr "Cyrene"
 msgid "大丽花"
 msgstr "The Dahlia"
 
-#: app/card/messagebox_custom.py:1296
+#: app/card/messagebox_custom.py:1137
 msgid "跳过"
 msgstr "Skip"
 
@@ -3296,27 +3186,27 @@ msgstr "Wuthering Waves ok-ww"
 msgid "MFAAvalonia"
 msgstr "MFAAvalonia"
 
-#: app/main_window.py:627
+#: app/main_window.py:615
 msgid "更新成功"
 msgstr "Update Successful"
 
-#: app/card/pushsettingcard1.py:367
+#: app/card/pushsettingcard1.py:361
 msgid "开始获取"
 msgstr "Start Fetching"
 
-#: app/card/pushsettingcard1.py:367
+#: app/card/pushsettingcard1.py:361
 msgid "正在获取最新兑换码..."
 msgstr "Fetching latest codes..."
 
-#: app/card/pushsettingcard1.py:379
+#: app/card/pushsettingcard1.py:373
 msgid "未获取到兑换码"
 msgstr "No codes found"
 
-#: app/card/pushsettingcard1.py:383
+#: app/card/pushsettingcard1.py:377
 msgid "获取成功"
 msgstr "Fetch Success"
 
-#: app/card/pushsettingcard1.py:384
+#: app/card/pushsettingcard1.py:378
 msgid "已获取 {count} 个兑换码"
 msgid_plural "已获取 {count} 个兑换码|plural"
 msgstr[0] "Fetched {count} code"
@@ -3397,13 +3287,12 @@ msgstr "TBD"
 msgid "领航员 / 名冶套"
 msgstr "Navigator / Master Smith Set"
 
-#: app/setting_interface.py:794
 msgid "开启后可能提升运行速度，若出现错误、异常或不稳定，请关闭此选项"
 msgstr ""
 "May improve performance. If errors, exceptions, or instability occur, please"
 " disable this option."
 
-#: app/setting_interface.py:3376
+#: app/setting_interface.py:1655
 msgid "脚本或可执行文件 (*.exe *.bat *.cmd *.ps1)"
 msgstr "Script or executable files (*.exe *.bat *.cmd *.ps1)"
 
@@ -3411,7 +3300,7 @@ msgstr "Script or executable files (*.exe *.bat *.cmd *.ps1)"
 msgid "截图失败(╥╯﹏╰╥)"
 msgstr "Screenshot Failed (╥╯﹏╰╥)"
 
-#: app/workflow_interface.py:1224
+#: tasks/tool/__init__.py:55
 msgid "无法获取游戏窗口截图，请确认游戏窗口已打开"
 msgstr ""
 "Unable to capture the game window screenshot. Please make sure the game "
@@ -3433,501 +3322,391 @@ msgstr "Capture game window"
 msgid "手动选择图片"
 msgstr "Choose image manually"
 
-#: app/card/messagebox_custom.py:1170
+#: app/card/messagebox_custom.py:1011
 msgid "上移"
 msgstr "Up"
 
-#: app/schedule_dialog.py:1033
+#: app/schedule_dialog.py:976
 msgid "请先选择要上移的任务"
 msgstr "Select task to move up first"
 
-#: app/schedule_dialog.py:1039
+#: app/schedule_dialog.py:982
 msgid "当前任务已经位于最上方"
 msgstr "The selected task is already at the top"
 
-#: app/setting_interface.py:2508
+#: app/setting_interface.py:982
 msgid "优先使用后台截图"
 msgstr "Prefer Background Screenshot"
 
-#: app/setting_interface.py:2509
+#: app/setting_interface.py:983
 msgid "默认开启，可以避免悬浮窗等干扰"
 msgstr ""
 "Enabled by default to avoid interference from floating windows and similar "
 "overlays"
 
-#: app/setting_interface.py:2537
+#: app/setting_interface.py:1011
 msgid "启用调试模式"
 msgstr "Enable Debug Mode"
 
-#: app/setting_interface.py:2538
+#: app/setting_interface.py:1012
 msgid "开启后会在屏幕上实时绘制检测范围框（透明悬浮窗），用于调试自动化识别效果。仅 Windows 生效。"
 msgstr ""
 "When enabled, detection bounding boxes will be drawn in real-time on screen "
 "(transparent overlay) for debugging automation recognition. Windows only."
 
-#: app/card/pushsettingcard1.py:902
+#: app/card/pushsettingcard1.py:893
 msgid "为特定的副本配置队伍"
 msgstr "Configure teams for specific dungeons"
 
-#: app/card/messagebox_custom.py:1414
+#: app/card/messagebox_custom.py:1255
 msgid "当没有匹配到任何规则时，默认出战队伍："
 msgstr "Default team when no rules match: "
 
-#: app/card/pushsettingcard1.py:900
+#: app/card/pushsettingcard1.py:891
 msgid "已配置 {count} 项规则"
 msgid_plural "已配置 {count} 项规则|plural"
 msgstr[0] "{count} rule configured"
 msgstr[1] "{count} rules configured"
 
-#: app/setting_interface.py:1200
+#: app/setting_interface.py:878
 msgid "Windows 原生通知"
 msgstr "Windows native notification"
 
-#: app/setting_interface.py:1205
 msgid "通常需要可访问 Telegram 网络"
 msgstr "Usually requires Telegram network access"
 
-#: app/setting_interface.py:1208
 msgid "机器人令牌"
 msgstr "Bot token"
 
-#: app/setting_interface.py:1208
 msgid "获取方式：创建 Bot → @BotFather → /newbot → 获取 Token"
 msgstr "How to get: Create bot -> @BotFather -> /newbot -> get token"
 
-#: app/setting_interface.py:1209
 msgid "用户/群组 ID"
 msgstr "User/Group ID"
 
-#: app/setting_interface.py:1209
 msgid "接收通知的用户 ID 或群组 ID（以 - 开头）"
 msgstr "Recipient user ID or group ID (group IDs usually start with -)"
 
-#: app/setting_interface.py:1210
 msgid "自定义 API 地址"
 msgstr "Custom API URL"
 
-#: app/setting_interface.py:1210
 msgid "可选参数，自定义 Telegram API 地址，例如 api.telegram.org"
 msgstr "Optional: custom Telegram API URL, e.g. api.telegram.org"
 
-#: app/setting_interface.py:1211
 msgid "代理配置"
 msgstr "Proxy settings"
 
-#: app/setting_interface.py:1211
 msgid "可选参数，例如 127.0.0.1:10808 或 socks5://127.0.0.1:1080，不填则使用系统 PAC 代理"
 msgstr ""
 "Optional: e.g. 127.0.0.1:10808 or socks5://127.0.0.1:1080. If empty, use "
 "system PAC proxy"
 
-#: app/setting_interface.py:1212
 msgid "话题 ID"
 msgstr "Topic ID"
 
-#: app/setting_interface.py:1212
 msgid "可选参数，开启 Topics 功能的群组需要填写对应的话题 ID"
 msgstr ""
 "Optional: required for groups with Topics enabled, fill in the corresponding"
 " topic ID"
 
-#: app/setting_interface.py:1272
 msgid "适用于 Matrix 协议"
 msgstr "For Matrix protocol"
 
-#: app/setting_interface.py:1275
 msgid "服务器地址"
 msgstr "Server URL"
 
-#: app/setting_interface.py:1275
 msgid "服务器地址，例如 https://matrix.org"
 msgstr "Server URL, e.g. https://matrix.org"
 
-#: app/setting_interface.py:1276
 msgid "设备 ID"
 msgstr "Device ID"
 
-#: app/setting_interface.py:1276
 msgid "设备 ID，通常是 10 位大写字母或数字"
 msgstr "Device ID, usually 10 uppercase letters/numbers"
 
-#: app/setting_interface.py:1277
 msgid "用户 ID"
 msgstr "User ID"
 
-#: app/setting_interface.py:1277
 msgid "用户 ID，例如 @user:matrix.org"
 msgstr "User ID, e.g. @user:matrix.org"
 
-#: app/setting_interface.py:1278
 msgid "访问令牌"
 msgstr "Access token"
 
-#: app/setting_interface.py:1278
 msgid "登录后分配的 Access Token"
 msgstr "Access token issued after login"
 
-#: app/setting_interface.py:1279
 msgid "房间 ID"
 msgstr "Room ID"
 
-#: app/setting_interface.py:1279
 msgid "目标房间 ID，例如 !xxx:matrix.org"
 msgstr "Target room ID, e.g. !xxx:matrix.org"
 
-#: app/setting_interface.py:1281
 msgid "文字与图片分开发送"
 msgstr "Send text and image separately"
 
-#: app/setting_interface.py:1281
 msgid "是否分开发送文字和图片，避免部分客户端不显示文字"
 msgstr ""
 "Whether to send text and image separately to avoid text not showing in some "
 "clients"
 
-#: app/setting_interface.py:1345
 msgid "Server酱·Turbo版"
 msgstr "ServerChan Turbo"
 
-#: app/setting_interface.py:1346
 msgid "微信推送，适合轻量通知"
 msgstr "WeChat push, suitable for lightweight notifications"
 
-#: app/setting_interface.py:1348
 msgid "SendKey"
 msgstr "SendKey"
 
-#: app/setting_interface.py:1348
 msgid "在 https://sct.ftqq.com/ 获取的 SendKey"
 msgstr "SendKey from https://sct.ftqq.com/"
 
-#: app/setting_interface.py:1349
 msgid "发送通道"
 msgstr "Channel"
 
-#: app/setting_interface.py:1349
 msgid "可选参数"
 msgstr "Optional"
 
-#: app/setting_interface.py:1350
 msgid "接收人 OpenID"
 msgstr "Recipient OpenID"
 
-#: app/setting_interface.py:1403
 msgid "Server酱³"
 msgstr "ServerChan 3"
 
-#: app/setting_interface.py:1404
 msgid "Server酱³ APP 推送"
 msgstr "ServerChan 3 app push"
 
-#: app/setting_interface.py:1406
 msgid "在 https://sc3.ft07.com/ 获取的 SendKey"
 msgstr "SendKey from https://sc3.ft07.com/"
 
-#: app/setting_interface.py:1451
 msgid "适合 iOS 设备推送"
 msgstr "Suitable for iOS push"
 
-#: app/setting_interface.py:1453
 msgid "推送密钥"
 msgstr "Push key"
 
-#: app/setting_interface.py:1453
 msgid "在 Bark APP 中获取的唯一标识符"
 msgstr "Unique identifier from Bark app"
 
-#: app/setting_interface.py:1454
 msgid "分组名"
 msgstr "Group name"
 
-#: app/setting_interface.py:1454
 msgid "可选参数，Bark 通知的分组名"
 msgstr "Optional: Bark notification group name"
 
-#: app/setting_interface.py:1455
 msgid "图标地址"
 msgstr "Icon URL"
 
-#: app/setting_interface.py:1455
 msgid "可选参数，通知图标的 URL"
 msgstr "Optional: notification icon URL"
 
-#: app/setting_interface.py:1456
 msgid "归档"
 msgstr "Archive"
 
-#: app/setting_interface.py:1456
 msgid "可选参数：1 归档，0 不归档"
 msgstr "Optional: 1 = archive, 0 = do not archive"
 
-#: app/setting_interface.py:1457
 msgid "提示音"
 msgstr "Sound"
 
-#: app/setting_interface.py:1457
 msgid "可选参数，自定义提示音名称"
 msgstr "Optional: custom sound name"
 
-#: app/setting_interface.py:1458
 msgid "跳转链接"
 msgstr "Jump URL"
 
-#: app/setting_interface.py:1458
 msgid "可选参数，通知点击后跳转的 URL"
 msgstr "Optional: notification click-through URL"
 
-#: app/setting_interface.py:1459
 msgid "服务地址"
 msgstr "Service URL"
 
-#: app/setting_interface.py:1459
 msgid "可选参数，自定义 Bark 服务的 URL"
 msgstr "Optional: custom Bark service URL"
 
-#: app/setting_interface.py:1460
 msgid "复制内容"
 msgstr "Copy content"
 
-#: app/setting_interface.py:1460
 msgid "可选参数，通知点击后复制内容"
 msgstr "Optional: copy content when notification is clicked"
 
-#: app/setting_interface.py:1461
 msgid "自动复制"
 msgstr "Auto copy"
 
-#: app/setting_interface.py:1461
 msgid "可选参数，是否自动复制"
 msgstr "Optional: whether to auto copy"
 
-#: app/setting_interface.py:1462
 msgid "加密密钥"
 msgstr "Encryption key"
 
-#: app/setting_interface.py:1462
 msgid "可选参数，推送加密密钥，需在 Bark APP 中配置相同的密钥"
 msgstr "Optional: push encryption key, must match Bark app settings"
 
-#: app/setting_interface.py:1463
 msgid "加密算法"
 msgstr "Encryption method"
 
-#: app/setting_interface.py:1463
 msgid "可选参数，支持 cbc 或 ecb，需与 Bark APP 中配置的算法一致"
 msgstr "Optional: supports cbc or ecb, must match Bark app settings"
 
-#: app/setting_interface.py:1520
 msgid "常用于邮箱提醒"
 msgstr "Commonly used for email alerts"
 
-#: app/setting_interface.py:1523
 msgid "SMTP 服务器"
 msgstr "SMTP server"
 
-#: app/setting_interface.py:1524
 msgid "用户名/邮箱"
 msgstr "Username/Email"
 
-#: app/setting_interface.py:1525
 msgid "密码/授权码"
 msgstr "Password/App password"
 
-#: app/setting_interface.py:1525
 msgid "部分邮箱需要填写授权码（如 QQ 邮箱）"
 msgstr "Some providers require app password (e.g. QQ Mail)"
 
-#: app/setting_interface.py:1526
 msgid "发件人"
 msgstr "From"
 
-#: app/setting_interface.py:1526
 msgid "可选参数，发件人邮箱，默认使用 user"
 msgstr "Optional: sender email, defaults to user"
 
-#: app/setting_interface.py:1527
 msgid "收件人"
 msgstr "To"
 
-#: app/setting_interface.py:1527
 msgid "可选参数，收件人邮箱，默认使用 user"
 msgstr "Optional: recipient email, defaults to user"
 
-#: app/setting_interface.py:1528
 msgid "端口"
 msgstr "Port"
 
-#: app/setting_interface.py:1528
 msgid "可选参数，端口，默认 465"
 msgstr "Optional: port, default is 465"
 
-#: app/setting_interface.py:1529
 msgid "启用 SSL"
 msgstr "Enable SSL"
 
-#: app/setting_interface.py:1529
 msgid "可选参数，是否启用 SSL"
 msgstr "Optional: whether to enable SSL"
 
-#: app/setting_interface.py:1530
 msgid "启用 STARTTLS"
 msgstr "Enable STARTTLS"
 
-#: app/setting_interface.py:1530
 msgid "可选参数，是否启用 STARTTLS"
 msgstr "Optional: whether to enable STARTTLS"
 
-#: app/setting_interface.py:1531
 msgid "跳过证书验证"
 msgstr "Skip certificate verification"
 
-#: app/setting_interface.py:1531
 msgid "可选参数，是否跳过 SSL 证书验证"
 msgstr "Optional: whether to skip SSL certificate verification"
 
-#: app/setting_interface.py:1592
 msgid "适用于 OneBot 协议"
 msgstr "For OneBot protocol"
 
-#: app/setting_interface.py:1595
 msgid "OneBot 服务端点地址，例如 http://127.0.0.1:3000"
 msgstr "OneBot endpoint URL, e.g. http://127.0.0.1:3000"
 
-#: app/setting_interface.py:1596
 msgid "可选参数，Access Token"
 msgstr "Optional: access token"
 
-#: app/setting_interface.py:1597
 msgid "私聊用户 ID"
 msgstr "Private chat user ID"
 
-#: app/setting_interface.py:1597
 msgid "可选参数，私聊接收用户 ID"
 msgstr "Optional: recipient user ID for private chat"
 
-#: app/setting_interface.py:1598
 msgid "群组 ID"
 msgstr "Group ID"
 
-#: app/setting_interface.py:1598
 msgid "可选参数，群聊接收群组 ID"
 msgstr "Optional: recipient group ID for group chat"
 
-#: app/setting_interface.py:1715
 msgid "Go-cqhttp 项目已停止维护"
 msgstr "Go-cqhttp project is no longer maintained"
 
-#: app/setting_interface.py:1719
 msgid "消息类型"
 msgstr "Message type"
 
-#: app/setting_interface.py:1719
 msgid "消息类型：private 或 group"
 msgstr "Message type: private or group"
 
-#: app/setting_interface.py:1767
 msgid "钉钉"
 msgstr "DingTalk"
 
-#: app/setting_interface.py:1768
 msgid "钉钉机器人推送"
 msgstr "DingTalk bot push"
 
-#: app/setting_interface.py:1771
 msgid "加签密钥"
 msgstr "Signature secret"
 
-#: app/setting_interface.py:1771
 msgid "可选参数，安全加签密钥"
 msgstr "Optional: security signature secret"
 
-#: app/setting_interface.py:1816
 msgid "Pushplus 通知服务"
 msgstr "Pushplus notification service"
 
-#: app/setting_interface.py:1818
 msgid "推送令牌"
 msgstr "Push token"
 
-#: app/setting_interface.py:1819
 msgid "推送渠道"
 msgstr "Push channel"
 
-#: app/setting_interface.py:1820
 msgid "Webhook 地址"
 msgstr "Webhook URL"
 
-#: app/setting_interface.py:1820
 msgid "可选参数，Webhook URL"
 msgstr "Optional: webhook URL"
 
-#: app/setting_interface.py:1821
 msgid "回调地址"
 msgstr "Callback URL"
 
-#: app/setting_interface.py:1821
 msgid "可选参数，回调 URL"
 msgstr "Optional: callback URL"
 
-#: app/setting_interface.py:1913
 msgid "企业微信机器人"
 msgstr "WeCom bot"
 
-#: app/setting_interface.py:1914
 msgid "企业微信机器人消息推送"
 msgstr "WeCom bot message push"
 
-#: app/setting_interface.py:1917
 msgid "机器人 Key"
 msgstr "Bot key"
 
-#: app/setting_interface.py:1918
 msgid "可选参数，企业微信机器人 Webhook URL"
 msgstr "Optional: WeCom bot webhook URL"
 
-#: app/setting_interface.py:1956
 msgid "企业微信应用"
 msgstr "WeCom app"
 
-#: app/setting_interface.py:1957
 msgid "企业微信应用消息推送"
 msgstr "WeCom app message push"
 
-#: app/setting_interface.py:1960
 msgid "企业 ID"
 msgstr "Corp ID"
 
-#: app/setting_interface.py:1961
 msgid "应用密钥"
 msgstr "App secret"
 
-#: app/setting_interface.py:1962
 msgid "应用 AgentId"
 msgstr "App AgentId"
 
-#: app/setting_interface.py:1963
 msgid "接收用户"
 msgstr "Recipients"
 
-#: app/setting_interface.py:1963
 msgid "可选参数，接收用户，@all 表示全员"
 msgstr "Optional: recipient users, @all means everyone"
 
-#: app/setting_interface.py:1964
 msgid "可选参数，自定义企业微信 API 地址，用于反向代理绕过可信 IP 限制"
 msgstr ""
 "Optional: custom WeCom API URL for reverse proxy to bypass trusted IP "
 "restrictions"
 
-#: app/setting_interface.py:2008
 msgid "Gotify 私有通知服务"
 msgstr "Gotify self-hosted notification service"
 
-#: app/setting_interface.py:2010
 msgid "Gotify 服务器 URL，例如 https://gotify.example.com"
 msgstr "Gotify server URL, e.g. https://gotify.example.com"
 
-#: app/setting_interface.py:2011
 msgid "Gotify 应用的 Access Token"
 msgstr "Gotify app access token"
 
@@ -3935,239 +3714,188 @@ msgstr "Gotify app access token"
 msgid "优先级"
 msgstr "Priority"
 
-#: app/setting_interface.py:2012
 msgid "可选参数，通知优先级，范围 1-10，越高优先级越高。1-3:仅图标，4-7:图标 + 声音，8-10:图标 + 声音 + 震动"
 msgstr ""
 "Optional: priority level 1-10. Higher means more prominent. 1-3: icon only, "
 "4-7: icon + sound, 8-10: icon + sound + vibration"
 
-#: app/setting_interface.py:2061
 msgid "Discord Webhook 推送"
 msgstr "Discord webhook push"
 
-#: app/setting_interface.py:2064
 msgid "显示用户名"
 msgstr "Display username"
 
-#: app/setting_interface.py:2064
 msgid "可选参数，显示用户名"
 msgstr "Optional: display username"
 
-#: app/setting_interface.py:2065
 msgid "头像地址"
 msgstr "Avatar URL"
 
-#: app/setting_interface.py:2065
 msgid "可选参数，头像 URL"
 msgstr "Optional: avatar URL"
 
-#: app/setting_interface.py:2066
 msgid "消息颜色"
 msgstr "Message color"
 
-#: app/setting_interface.py:2066
 msgid "可选参数，嵌入消息颜色，十六进制颜色值（如：0x3498db）"
 msgstr "Optional: embed message color in hex (e.g. 0x3498db)"
 
-#: app/setting_interface.py:2108
 msgid "Pushdeer 通知服务"
 msgstr "Pushdeer notification service"
 
-#: app/setting_interface.py:2110
 msgid "Pushdeer Token"
 msgstr "Pushdeer token"
 
-#: app/setting_interface.py:2111
 msgid "可选参数，自定义 Pushdeer 服务地址"
 msgstr "Optional: custom Pushdeer service URL"
 
-#: app/setting_interface.py:2149
 msgid "飞书"
 msgstr "Feishu"
 
-#: app/setting_interface.py:2150
 msgid "飞书机器人推送"
 msgstr "Feishu bot push"
 
-#: app/setting_interface.py:2154
 msgid "消息内容"
 msgstr "Message content"
 
-#: app/setting_interface.py:2155
 msgid "关键词"
 msgstr "Keyword"
 
-#: app/setting_interface.py:2155
 msgid "可选参数，关键词安全校验内容"
 msgstr "Optional: keyword for security validation"
 
-#: app/setting_interface.py:2156
 msgid "签名"
 msgstr "Signature"
 
-#: app/setting_interface.py:2156
 msgid "可选参数，签名安全校验参数"
 msgstr "Optional: signature for security validation"
 
-#: app/setting_interface.py:2157
 msgid "启用图片"
 msgstr "Enable image"
 
-#: app/setting_interface.py:2157
 msgid "是否发送图片"
 msgstr "Whether to send image"
 
-#: app/setting_interface.py:2158
 msgid "应用 AppId"
 msgstr "App AppId"
 
-#: app/setting_interface.py:2158
 msgid "发送图片时必填：飞书应用 AppId"
 msgstr "Required when sending images: Feishu app AppId"
 
-#: app/setting_interface.py:2159
 msgid "应用 Secret"
 msgstr "App Secret"
 
-#: app/setting_interface.py:2159
 msgid "发送图片时必填：飞书应用 Secret"
 msgstr "Required when sending images: Feishu app Secret"
 
-#: app/setting_interface.py:2200
 msgid "适合 鸿蒙NEXT 设备推送"
 msgstr "Suitable for HarmonyOS NEXT devices"
 
-#: app/setting_interface.py:2202
 msgid "昵称"
 msgstr "Nickname"
 
-#: app/setting_interface.py:2233
 msgid "KOOK 机器人推送"
 msgstr "KOOK bot push"
 
-#: app/setting_interface.py:2236
 msgid "KOOK 机器人的 Token"
 msgstr "KOOK bot token"
 
-#: app/setting_interface.py:2237
 msgid "目标 ID"
 msgstr "Target ID"
 
-#: app/setting_interface.py:2237
 msgid "接收消息的用户 ID 或频道 ID"
 msgstr "Recipient user ID or channel ID"
 
-#: app/setting_interface.py:2238
 msgid "聊天类型"
 msgstr "Chat type"
 
-#: app/setting_interface.py:2238
 msgid "可选参数，1 为私聊，9 为频道"
 msgstr "Optional: 1 for private chat, 9 for channel"
 
-#: app/setting_interface.py:2284
 msgid "可自定义请求方法、请求头和请求体"
 msgstr "Supports custom request method, headers, and body"
 
-#: app/setting_interface.py:2287
 msgid "接收地址"
 msgstr "Endpoint URL"
 
-#: app/setting_interface.py:2288
 msgid "请求方法"
 msgstr "Request method"
 
-#: app/setting_interface.py:2288
 msgid "可选参数，HTTP 方法，默认 POST"
 msgstr "Optional: HTTP method, default POST"
 
-#: app/setting_interface.py:2289
 msgid "请求头"
 msgstr "Request headers"
 
-#: app/setting_interface.py:2289
 msgid "可选参数，请求头 JSON 格式字符串，如：{\"Authorization\": \"Bearer token\"}"
 msgstr "Optional: headers in JSON string, e.g. {\"Authorization\": \"Bearer token\"}"
 
-#: app/setting_interface.py:2290
 msgid "请求体"
 msgstr "Request body"
 
-#: app/setting_interface.py:2290
 msgid "可选参数，请求体模板 JSON 格式字符串，支持 {title}/{content}/{image} 占位符"
 msgstr ""
 "Optional: body template as JSON string, supports placeholders "
 "{title}/{content}/{image}"
 
-#: app/setting_interface.py:2350
 msgid "自定义通知"
 msgstr "Custom notification"
 
-#: app/setting_interface.py:2351
 msgid "自定义 HTTP 请求推送"
 msgstr "Custom HTTP request push"
 
-#: app/setting_interface.py:2354
 msgid "请求地址"
 msgstr "Request URL"
 
-#: app/setting_interface.py:2354
 msgid "请求地址，OneBot 可填写 send_msg 接口 URL"
 msgstr "Request URL. For OneBot, you can use send_msg endpoint URL"
 
-#: app/setting_interface.py:2355
 msgid "请求方法，通常 get 或 post"
 msgstr "Request method, usually GET or POST"
 
-#: app/setting_interface.py:2356
 msgid "数据类型"
 msgstr "Data type"
 
-#: app/setting_interface.py:2356
 msgid "数据类型，通常为 data 或 json"
 msgstr "Data type, usually data or json"
 
-#: app/setting_interface.py:2357
 msgid "图片模板"
 msgstr "Image template"
 
-#: app/setting_interface.py:2357
 msgid "可选参数，图片消息模板，{image} 会替换为 Base64"
 msgstr ""
 "Optional: image message template, {image} will be replaced with Base64"
 
-#: app/setting_interface.py:2358
 msgid "数据模板"
 msgstr "Data template"
 
-#: app/setting_interface.py:2358
 msgid "请求体模板，{message} 会替换为标题和内容"
 msgstr ""
 "Request body template, {message} will be replaced with title and content"
 
-#: app/setting_interface.py:1178
+#: app/setting_interface.py:856
 msgid "通知合并"
 msgstr "Notification merge"
 
-#: app/setting_interface.py:1179
+#: app/setting_interface.py:857
 msgid "开启后，完整运行结束时将所有通知合并为一条发送"
 msgstr ""
 "When enabled, all notifications are merged and sent as one message after a "
 "full run completes."
 
-#: app/setting_interface.py:1184
+#: app/setting_interface.py:862
 msgid "推送图片"
 msgstr "Send images with notifications"
 
-#: app/setting_interface.py:1185
+#: app/setting_interface.py:863
 msgid "关闭后推送消息时不再发送截图"
 msgstr "Do not include screenshots when sending notifications"
 
-#: app/setting_interface.py:1160
+#: app/setting_interface.py:838
 msgid "启用消息推送"
 msgstr "Enable notifications"
 
-#: app/setting_interface.py:1161
+#: app/setting_interface.py:839
 msgid "消息推送总开关"
 msgstr "Notification master switch"
 
@@ -4183,35 +3911,29 @@ msgstr "Divergent Universe Loop"
 msgid "差分宇宙中途接管"
 msgstr "Divergent Universe Mid-takeover"
 
-#: app/card/card_edit_dialog.py:32
+#: app/card/card_edit_dialog.py:25
 msgid "差分宇宙运行一次 ⭐"
 msgstr "Divergent Universe Run Once ⭐"
 
-#: app/card/card_edit_dialog.py:32
+#: app/card/card_edit_dialog.py:25
 msgid "差分宇宙循环运行 ⭐"
 msgstr "Divergent Universe Loop Run ⭐"
 
-#: app/card/card_edit_dialog.py:32
 msgid "模拟宇宙快速启动（停止维护）"
 msgstr "Simulated Universe Quick Start (Stop Maintain)"
 
-#: app/card/card_edit_dialog.py:32
 msgid "模拟宇宙原版运行（停止维护）"
 msgstr "Simulated Universe Original Run (Stop Maintain)"
 
-#: app/card/card_edit_dialog.py:32
 msgid "更新模拟宇宙（停止维护）"
 msgstr "Update Simulated Universe (Stop Maintain)"
 
-#: app/card/card_edit_dialog.py:32
 msgid "重置模拟宇宙配置文件（停止维护）"
 msgstr "Reset Simulated Universe Config (Stop Maintain)"
 
-#: app/card/card_edit_dialog.py:32
 msgid "打开模拟宇宙目录（停止维护）"
 msgstr "Open Simulated Universe Dir (Stop Maintain)"
 
-#: app/card/card_edit_dialog.py:32
 msgid "打开模拟宇宙项目主页（停止维护）"
 msgstr "Open Simulated Universe Project Homepage (Stop Maintain)"
 
@@ -4219,78 +3941,74 @@ msgstr "Open Simulated Universe Project Homepage (Stop Maintain)"
 msgid "在游戏内显示日志"
 msgstr "Show Log in Game"
 
-#: app/setting_interface.py:629
+#: app/setting_interface.py:602
 msgid "启用速通模式"
 msgstr "Enable Speed Run Mode"
 
-#: app/setting_interface.py:653
+#: app/setting_interface.py:626
 msgid "难度等级"
 msgstr "Difficulty Level"
 
-#: app/setting_interface.py:659
+#: app/setting_interface.py:632
 msgid "自动执行饰品提取"
 msgstr "Auto Ornament Extraction"
 
-#: app/setting_interface.py:660
+#: app/setting_interface.py:633
 msgid "在领取积分奖励后自动执行饰品提取消耗沉浸器"
 msgstr ""
 "Auto Ornament Extraction using Immersifiers after claiming point rewards"
 
-#: app/setting_interface.py:665
+#: app/setting_interface.py:638
 msgid "启用低性能兼容模式"
 msgstr "Enable Low-Performance Compatibility Mode"
 
-#: app/setting_interface.py:666
 msgid "建议仅在低性能设备开启，可以提高事件和随意门交互的成功率（云游戏强制使用此模式）"
 msgstr ""
 "Recommended only for low-performance devices. It can improve the success "
 "rate of event and portal interactions (this mode is forced in Cloud Game)."
 
-#: app/setting_interface.py:724
 msgid "自动领取模拟宇宙沉浸奖励"
 msgstr "Auto Claim Simulated Universe Immersion Rewards"
 
-#: app/setting_interface.py:725
 msgid "类别为“模拟宇宙”时，自动领取沉浸奖励"
 msgstr "When category is 'Simulated Universe', auto claim immersion rewards"
 
-#: app/setting_interface.py:793
 msgid "启用模拟宇宙 GPU 加速"
 msgstr "Enable Simulated Universe GPU Acceleration"
 
-#: app/setting_interface.py:1151
+#: app/setting_interface.py:829
 msgid "窗口记忆"
 msgstr "Window Memory"
 
-#: app/setting_interface.py:1152
+#: app/setting_interface.py:830
 msgid "选择启动时恢复的窗口状态"
 msgstr "Select window state to restore on startup"
 
-#: app/setting_interface.py:1153
+#: app/setting_interface.py:831
 msgid "记忆窗口大小"
 msgstr "Remember Window Size"
 
-#: app/setting_interface.py:1153
+#: app/setting_interface.py:831
 msgid "记忆窗口位置"
 msgstr "Remember Window Position"
 
-#: app/setting_interface.py:1153
+#: app/setting_interface.py:831
 msgid "记忆窗口大小和位置"
 msgstr "Remember Window Size and Position"
 
-#: app/setting_interface.py:1153
+#: app/setting_interface.py:831
 msgid "都不记忆"
 msgstr "Remember Neither"
 
-#: app/setting_interface.py:2561
+#: app/setting_interface.py:1035
 msgid "立即前往"
 msgstr "Go Now"
 
-#: app/setting_interface.py:2563
+#: app/setting_interface.py:1037
 msgid "哔哩哔哩"
 msgstr "Bilibili"
 
-#: app/setting_interface.py:2564
+#: app/setting_interface.py:1038
 msgid "欢迎关注我们的B站账号，获取最新动态和教程"
 msgstr "Follow our Bilibili account for the latest updates and tutorials"
 
@@ -4302,83 +4020,77 @@ msgstr "Zero / Thousand Stars"
 msgid "鎏金追忆"
 msgstr "Gilded Reminiscence"
 
-#: app/card/card_edit_dialog.py:19
 msgid "重置模拟宇宙配置文件"
 msgstr "Reset Simulated Universe Config"
 
-#: app/card/card_edit_dialog.py:19
 msgid "打开模拟宇宙目录"
 msgstr "Open Simulated Universe Directory"
 
-#: app/card/card_edit_dialog.py:19
 msgid "打开模拟宇宙项目主页"
 msgstr "Open Simulated Universe Project Homepage"
 
-#: app/card/card_edit_dialog.py:19
 msgid "重置锄大地配置文件"
 msgstr "Reset Fhoe-Rail Config"
 
-#: app/card/card_edit_dialog.py:19
 msgid "打开锄大地程序目录"
 msgstr "Open Fhoe-Rail Directory"
 
-#: app/card/card_edit_dialog.py:19
 msgid "打开锄大地项目主页"
 msgstr "Open Fhoe-Rail Project Homepage"
 
-#: app/card/card_edit_dialog.py:425
+#: app/card/card_edit_dialog.py:399
 msgid "编辑主页卡片"
 msgstr "Edit Home Cards"
 
-#: app/card/card_edit_dialog.py:280
+#: app/card/card_edit_dialog.py:254
 msgid "图标"
 msgstr "Icon"
 
-#: app/card/card_edit_dialog.py:292
+#: app/card/card_edit_dialog.py:266
 msgid "标题："
 msgstr "Title:"
 
-#: app/card/card_edit_dialog.py:295
+#: app/card/card_edit_dialog.py:269
 msgid "卡片标题"
 msgstr "Card Title"
 
-#: app/card/card_edit_dialog.py:323
+#: app/card/card_edit_dialog.py:297
 msgid "操作类型："
 msgstr "Action Type:"
 
-#: app/card/card_edit_dialog.py:325
+#: app/card/card_edit_dialog.py:299
 msgid "单个任务"
 msgstr "Single Task"
 
-#: app/card/card_edit_dialog.py:325
+#: app/card/card_edit_dialog.py:299
 msgid "任务菜单"
 msgstr "Task Menu"
 
-#: app/card/card_edit_dialog.py:229
+#: app/card/card_edit_dialog.py:203
 msgid "任务："
 msgstr "Task:"
 
-#: app/card/card_edit_dialog.py:353
+#: app/card/card_edit_dialog.py:327
 msgid "添加菜单项"
 msgstr "Add Menu Item"
 
-#: app/card/card_edit_dialog.py:207
+#: app/card/card_edit_dialog.py:181
 msgid "菜单项名称"
 msgstr "Menu Item Name"
 
-#: app/card/card_edit_dialog.py:227
+#: app/card/card_edit_dialog.py:201
 msgid "名称："
 msgstr "Name:"
 
-#: app/card/card_edit_dialog.py:460
+#: app/card/card_edit_dialog.py:434
 msgid "添加卡片"
 msgstr "Add Card"
 
-#: app/card/card_edit_dialog.py:462
+#: app/card/card_edit_dialog.py:436
 msgid "恢复默认"
 msgstr "Restore Defaults"
 
-#: app/card/card_edit_dialog.py:465
+#: app/card/card_edit_dialog.py:439
 msgid "确定"
 msgstr "Confirm"
 
@@ -4386,15 +4098,15 @@ msgstr "Confirm"
 msgid "重返未来 M9A"
 msgstr "1999 M9A"
 
-#: app/setting_interface.py:521
+#: app/setting_interface.py:494
 msgid "短信"
 msgstr "Message"
 
-#: app/setting_interface.py:678
+#: app/setting_interface.py:651
 msgid "站点优先级"
 msgstr "Site Priority"
 
-#: app/setting_interface.py:679
+#: app/setting_interface.py:652
 msgid "自定义差分宇宙「选择下一站」的站点优先级"
 msgstr ""
 "Customize site priority for \"Choose Next Station\" in Differential Universe"
@@ -4405,95 +4117,93 @@ msgid_plural "已启用自定义优先级，{count} 个站点已禁用|plural"
 msgstr[0] "Custom priority enabled, {count} site disabled"
 msgstr[1] "Custom priority enabled, {count} sites disabled"
 
-#: app/setting_interface.py:2609
 msgid "下载代理"
 msgstr "Download Proxy"
 
-#: app/setting_interface.py:2611
 msgid "留空则使用系统代理；支持 http:// 和 socks5://"
 msgstr "Leave empty to use system proxy; supports http:// and socks5://"
 
-#: app/card/card_edit_dialog.py:379
+#: app/card/card_edit_dialog.py:353
 msgid "选择图标"
 msgstr "Select Icon"
 
-#: app/setting_interface.py:603
+#: app/setting_interface.py:576
 msgid "职级难度"
 msgstr "Rank Difficulty"
 
-#: app/setting_interface.py:605
+#: app/setting_interface.py:578
 msgid "当前职级"
 msgstr "Current Rank"
 
-#: app/setting_interface.py:605
+#: app/setting_interface.py:578
 msgid "最低职级"
 msgstr "Lowest Rank"
 
-#: app/setting_interface.py:605
+#: app/setting_interface.py:578
 msgid "最高职级"
 msgstr "Highest Rank"
 
-#: app/setting_interface.py:610
+#: app/setting_interface.py:583
 msgid "货币战争策略"
 msgstr "Currency Wars Strategy"
 
-#: app/setting_interface.py:612
+#: app/setting_interface.py:585
 msgid "默认"
 msgstr "Default"
 
-#: app/setting_interface.py:623
+#: app/setting_interface.py:596
 msgid "遇到特定词条时接受重开"
 msgstr "Allow restart on specific tags"
 
-#: app/setting_interface.py:624
+#: app/setting_interface.py:597
 msgid "根据所选策略，在遇到特定词条或词条组合时允许重开"
 msgstr ""
 "Allow restart when specific tags or tag combinations appear based on the "
 "selected strategy"
 
-#: app/setting_interface.py:617
+#: app/setting_interface.py:590
 msgid "「开拓者•记忆」名称"
 msgstr "Remembrance Trailblazer Name"
 
-#: app/setting_interface.py:619
+#: app/setting_interface.py:592
 msgid "未配置时，阿格莱雅/希儿策略将跳过该角色，需要填入自己游戏名称"
 msgstr ""
 "If not configured, this character will be skipped in the Aglaea/Seele "
 "strategies. Enter the name shown in your game."
 
-#: app/setting_interface.py:611
+#: app/setting_interface.py:584
 msgid "提升晋升等级，推荐在最低职级选择默认策略。提升职级等级，推荐在最高职级选择阿格莱雅或希儿策略。"
 msgstr ""
 "To level up promotion rank, use the default strategy at the lowest rank. To "
 "level up rank, use the Aglaea or Seele strategy at the highest rank."
 
-#: app/setting_interface.py:630
+#: app/setting_interface.py:603
 msgid "开启后，仅在首领节点尝试装备武器，只推荐在最低职级时开启"
 msgstr ""
 "When enabled, weapon equip is only attempted at boss nodes. Only recommended"
 " to enable at the lowest rank."
 
-#: app/setting_interface.py:582
+#: app/setting_interface.py:555
 msgid "提升晋升等级"
 msgstr "Raise Promotion Tier"
 
-#: app/setting_interface.py:583
+#: app/setting_interface.py:556
 msgid "提升职级等级"
 msgstr "Raise Rank Level"
 
-#: app/setting_interface.py:585
+#: app/setting_interface.py:558
 msgid "快捷配置"
 msgstr "Quick Preset"
 
-#: app/setting_interface.py:3471
+#: app/setting_interface.py:1750
 msgid "已应用快捷配置"
 msgstr "Quick Preset Applied"
 
-#: app/setting_interface.py:3496
+#: app/setting_interface.py:1775
 msgid "当前为“提升晋升等级”模式"
 msgstr "Now using 'Raise Promotion Tier' mode"
 
-#: app/setting_interface.py:3511
+#: app/setting_interface.py:1790
 msgid "当前为“提升职级等级”模式"
 msgstr "Now using 'Raise Rank Level' mode"
 
@@ -4529,52 +4239,48 @@ msgstr "Use Default Priority"
 msgid "已启用自定义优先级"
 msgstr "Custom Priority Enabled"
 
-#: app/setting_interface.py:2486
+#: app/setting_interface.py:960
 msgid "自动"
 msgstr "Auto"
 
-#: app/setting_interface.py:831
 msgid "二相乐园"
 msgstr "Planarcadia"
 
-#: app/setting_interface.py:340
+#: app/setting_interface.py:313
 msgid "识别方案"
 msgstr "Recognition Method"
 
-#: app/setting_interface.py:341
+#: app/setting_interface.py:314
 msgid "副本名称识别会进入挑战页读取副本信息；掉落物识别根据列表中的掉落物匹配副本，异常时可尝试切换方案"
 msgstr ""
 "Stage Name Recognition enters the challenge page to read stage info; Drop "
 "Recognition matches stages by drops in the list. If issues occur, try "
 "switching methods."
 
-#: app/setting_interface.py:343
+#: app/setting_interface.py:316
 msgid "副本名称识别"
 msgstr "Stage Name Recognition"
 
-#: app/setting_interface.py:344
+#: app/setting_interface.py:317
 msgid "掉落物识别"
 msgstr "Drop Recognition"
 
-#: app/setting_interface.py:822
 msgid "地图版本"
 msgstr "Map Version"
 
-#: app/setting_interface.py:824
 msgid "默认（疾跑）"
 msgstr "Default (Sprint)"
 
-#: app/setting_interface.py:824
 msgid "黄泉专用"
 msgstr "Acheron Only"
 
-#: app/setting_interface.py:356
+#: app/setting_interface.py:329
 msgid "仅识别到侵蚀隧洞/饰品提取时使用自定义副本"
 msgstr ""
 "Use custom dungeon when only Cavern of Corrosion/Ornament Extraction is "
 "detected"
 
-#: app/setting_interface.py:357
+#: app/setting_interface.py:330
 msgid "开启后，当培养目标仅包含侵蚀隧洞和饰品提取时，清体力将改用你在体力设置中配置的副本"
 msgstr ""
 "When enabled, if cultivation targets only include Cavern of Corrosion and "
@@ -4589,127 +4295,99 @@ msgstr "Silver Wolf LV.999"
 msgid "「辉痕圣林」神悟树庭"
 msgstr "\"Sacred Tracewood\" Grove of Divine Insight"
 
-#: app/setting_interface.py:463
+#: app/setting_interface.py:436
 msgid "活动热点通知"
 msgstr "Journey Highlights Notification"
 
-#: app/setting_interface.py:464
+#: app/setting_interface.py:437
 msgid "每次运行时发送带有活动热点截图的通知"
 msgstr "Send notification with Journey Highlights screenshot every run"
 
-#: app/help_interface.py:219
 msgid "流程编排"
 msgstr "Workflow"
 
-#: app/setting_interface.py:612
+#: app/setting_interface.py:585
 msgid "【测试版】"
 msgstr "[Beta]"
 
-#: app/workflow_interface.py:588
 msgid "像快捷指令一样拼流程"
 msgstr "Build workflows like shortcuts"
 
-#: app/workflow_interface.py:596
 msgid "新建流程"
 msgstr "New Workflow"
 
-#: app/workflow_interface.py:597
 msgid "重命名"
 msgstr "Rename"
 
-#: app/workflow_interface.py:598
 msgid "删除流程"
 msgstr "Delete Workflow"
 
-#: app/workflow_interface.py:86
 msgid "流程信息"
 msgstr "Workflow Info"
 
-#: app/workflow_interface.py:600
 msgid "当前流程"
 msgstr "Current Workflow"
 
-#: app/workflow_interface.py:609
 msgid "运行流程"
 msgstr "Run Workflow"
 
-#: app/workflow_interface.py:610
 msgid "采集图像模板"
 msgstr "Capture Image Template"
 
-#: app/workflow_interface.py:611
 msgid "打开模板目录"
 msgstr "Open Template Folder"
 
-#: app/workflow_interface.py:612
 msgid "导入流程"
 msgstr "Import Workflow"
 
-#: app/workflow_interface.py:613
 msgid "导出流程"
 msgstr "Export Workflow"
 
-#: app/workflow_interface.py:632
 msgid "步骤树"
 msgstr "Step Tree"
 
-#: app/workflow_interface.py:633
 msgid "控制节点支持添加子步骤"
 msgstr "Control nodes support child steps"
 
-#: app/workflow_interface.py:641
 msgid "添加步骤"
 msgstr "Add Step"
 
-#: app/workflow_interface.py:642
 msgid "添加子步骤"
 msgstr "Add Child Step"
 
-#: app/workflow_interface.py:179
 msgid "编辑步骤"
 msgstr "Edit Step"
 
-#: app/workflow_interface.py:644
 msgid "删除步骤"
 msgstr "Delete Step"
 
-#: app/workflow_interface.py:646
 msgid "下移"
 msgstr "Move Down"
 
-#: app/workflow_interface.py:657
 msgid "步骤"
 msgstr "Step"
 
-#: module/workflow/__init__.py:944
 msgid "包含截图"
 msgstr "With Screenshot"
 
-#: app/workflow_interface.py:88
 msgid "作者（可不填）"
 msgstr "Author (Optional)"
 
-#: app/workflow_interface.py:92
 msgid "例：1.0.0（可不填）"
 msgstr "Example: 1.0.0 (Optional)"
 
-#: app/workflow_interface.py:95
 msgid "版本号格式不正确，请使用 SemVer 格式（如 1.0.0）"
 msgstr "Invalid version format. Please use SemVer (e.g. 1.0.0)"
 
-#: app/workflow_interface.py:100
 msgid "使用说明（可不填）"
 msgstr "Usage Notes (Optional)"
 
-#: app/workflow_interface.py:106
 msgid "作者"
 msgstr "Author"
 
-#: app/workflow_interface.py:108
 msgid "版本号"
 msgstr "Version"
 
-#: app/workflow_interface.py:111
 msgid "使用说明"
 msgstr "Usage"
 
@@ -4717,120 +4395,91 @@ msgstr "Usage"
 msgid "保存"
 msgstr "Save"
 
-#: app/workflow_interface.py:960
 msgid "确认删除当前流程吗？此操作会同时删除已保存的模板图片。"
 msgstr ""
 "Delete the current workflow? Saved template images will also be deleted."
 
-#: app/workflow_interface.py:273
 msgid "循环次数"
 msgstr "Loop Count"
 
-#: app/workflow_interface.py:234
 msgid "无限"
 msgstr "Infinite"
 
-#: module/workflow/__init__.py:971
 msgid "子步骤"
 msgstr "Child Steps"
 
-#: module/workflow/__init__.py:971
 msgid "个"
 msgstr "items"
 
-#: module/workflow/__init__.py:37
 msgid "点击文字"
 msgstr "Click Text"
 
-#: module/workflow/__init__.py:909
 msgid "精确"
 msgstr "Exact"
 
-#: app/workflow_interface.py:247
 msgid "按下"
 msgstr "Press"
 
-#: app/workflow_interface.py:247
 msgid "松开"
 msgstr "Release"
 
-#: app/workflow_interface.py:247
 msgid "点击"
 msgstr "Click"
 
-#: module/workflow/__init__.py:912
 msgid "匹配"
 msgstr "Match"
 
-#: module/update/update_window.py:165
 msgid "重试"
 msgstr "Retry"
 
-#: module/workflow/__init__.py:912
 msgid "次"
 msgstr "times"
 
-#: module/workflow/__init__.py:37
 msgid "点击图片"
 msgstr "Click Image"
 
-#: module/workflow/__init__.py:905
 msgid "阈值"
 msgstr "Threshold"
 
-#: module/workflow/__init__.py:37
 msgid "如果"
 msgstr "If"
 
-#: module/workflow/__init__.py:57
 msgid "文字存在"
 msgstr "Text Exists"
 
-#: module/workflow/__init__.py:37
 msgid "播放音频"
 msgstr "Play Audio"
 
-#: module/workflow/__init__.py:37
 msgid "等待"
 msgstr "Wait"
 
-#: module/workflow/__init__.py:966
 msgid "秒"
 msgstr "sec"
 
-#: module/workflow/__init__.py:966
 msgid "用于给界面或动画留出时间"
 msgstr "Used to give UI or animations time"
 
-#: app/workflow_interface.py:918
 msgid "请输入流程名称"
 msgstr "Please enter a workflow name"
 
-#: module/workflow/__init__.py:37
 msgid "查找图片"
 msgstr "Find Image"
 
-#: module/workflow/__init__.py:37
 msgid "查找文字"
 msgstr "Find Text"
 
-#: module/workflow/__init__.py:37
 msgid "按下按键"
 msgstr "Press Key"
 
-#: module/workflow/__init__.py:37
 msgid "条件循环"
 msgstr "Conditional Loop"
 
-#: module/workflow/__init__.py:57
 msgid "图片存在"
 msgstr "Image Exists"
 
-#: module/workflow/__init__.py:57
 msgid "上一步成功"
 msgstr "Previous Step Succeeded"
 
-#: app/workflow_interface.py:197
 msgid ""
 "支持 if / for / while，以及图片点击、文字点击等能力。\n"
 "检测区域可先点击“采集图像模板”，再用“复制坐标”获取。"
@@ -4838,277 +4487,222 @@ msgstr ""
 "Supports if / for / while, click image, click text, and more.\n"
 "For detection area, click \"Capture Image Template\" first, then use \"Copy Coordinates\"."
 
-#: app/workflow_interface.py:212
 msgid "选择已保存的模板图片路径"
 msgstr "Select a saved template image path"
 
-#: app/workflow_interface.py:213
 msgid "浏览"
 msgstr "Browse"
 
-#: app/workflow_interface.py:215
 msgid "输入文字内容（搜索、消息或点击文字）"
 msgstr "Enter text content (search, message, or click target)"
 
-#: app/workflow_interface.py:217
 msgid "输入音频文件路径，默认 ./assets/audio/pa.mp3"
 msgstr "Enter audio file path, default ./assets/audio/pa.mp3"
 
-#: app/workflow_interface.py:221
 msgid "留空表示全屏，例如 (100 / 1920, 200 / 1080, 300 / 1920, 120 / 1080)"
 msgstr ""
 "Leave blank for full screen, e.g. (100 / 1920, 200 / 1080, 300 / 1920, 120 /"
 " 1080)"
 
-#: app/workflow_interface.py:238
 msgid "使用包含匹配"
 msgstr "Use Contains Match"
 
-#: app/workflow_interface.py:239
 msgid "发送截图"
 msgstr "Send Screenshot"
 
-#: app/workflow_interface.py:241
 msgid "输入按键名，如 enter, space, a, b 等"
 msgstr "Enter key name, such as enter, space, a, b"
 
-#: app/workflow_interface.py:263
 msgid "步骤类型"
 msgstr "Step Type"
 
-#: app/workflow_interface.py:264
 msgid "条件类型"
 msgstr "Condition Type"
 
-#: app/workflow_interface.py:265
 msgid "模板路径"
 msgstr "Template Path"
 
-#: app/workflow_interface.py:266
 msgid "目标文字"
 msgstr "Target Text"
 
-#: app/workflow_interface.py:267
 msgid "音频路径"
 msgstr "Audio Path"
 
-#: app/workflow_interface.py:269
 msgid "检测区域"
 msgstr "Detection Area"
 
-#: app/workflow_interface.py:270
 msgid "图片阈值"
 msgstr "Image Threshold"
 
-#: app/workflow_interface.py:271
 msgid "重试次数"
 msgstr "Retry Count"
 
-#: app/workflow_interface.py:272
 msgid "等待秒数"
 msgstr "Wait Seconds"
 
-#: app/workflow_interface.py:274
 msgid "最大循环次数"
 msgstr "Max Loop Count"
 
-#: app/workflow_interface.py:275
 msgid "文字匹配"
 msgstr "Text Match"
 
-#: app/workflow_interface.py:277
 msgid "按键名"
 msgstr "Key Name"
 
-#: app/workflow_interface.py:278
 msgid "按键时长"
 msgstr "Key Duration"
 
-#: app/workflow_interface.py:279
 msgid "按键动作"
 msgstr "Key Action"
 
-#: app/workflow_interface.py:280
 msgid "点击动作"
 msgstr "Click Action"
 
-#: app/workflow_interface.py:281
 msgid "按下时长"
 msgstr "Press Duration"
 
-#: app/workflow_interface.py:453
 msgid "请选择模板图片"
 msgstr "Please select a template image"
 
-#: app/card/card_edit_dialog.py:530
+#: app/card/card_edit_dialog.py:504
 msgid "保存失败"
 msgstr "Save Failed"
 
-#: app/workflow_interface.py:456
 msgid "请输入目标文字"
 msgstr "Please enter target text"
 
-#: app/workflow_interface.py:476
 msgid "请输入消息内容"
 msgstr "Please enter message content"
 
-#: app/workflow_interface.py:486
 msgid "请输入按键名"
 msgstr "Please enter key name"
 
-#: app/workflow_interface.py:997
 msgid "ZIP 文件 (*.zip)"
 msgstr "ZIP Files (*.zip)"
 
-#: app/workflow_interface.py:1006
 msgid "导出成功"
 msgstr "Export Successful"
 
-#: app/setting_interface.py:655
+#: app/setting_interface.py:628
 msgid "难度"
 msgstr "Difficulty"
 
-#: app/setting_interface.py:655
+#: app/setting_interface.py:628
 msgid "（星阶模式）"
 msgstr " (Star-Rank Mode)"
 
-#: tasks/tool/screenshot.py:160
+#: tasks/tool/screenshot.py:159
 msgid "显示坐标"
 msgstr "Show Coordinates"
 
-#: tasks/tool/screenshot.py:161
+#: tasks/tool/screenshot.py:160
 msgid "复制坐标"
 msgstr "Copy Coordinates"
 
-#: tasks/tool/screenshot.py:162
+#: tasks/tool/screenshot.py:161
 msgid "输入坐标"
 msgstr "Enter Coordinates"
 
-#: tasks/tool/screenshot.py:163
+#: tasks/tool/screenshot.py:162
 msgid "模板匹配"
 msgstr "Template Matching"
 
-#: tasks/tool/screenshot.py:164
+#: tasks/tool/screenshot.py:163
 msgid "OCR识别"
 msgstr "OCR Recognition"
 
-#: tasks/tool/screenshot.py:165
+#: tasks/tool/screenshot.py:164
 msgid "识别随意门"
 msgstr "Detect Portal"
 
-#: tasks/tool/screenshot.py:166
+#: tasks/tool/screenshot.py:165
 msgid "识别事件"
 msgstr "Detect Event"
 
-#: tasks/tool/screenshot.py:167
+#: tasks/tool/screenshot.py:166
 msgid "保存完整截图"
 msgstr "Save Full Screenshot"
 
-#: tasks/tool/screenshot.py:168
+#: tasks/tool/screenshot.py:167
 msgid "保存选取截图"
 msgstr "Save Selected Screenshot"
 
-#: module/workflow/__init__.py:608
 msgid "全屏"
 msgstr "Full Screen"
 
-#: module/workflow/__init__.py:37
 msgid "点击坐标"
 msgstr "Click Coordinates"
 
-#: app/workflow_interface.py:1104
 msgid "执行选中步骤"
 msgstr "Run Selected Step"
 
-#: module/workflow/__init__.py:57
 msgid "图片不存在"
 msgstr "Image Missing"
 
-#: module/workflow/__init__.py:57
 msgid "文字不存在"
 msgstr "Text Missing"
 
-#: module/workflow/__init__.py:57
 msgid "上一步失败"
 msgstr "Previous Step Failed"
 
-#: app/workflow_interface.py:1161
 msgid "确认删除当前步骤吗？"
 msgstr "Delete the current step?"
 
-#: module/workflow/__init__.py:923
 msgid "时长"
 msgstr "Duration"
 
-#: module/workflow/__init__.py:909
 msgid "包含"
 msgstr "Partial "
 
-#: module/workflow/__init__.py:910
 msgid "未填写文字"
 msgstr "No Text Entered"
 
-#: module/workflow/__init__.py:37
 msgid "结束循环"
 msgstr "Break Loop"
 
-#: module/workflow/__init__.py:37
 msgid "继续循环"
 msgstr "Continue Loop"
 
-#: module/workflow/__init__.py:37
 msgid "切换界面"
 msgstr "Switch Screen"
 
-#: app/workflow_interface.py:268
 msgid "目标界面"
 msgstr "Target Screen"
 
-#: app/workflow_interface.py:481
 msgid "请选择目标界面"
 msgstr "Please select a target screen"
 
-#: module/workflow/__init__.py:950
 msgid "未选择目标界面"
 msgstr "No Target Screen Selected"
 
-#: app/workflow_interface.py:483
 msgid "目标界面不可切换"
 msgstr "The target screen cannot be navigated to"
 
-#: app/workflow_interface.py:1277
 msgid "截图窗口已打开，请框选后保存为流程素材"
 msgstr "Capture window opened. Select an area and save it as a workflow asset"
 
-#: app/workflow_interface.py:1280
 msgid "已打开截图工具"
 msgstr "Capture tool opened"
 
-#: tasks/tool/screenshot.py:238
 msgid "⭐保存为流程图像模板⭐"
 msgstr "⭐Save as Workflow Image Template⭐"
 
-#: app/workflow_interface.py:933
 msgid "重命名流程"
 msgstr "Rename Workflow"
 
-#: app/workflow_interface.py:933
 msgid "请输入新的流程名称"
 msgstr "Please enter a new workflow name"
 
-#: tasks/tool/screenshot.py:543
 msgid "流程图像模板"
 msgstr "Workflow Image Template"
 
-#: tasks/tool/screenshot.py:552
 msgid "已保存到"
 msgstr "Saved to "
 
-#: tasks/tool/screenshot.py:552
 msgid "已复制到剪贴板"
 msgstr "Copied to clipboard"
 
-#: app/workflow_interface.py:412
+#: tasks/tool/screenshot.py:559
 msgid "选择模板图片"
 msgstr "Select Template Image"
 
@@ -5116,55 +4710,44 @@ msgstr "Select Template Image"
 msgid "自动短信 (自动点击关闭手机短信页面)"
 msgstr "Auto Message (Automatically click to close the phone message page)"
 
-#: app/workflow_interface.py:1045
 msgid "流程说明"
 msgstr "Workflow Description"
 
-#: tasks/tool/screenshot.py:384
+#: tasks/tool/screenshot.py:374
 msgid "结果"
 msgstr "Result"
 
-#: module/workflow/__init__.py:1036
 msgid "失败"
 msgstr "Failed"
 
-#: module/workflow/__init__.py:1043
 msgid "条件"
 msgstr "Condition"
 
-#: module/workflow/__init__.py:1036
 msgid "成功"
 msgstr "Success"
 
-#: module/workflow/__init__.py:37
 msgid "终止流程"
 msgstr "Terminate Workflow"
 
-#: app/setting_interface.py:743
 msgid "重置次数"
 msgstr "Reset Count"
 
-#: app/setting_interface.py:745
 msgid "差分宇宙已完成次数"
 msgstr "Divergent Universe Completed Count"
 
-#: app/setting_interface.py:3074
 msgid "今日已完成 {count} 次"
 msgid_plural "今日已完成 {count} 次|plural"
 msgstr[0] "Completed {count} run today"
 msgstr[1] "Completed {count} runs today"
 
-#: app/setting_interface.py:3075
 msgid "本周已完成 {count} 次"
 msgid_plural "本周已完成 {count} 次|plural"
 msgstr[0] "Completed {count} run this week"
 msgstr[1] "Completed {count} runs this week"
 
-#: app/setting_interface.py:3016
 msgid "启用前请确认用途"
 msgstr "Confirm Before Enabling"
 
-#: app/setting_interface.py:3017
 msgid ""
 "此选项及其子选项用于配置反复刷取遗器经验和灵之珠泪，直到达到每周上限。\n"
 "默认运行次数为每周 34 次。\n"
@@ -5174,7 +4757,6 @@ msgstr ""
 "The default run count is 34 times per week.\n"
 "Only enable this after you clearly understand what this feature does and are sure you know what you are doing."
 
-#: app/setting_interface.py:3020
 msgid "我已了解，继续开启"
 msgstr "I understand, enable it"
 
@@ -5182,170 +4764,133 @@ msgstr "I understand, enable it"
 msgid "终末地 MaaEnd"
 msgstr "MaaEnd"
 
-#: app/schedule_dialog.py:805
+#: app/schedule_dialog.py:748
 msgid "继续后续任务"
 msgstr "Continue Remaining Tasks"
 
-#: app/schedule_dialog.py:806
+#: app/schedule_dialog.py:749
 msgid "停止后续任务"
 msgstr "Stop Remaining Tasks"
 
-#: module/update/update_engine.py:390
 msgid "正在覆盖安装新版本..."
 msgstr "Overwriting with new version..."
 
-#: module/update/helper_app.py:261
 msgid "正在更新 March7th Assistant"
 msgstr "Updating March7th Assistant"
 
-#: module/update/update_engine.py:425
 msgid "正在清理临时文件..."
 msgstr "Cleaning up temporary files..."
 
-#: module/update/update_engine.py:441
 msgid "正在启动新版本..."
 msgstr "Launching new version..."
 
-#: module/update/downloader.py:71
 msgid "更新失败"
 msgstr "Update failed"
 
-#: utils/tasks.py:15
 msgid "更新三月七小助手"
 msgstr "Update March7th Assistant"
 
-#: module/update/helper_app.py:426
 msgid "当前已是最新版本"
 msgstr "Already on the latest version"
 
-#: module/update/version_check.py:227
 msgid "Mirror酱 API 请求失败"
 msgstr "Mirror API request failed"
 
-#: module/update/helper_app.py:246
 msgid "正在准备更新"
 msgstr "Preparing update"
 
-#: module/update/helper_app.py:247
 msgid "即将开始下载和安装新版本"
 msgstr "About to download and install new version"
 
-#: module/update/helper_app.py:586
 msgid "无需更新"
 msgstr "No update needed"
 
-#: module/update/update_window.py:156
 msgid "更新日志会显示在这里"
 msgstr "Update log will be displayed here"
 
-#: module/update/update_window.py:319
 msgid "请勿关闭此窗口，更新完成后会自动启动新版本"
 msgstr ""
 "Do not close this window. The new version will launch automatically after "
 "the update"
 
-#: module/update/update_engine.py:263
 msgid "正在下载更新包..."
 msgstr "Downloading update package..."
 
-#: module/update/helper_app.py:542
 msgid "已请求取消更新，正在等待当前步骤结束"
 msgstr "Update cancellation requested, waiting for current step to finish"
 
-#: module/update/helper_app.py:454
 msgid "更新已取消"
 msgstr "Update cancelled"
 
-#: module/update/update_window.py:169
 msgid "后台更新"
 msgstr "Background Update"
 
-#: module/update/update_window.py:161
 msgid "开始安装"
 msgstr "Start Installation"
 
-#: module/update/update_window.py:250
 msgid "后台更新中"
 msgstr "Background Update in Progress"
 
-#: module/update/update_window.py:232
 msgid "点击此处可重新打开更新窗口"
 msgstr "Click here to reopen the update window"
 
-#: module/update/update_engine.py:213
 msgid "检测更新失败"
 msgstr "Update check failed"
 
-#: module/update/downloader.py:71
 msgid "请检查网络连接是否正常，或切换更新源后重试"
 msgstr ""
 "Please check your network connection, or switch the update source and try "
 "again"
 
-#: module/update/downloader.py:80
 msgid "期望 SHA-256"
 msgstr "Expected SHA-256"
 
-#: module/update/downloader.py:80
 msgid "实际 SHA-256"
 msgstr "Actual SHA-256"
 
-#: module/update/update_engine.py:368
 msgid "正在检测文件占用..."
 msgstr "Checking for file locks..."
 
-#: module/update/update_engine.py:666
 msgid "临时文件被占用，无法清理"
 msgstr "Temporary files are in use, cannot clean up"
 
-#: module/update/helper_app.py:441
 msgid "更新完成"
 msgstr "Update complete"
 
-#: module/update/downloader.py:79
 msgid "下载文件校验失败"
 msgstr "Download file verification failed"
 
-#: module/update/downloader.py:483
 msgid "下载文件校验失败，请重新下载或切换更新源后重试"
 msgstr ""
 "Download verification failed. Please download again or switch the update "
 "source and try again"
 
-#: module/update/update_window.py:407
 msgid "更新已准备完成"
 msgstr "Update is ready"
 
-#: module/update/update_window.py:408
 msgid "更新包已下载并解压完成，点击“开始安装”后将关闭主程序并安装新版本"
 msgstr ""
 "The update package has been downloaded and extracted. Clicking Start "
 "Installation will close the main program and install the new version"
 
-#: module/update/update_window.py:415
 msgid "更新已准备完成，等待开始安装"
 msgstr "Update is ready and waiting to start installation"
 
-#: module/update/helper_app.py:442
 msgid "新版本已启动，此窗口将自动关闭"
 msgstr "New version launched, this window will close automatically"
 
-#: module/update/update_engine.py:382
 msgid "以下目标文件正在被占用，暂时无法覆盖。请打开任务管理器尝试关闭相关进程后重试，或直接重启电脑后再试。"
 msgstr ""
 "The following target files are currently in use and can't be replaced yet. "
 "Please open Task Manager and try closing related processes, or restart your "
 "computer and try again."
 
-#: module/update/helper_app.py:262
 msgid "正在等待主程序退出..."
 msgstr "Waiting for main program to exit..."
 
-#: module/update/update_window.py:468
 msgid "请检查日志后重试"
 msgstr "Please check the log and retry"
 
-#: module/update/update_engine.py:301
 msgid "正在解压更新包..."
 msgstr "Extracting update package..."
 
@@ -5353,71 +4898,62 @@ msgstr "Extracting update package..."
 msgid "检测到新版本：{version}"
 msgstr "Update available: {version}"
 
-#: app/card/card_edit_dialog.py:543
+#: app/card/card_edit_dialog.py:517
 msgid "任务菜单中的菜单项名称不能为空"
 msgstr "Menu item name in task menu cannot be empty"
 
-#: app/card/card_edit_dialog.py:531
+#: app/card/card_edit_dialog.py:505
 msgid "卡片标题不能为空"
 msgstr "Card title cannot be empty"
 
-#: module/update/update_window.py:429
 msgid "启动更新器失败"
 msgstr "Failed to launch updater"
 
-#: module/update/helper_app.py:655
 msgid "更新被阻塞"
 msgstr "Update blocked"
 
-#: module/update/update_window.py:371
 msgid "未找到更新程序"
 msgstr "Updater not found"
 
-#: module/update/update_engine.py:317
 msgid "正在关闭相关进程..."
 msgstr "Closing related processes..."
 
-#: app/card/pushsettingcard1.py:343
+#: app/card/pushsettingcard1.py:337
 msgid "正在获取"
 msgstr "Fetching"
 
-#: app/card/pushsettingcard1.py:377
+#: app/card/pushsettingcard1.py:371
 msgid "获取最新兑换码失败"
 msgstr "Failed to fetch latest codes"
 
-#: app/card/pushsettingcard1.py:343
+#: app/card/pushsettingcard1.py:337
 msgid "请等待当前获取完成"
 msgstr "Please wait for current fetch to complete"
 
-#: app/card/pushsettingcard1.py:230
+#: app/card/pushsettingcard1.py:224
 msgid "CDK 有效 (＾∀＾●)"
 msgstr "CDK Valid (＾∀＾●)"
 
-#: app/card/pushsettingcard1.py:228
+#: app/card/pushsettingcard1.py:222
 msgid "今天到期"
 msgstr "Expires today"
 
-#: app/card/pushsettingcard1.py:245
+#: app/card/pushsettingcard1.py:239
 msgid "CDK 验证失败 (╥╯﹏╰╥)"
 msgstr "CDK Validation Failed (╥╯﹏╰╥)"
 
-#: app/setting_interface.py:2630
 msgid "匿名使用数据收集"
 msgstr "Anonymous Usage Data Collection"
 
-#: app/setting_interface.py:2631
 msgid "帮助开发者了解程序使用情况，改进功能"
 msgstr "Help developers understand usage patterns and improve the program"
 
-#: app/setting_interface.py:2628
 msgid "查看说明"
 msgstr "View Details"
 
-#: app/setting_interface.py:3080
 msgid "匿名使用数据收集说明"
 msgstr "Anonymous Usage Data Collection Details"
 
-#: app/setting_interface.py:3081
 msgid ""
 "我们只收集用于改进稳定性、兼容性和功能体验的匿名统计信息，不用于识别你的真实身份，也不会用于广告、画像或与第三方共享。\n"
 "\n"
@@ -5435,17 +4971,17 @@ msgstr ""
 "\n"
 "This data is used only to analyze feature usage, discover compatibility issues, evaluate version stability, and investigate common problems."
 
-#: app/setting_interface.py:3148
+#: app/setting_interface.py:1430
 msgid "该参数用于配置该通知方式的请求字段"
 msgstr ""
 "This parameter is used to configure the request field for this notification "
 "method"
 
-#: app/setting_interface.py:2432
+#: app/setting_interface.py:906
 msgid "教程"
 msgstr "Tutorial"
 
-#: app/setting_interface.py:3332
+#: app/setting_interface.py:1611
 msgid "{name} 配置教程"
 msgstr "{name} Configuration Tutorial"
 
@@ -5495,65 +5031,52 @@ msgstr "Fate[UBW] Character Collab Warp"
 msgid "Fate[UBW]光锥联动跃迁"
 msgstr "Fate[UBW] Light Cone Collab Warp"
 
-#: app/main_window.py:871
+#: app/main_window.py:859
 msgid "游戏已在运行"
 msgstr "Game Already Running"
 
-#: app/main_window.py:872
+#: app/main_window.py:860
 msgid "无需重复启动游戏"
 msgstr "There is no need to launch it again"
 
-#: app/setting_interface.py:1532
 msgid "纯文本模式"
 msgstr "Plain Text Mode"
 
-#: app/setting_interface.py:1532
 msgid "可选参数，是否以纯文本格式发送邮件（适用于 Outlook 等邮箱）"
 msgstr ""
 "Optional parameter: whether to send emails in plain text format (suitable "
 "for Outlook and other email services)"
 
-#: app/schedule_dialog.py:394
 msgid "请选择要运行的流程编排"
 msgstr "Please select a workflow to run"
 
-#: module/workflow/__init__.py:37
 msgid "滑动鼠标"
 msgstr "Drag Mouse"
 
-#: app/workflow_interface.py:255
 msgid "例如 100 / 1920, 540 / 1080"
 msgstr "Example: 100 / 1920, 540 / 1080"
 
-#: app/workflow_interface.py:257
 msgid "例如 900 / 1920, 540 / 1080"
 msgstr "Example: 900 / 1920, 540 / 1080"
 
-#: app/workflow_interface.py:282
 msgid "滑动起点"
 msgstr "Drag Start"
 
-#: app/workflow_interface.py:283
 msgid "滑动终点"
 msgstr "Drag End"
 
-#: app/workflow_interface.py:284
 msgid "滑动时长"
 msgstr "Drag Duration"
 
-#: module/workflow/__init__.py:921
 msgid "未填写起点"
 msgstr "Start point not specified"
 
-#: module/workflow/__init__.py:922
 msgid "未填写终点"
 msgstr "End point not specified"
 
-#: app/workflow_interface.py:463
 msgid "滑动鼠标需要填写起点和终点"
 msgstr "Mouse drag requires both start and end points"
 
-#: app/workflow_interface.py:468
 msgid "滑动鼠标坐标必须在 0 到 1 之间"
 msgstr "Mouse drag coordinates must be between 0 and 1"
 
@@ -5565,73 +5088,56 @@ msgstr "Rin Tohsaka"
 msgid "吉尔伽美什"
 msgstr "Gilgamesh"
 
-#: app/setting_interface.py:1869
 msgid "Qmsg 酱 QQ 推送"
 msgstr "Qmsg QQ push"
 
-#: app/setting_interface.py:1871
 msgid "Qmsg 酱分配的 Key"
 msgstr "Key assigned by Qmsg"
 
-#: app/setting_interface.py:1872
 msgid "QQ 号"
 msgstr "QQ number"
 
-#: app/setting_interface.py:1872
 msgid "可选参数，指定接收通知的 QQ 号，不填则发送到该 Key 绑定的默认 QQ"
 msgstr ""
 "Optional: QQ number for receiving notifications. If empty, use the default "
 "QQ bound to the key"
 
-#: app/setting_interface.py:1873
 msgid "发送模式"
 msgstr "Send mode"
 
-#: app/setting_interface.py:1873
 msgid "可选参数，例如 send（默认）或 group"
 msgstr "Optional: e.g. send (default) or group"
 
-#: tasks/tool/screenshot.py:546
 msgid "Crop 表达式"
 msgstr "Crop Expression"
 
-#: module/workflow/__init__.py:860
 msgid "ZIP 中未找到 workflow.yaml"
 msgstr "workflow.yaml not found in ZIP"
 
-#: module/workflow/__init__.py:851
 msgid "ZIP 文件包含不安全路径，已拒绝导入"
 msgstr "ZIP file contains unsafe paths; import rejected"
 
-#: module/workflow/__init__.py:865
 msgid "workflow.yaml 格式无效"
 msgstr "Invalid workflow.yaml format"
 
-#: tasks/tool/screenshot.py:240
 msgid "⭐保存为流程 OCR 区域⭐"
 msgstr "⭐Save as Workflow OCR Area⭐"
 
-#: module/workflow/__init__.py:981
 msgid "上一步返回 False"
 msgstr "Previous step returned False"
 
-#: module/workflow/__init__.py:979
 msgid "上一步返回 True"
 msgstr "Previous step returned True"
 
-#: module/workflow/__init__.py:944
 msgid "不含截图"
 msgstr "Without Screenshot"
 
-#: module/workflow/__init__.py:834
 msgid "不是有效的 ZIP 文件"
 msgstr "Not a valid ZIP file"
 
-#: tasks/tool/screenshot.py:528
 msgid "保存流程素材"
 msgstr "Save Workflow Assets"
 
-#: app/workflow_interface.py:758
 msgid "只有 if / for / while 才能包含子步骤"
 msgstr "Only if / for / while can contain child steps"
 
@@ -5639,122 +5145,97 @@ msgstr "Only if / for / while can contain child steps"
 msgid "图片文件不存在，请重新选择"
 msgstr "Image file does not exist; please select again"
 
-#: app/workflow_interface.py:490
 msgid "图片条件需要选择模板图片"
 msgstr "Image condition requires a template image"
 
-#: app/workflow_interface.py:1028
 msgid "导入失败"
 msgstr "Import Failed"
 
-#: app/workflow_interface.py:1015
 msgid "导出失败"
 msgstr "Export Failed"
 
-#: module/workflow/__init__.py:807
 msgid "工作流目录不存在"
 msgstr "Workflow directory does not exist"
 
-#: app/workflow_interface.py:492
 msgid "文字条件需要填写目标文字"
 msgstr "Text condition requires target text"
 
-#: module/update/update_engine.py:411
 msgid "无法为当前更新程序创建备份，请关闭占用后重试"
 msgstr ""
 "Cannot back up the current updater; close the program using it and retry"
 
-#: app/workflow_interface.py:949
 msgid "无法删除"
 msgstr "Cannot Delete"
 
-#: app/workflow_interface.py:744
 msgid "无法添加子步骤"
 msgstr "Cannot Add Child Step"
 
-#: module/workflow/__init__.py:986
 msgid "无限次"
 msgstr "Unlimited"
 
-#: module/update/update_engine.py:508
 msgid "更新包信息不完整"
 msgstr "Incomplete update package information"
 
-#: module/workflow/__init__.py:986
 msgid "最多"
 msgstr "Max"
 
-#: module/workflow/__init__.py:961
 msgid "未填写按键"
 msgstr "No Key Entered"
 
-#: module/workflow/__init__.py:943
 msgid "未填写消息内容"
 msgstr "No Message Content Entered"
 
-#: module/workflow/__init__.py:939
 msgid "未填写音频路径"
 msgstr "No Audio Path Entered"
 
-#: module/workflow/__init__.py:903
 msgid "未选择模板"
 msgstr "No Template Selected"
 
-#: module/update/version_check.py:340
 msgid "没有找到合适的下载URL"
 msgstr "No suitable download URL found"
 
-#: tasks/tool/screenshot.py:547
 msgid "流程 OCR 区域"
 msgstr "Workflow OCR Area"
 
-#: app/workflow_interface.py:459
 msgid "点击坐标需要填写检测区域"
 msgstr "Click Coordinates requires a detection area"
 
-#: app/workflow_interface.py:950
 msgid "至少需要保留一个流程"
 msgstr "At least one workflow must be kept"
 
-#: tasks/tool/screenshot.py:528
 msgid "请先框选一个区域"
 msgstr "Please select an area first"
 
-#: app/workflow_interface.py:745
 msgid "请先选中一个 if / for / while 节点"
 msgstr "Please select an if / for / while node first"
 
-#: app/workflow_interface.py:473
 msgid "请输入音频文件路径"
 msgstr "Please enter the audio file path"
 
-#: app/workflow_interface.py:422
 msgid "选择音频文件"
 msgstr "Select Audio File"
 
-#: tasks/game/__init__.py:112
+#: tasks/game/__init__.py:107
 msgid "检测到游戏客户端版本过低，请前往启动器下载最新客户端"
 msgstr ""
 "Game client version is too old. Please download the latest client from the "
 "launcher"
 
-#: app/card/pushsettingcard1.py:226
+#: app/card/pushsettingcard1.py:220
 msgid "剩余 {count} 天"
 msgid_plural "剩余 {count} 天|plural"
 msgstr[0] "{count} day remaining"
 msgstr[1] "{count} days remaining"
 
-#: module/update/helper_app.py:643
 msgid "{count} 秒后自动退出"
 msgid_plural "{count} 秒后自动退出|plural"
 msgstr[0] "Auto-exit in {count} second"
 msgstr[1] "Auto-exit in {count} seconds"
 
-#: app/main_window.py:946
+#: app/main_window.py:913
 msgid "请在“设置”→“程序”中配置"
 msgstr "Please configure in 'Settings' → 'Program'"
 
-#: app/tools/check_update.py:238
 msgid "请在“设置 → 关于 → 更新源”中选择 Mirror酱 并填写有效 CDK"
 msgstr ""
 "Please go to Settings → About → Update Source, select Mirror and enter a "
@@ -5768,242 +5249,241 @@ msgstr "Please configure the correct Game Path in Settings → Program"
 msgid "快捷键：{hotkey}（可在设置中修改）"
 msgstr "Hotkey: {hotkey} (Configurable in Settings)"
 
-#: app/card/messagebox_custom.py:1226
+#: app/card/messagebox_custom.py:1067
 msgid "类型："
 msgstr "Type:"
 
-#: app/card/messagebox_custom.py:1230
+#: app/card/messagebox_custom.py:1071
 msgid "次数："
 msgstr "Count:"
 
-#: app/card/messagebox_custom.py:1503
+#: app/card/messagebox_custom.py:1344
 msgid "队伍："
 msgstr "Team: "
 
 msgid "已启用：{count}，下次：{time}"
 msgstr "Active: {count}, Next: {time}"
 
-#: app/log_interface.py:1272
+#: app/log_interface.py:1273
 msgid "正在运行：{name}"
 msgstr "Running: {name}"
 
-#: app/schedule_dialog.py:245
+#: app/schedule_dialog.py:237
 msgid "启动方式："
 msgstr "Start Mode:"
 
-#: app/schedule_dialog.py:254
+#: app/schedule_dialog.py:246
 msgid "任务名称："
 msgstr "Task Name:"
 
-#: app/schedule_dialog.py:259
+#: app/schedule_dialog.py:251
 msgid "启动时间："
 msgstr "Start Time:"
 
-#: app/schedule_dialog.py:284
+#: app/schedule_dialog.py:276
 msgid "程序路径："
 msgstr "Program Path:"
 
-#: app/schedule_dialog.py:292
+#: app/schedule_dialog.py:284
 msgid "启动参数 或 选择任务："
 msgstr "Args or Select Task:"
 
-#: app/schedule_dialog.py:302
+#: app/schedule_dialog.py:293
 msgid "超时强制停止："
 msgstr "Timeout Force Stop:"
 
-#: app/schedule_dialog.py:310
+#: app/schedule_dialog.py:301
 msgid "任务完成后操作："
 msgstr "After Task Action:"
 
-#: app/schedule_dialog.py:318
+#: app/schedule_dialog.py:309
 msgid "完成后终止进程："
 msgstr "Kill Process After:"
 
-#: app/schedule_dialog.py:321
+#: app/schedule_dialog.py:312
 msgid "例如：StarRail.exe, YuanShen.exe（逗号分隔多个进程）"
 msgstr "e.g., StarRail.exe, YuanShen.exe (comma separated)"
 
-#: app/schedule_dialog.py:328
+#: app/schedule_dialog.py:319
 msgid "完成后推送通知："
 msgstr "Notify After:"
 
-#: app/schedule_dialog.py:486
+#: app/schedule_dialog.py:462
 msgid "选择任务："
 msgstr "Select Task:"
 
-#: app/schedule_dialog.py:497
 msgid "选择流程："
 msgstr "Select workflow:"
 
-#: app/schedule_dialog.py:508
+#: app/schedule_dialog.py:472
 msgid "启动参数："
 msgstr "Args:"
 
-#: app/schedule_dialog.py:780
+#: app/schedule_dialog.py:723
 msgid "冲突："
 msgstr "Conflict:"
 
-#: app/schedule_dialog.py:802
+#: app/schedule_dialog.py:745
 msgid "链式失败后："
 msgstr "After Chain Failure:"
 
-#: app/schedule_dialog.py:1131
+#: app/schedule_dialog.py:1074
 msgid "启动任务失败：{error}"
 msgstr "Start Task Failed: {error}"
 
-#: app/card/samplecardview1.py:61
+#: app/card/samplecardview1.py:59
 msgid "执行完成(＾∀＾●)"
 msgstr "Completed(＾∀＾●)"
 
-#: app/card/samplecardview1.py:73
+#: app/card/samplecardview1.py:71
 msgid "执行出错"
 msgstr "Execution Failed"
 
-#: app/main_window.py:519
+#: app/main_window.py:508
 msgid "语言切换失败"
 msgstr "Failed to switch language"
 
-#: tasks/tool/screenshot.py:386
+#: tasks/tool/screenshot.py:376
 msgid "还没有选择区域呢"
 msgstr "No area selected yet"
 
-#: tasks/tool/screenshot.py:397
+#: tasks/tool/screenshot.py:387
 msgid "复制到剪贴板成功"
 msgstr "Copied to clipboard"
 
-#: tasks/tool/screenshot.py:410
+#: tasks/tool/screenshot.py:400
 msgid "请输入 crop 值"
 msgstr "Please enter a crop value"
 
-#: tasks/tool/screenshot.py:418
+#: tasks/tool/screenshot.py:408
 msgid "crop 值必须包含 4 个部分"
 msgstr "Crop value must contain 4 parts"
 
-#: tasks/tool/screenshot.py:426
+#: tasks/tool/screenshot.py:416
 msgid "比例格式不正确"
 msgstr "Invalid ratio format"
 
-#: tasks/tool/screenshot.py:430
+#: tasks/tool/screenshot.py:420
 msgid "比例分母必须大于 0"
 msgstr "Ratio denominator must be greater than 0"
 
-#: tasks/tool/screenshot.py:434
+#: tasks/tool/screenshot.py:424
 msgid "第 {index} 项分母应为 {expected}"
 msgstr "Item {index} denominator should be {expected}"
 
-#: tasks/tool/screenshot.py:441
+#: tasks/tool/screenshot.py:431
 msgid "像素坐标格式不正确"
 msgstr "Invalid pixel coordinate format"
 
-#: tasks/tool/screenshot.py:445
+#: tasks/tool/screenshot.py:435
 msgid "宽度和高度必须大于 0"
 msgstr "Width and height must be greater than 0"
 
-#: tasks/tool/screenshot.py:447
+#: tasks/tool/screenshot.py:437
 msgid "X 和 Y 不能小于 0"
 msgstr "X and Y cannot be less than 0"
 
-#: tasks/tool/screenshot.py:449
+#: tasks/tool/screenshot.py:439
 msgid "crop 区域超出截图范围"
 msgstr "Crop area exceeds the screenshot bounds"
 
-#: tasks/tool/screenshot.py:458
+#: tasks/tool/screenshot.py:448
 msgid "输入 Crop 值"
 msgstr "Enter Crop Value"
 
-#: tasks/tool/screenshot.py:459
+#: tasks/tool/screenshot.py:449
 msgid "支持 (x / 宽, y / 高, width / 宽, height / 高) 或 x, y, width, height"
 msgstr ""
 "Supported: (x / width, y / height, width / width, height / height) or x, y, "
 "width, height"
 
-#: tasks/tool/screenshot.py:482
+#: tasks/tool/screenshot.py:472
 msgid "已绘制区域: X={x}, Y={y}, Width={width}, Height={height}"
 msgstr "Drawn area: X={x}, Y={y}, Width={width}, Height={height}"
 
-#: tasks/tool/screenshot.py:484
+#: tasks/tool/screenshot.py:474
 msgid "（已使用蓝色矩形标记）"
 msgstr "(marked with a blue rectangle)"
 
-#: tasks/tool/screenshot.py:517
+#: tasks/tool/screenshot.py:507
 msgid "保存选区截图"
 msgstr "Save Selection"
 
-#: tasks/tool/screenshot.py:591
+#: tasks/tool/screenshot.py:545
 msgid "OCR识别结果"
 msgstr "OCR Result"
 
-#: tasks/tool/screenshot.py:593
+#: tasks/tool/screenshot.py:547
 msgid "识别耗时: {seconds} 秒"
 msgstr "Recognition time: {seconds} s"
 
-#: tasks/tool/screenshot.py:595
+#: tasks/tool/screenshot.py:549
 msgid "没有识别出任何内容"
 msgstr "Nothing was recognized"
 
-#: tasks/tool/screenshot.py:618
+#: tasks/tool/screenshot.py:572
 msgid "模板图片加载失败"
 msgstr "Failed to load the template image"
 
-#: tasks/tool/screenshot.py:626
+#: tasks/tool/screenshot.py:580
 msgid "模板尺寸大于截图尺寸，无法匹配"
 msgstr "Template is larger than the screenshot; cannot match"
 
-#: tasks/tool/screenshot.py:642
+#: tasks/tool/screenshot.py:596
 msgid "模板匹配结果"
 msgstr "Template Match Result"
 
-#: tasks/tool/screenshot.py:643
+#: tasks/tool/screenshot.py:597
 msgid "最高置信度: {value}"
 msgstr "Best confidence: {value}"
 
-#: tasks/tool/screenshot.py:644
+#: tasks/tool/screenshot.py:598
 msgid "匹配区域: X={x}, Y={y}, Width={width}, Height={height}"
 msgstr "Matched area: X={x}, Y={y}, Width={width}, Height={height}"
 
-#: tasks/tool/screenshot.py:646
+#: tasks/tool/screenshot.py:600
 msgid "（已使用绿色矩形标记）"
 msgstr "(marked with a green rectangle)"
 
-#: tasks/tool/screenshot.py:683
+#: tasks/tool/screenshot.py:637
 msgid "没有检测到随意门"
 msgstr "No random door detected"
 
-#: tasks/tool/screenshot.py:692
+#: tasks/tool/screenshot.py:646
 msgid "检测区域: X={x}, Y={y}, Width={width}, Height={height}"
 msgstr "Detection area: X={x}, Y={y}, Width={width}, Height={height}"
 
-#: tasks/tool/screenshot.py:695
+#: tasks/tool/screenshot.py:649
 msgid "（已使用黄色矩形标记）"
 msgstr "(marked with a yellow rectangle)"
 
-#: tasks/tool/screenshot.py:705
+#: tasks/tool/screenshot.py:659
 msgid "没有检测到事件"
 msgstr "No events detected"
 
-#: tasks/tool/screenshot.py:715
+#: tasks/tool/screenshot.py:669
 msgid "检测到 {count} 个事件"
 msgid_plural "检测到 {count} 个事件|plural"
 msgstr[0] "Detected {count} event"
 msgstr[1] "Detected {count} events"
 
-#: tasks/tool/screenshot.py:715
+#: tasks/tool/screenshot.py:669
 msgid "（已使用橙色矩形标记）"
 msgstr "(marked with an orange rectangle)"
 
-#: app/card/pushsettingcard1.py:155
+#: app/card/pushsettingcard1.py:149
 msgid "查询天数"
 msgstr "Check Remaining Days"
 
-#: app/card/pushsettingcard1.py:209
+#: app/card/pushsettingcard1.py:203
 msgid "正在查询 CDK 剩余天数…"
 msgstr "Checking remaining CDK days…"
 
-#: app/card/pushsettingcard1.py:263
+#: app/card/pushsettingcard1.py:257
 msgid "尚未填写 CDK (╥╯﹏╰╥)"
 msgstr "No CDK Configured (╥╯﹏╰╥)"
 
-#: app/card/pushsettingcard1.py:264
+#: app/card/pushsettingcard1.py:258
 msgid "请先点击“修改”填写 Mirror 酱 CDK"
 msgstr "Please click 'Modify' to enter your Mirror Chan CDK"
 
@@ -6025,7 +5505,7 @@ msgstr ""
 "Only built-in tasks support pausing; the script stops all actions while "
 "paused"
 
-#: app/log_interface.py:1750
+#: app/log_interface.py:1723
 msgid "继续任务"
 msgstr "Resume Task"
 
@@ -6037,33 +5517,30 @@ msgstr "Pause/Resume Task (Global Hotkey, Background)"
 msgid "按下 {stop} 停止任务"
 msgstr "Press {stop} to stop"
 
-#: app/log_interface.py:1804
+#: app/log_interface.py:1777
 msgid "复制"
 msgstr "Copy"
 
-#: app/log_interface.py:1807
+#: app/log_interface.py:1780
 msgid "全选"
 msgstr "Select All"
 
-#: app/setting_interface.py:671
+#: app/setting_interface.py:644
 msgid "自动记录差分宇宙存档"
 msgstr "Auto-save Divergent Universe runs"
 
-#: app/setting_interface.py:672
+#: app/setting_interface.py:645
 msgid "探索成功后保存到第一个空存档位；存档已满时跳过"
 msgstr ""
 "After a successful run, save to the first empty slot. Skip if all slots are "
 "full."
 
-#: app/setting_interface.py:824
 msgid "获得特殊物品"
 msgstr "Obtain Special Items"
 
-#: app/setting_interface.py:836
 msgid "启用「特殊物品领取」"
 msgstr "Enable 'Special Item Claiming'"
 
-#: app/setting_interface.py:837
 msgid "按下面对三项的选择写入锄大地的配置；关闭时完全不干预锄大地自己那边的设置"
 msgstr ""
 "Write the three choices below into Fhoe-Rail's config; when off, Fhoe-Rail's"
@@ -6075,45 +5552,40 @@ msgstr ""
 msgid "每周获得特殊物品：购买仙舟过期邮包与匹诺康尼艾迪恩代币（过期邮包-1 / 艾迪恩代币-1）"
 msgstr ""
 
-#: app/setting_interface.py:856
 msgid "获得翁法罗斯记忆代币"
 msgstr "Obtain Amphoreus Memory Tokens"
 
 msgid "每周获得特殊物品：收集翁法罗斯忆质残晶（收集记忆代币-1）"
 msgstr ""
 
-#: app/setting_interface.py:861
+#: app/setting_interface.py:1760
 msgid "远程一号位锄地"
 msgstr "Ranged in Slot 1"
 
-#: app/setting_interface.py:862
+#: app/setting_interface.py:1763
 msgid "黄泉一号位锄地"
 msgstr "Acheron in Slot 1"
 
-#: app/setting_interface.py:863
+#: app/setting_interface.py:1766
 msgid "仅获取特殊物品"
 msgstr "Special Items Only"
 
-#: app/setting_interface.py:866
 msgid "一键切换地图版本，并把三项特殊物品领取都设为「启用」"
 msgstr ""
 "Switch the map version in one click and set all three special-item toggles "
 "to 'Enable'"
 
-#: app/setting_interface.py:3472
+#: app/setting_interface.py:1751
 msgid "当前为“{name}”模式"
 msgstr "Now using '{name}' mode"
 
-#: app/setting_interface.py:843
 msgid "每日获得特殊物品：购买秘技零食材料并合成零食"
 msgstr "Daily special item: buy Trick Snack materials and synthesize"
 
-#: app/setting_interface.py:850
 msgid "每周获得特殊物品：购买仙舟过期邮包与匹诺康尼艾迪恩代币"
 msgstr ""
 "Weekly special item: buy Xianzhou expired parcels and Penacony Aideen Tokens"
 
-#: app/setting_interface.py:857
 msgid "每周获得特殊物品：收集翁法罗斯忆质残晶"
 msgstr "Weekly special item: collect Amphoreus Memory Crystal Shards"
 
@@ -6153,118 +5625,108 @@ msgstr "Evanescia: Lunar Blossoming"
 msgid "风堇·云边拾暖"
 msgstr "Hyacine: Warm Cotton Skies"
 
-#: app/setting_interface.py:286
+#: app/setting_interface.py:259
 msgid "每周清理遗器"
 msgstr ""
 
-#: app/setting_interface.py:290
+#: app/setting_interface.py:263
 msgid "启用智能弃置"
 msgstr ""
 
-#: app/setting_interface.py:291
+#: app/setting_interface.py:264
 msgid "按不匹配推荐角色和副属性 0 次筛选，分解已弃置及四星以下遗器"
 msgstr ""
 
-#: app/setting_interface.py:1658
 msgid "QQ 官方机器人"
 msgstr "QQ Official Bot"
 
-#: app/setting_interface.py:1659
 msgid "QQ 开放平台官方机器人推送"
 msgstr "Official QQ Open Platform bot push"
 
-#: app/setting_interface.py:1662
 msgid "机器人 AppID"
 msgstr "Bot AppID"
 
-#: app/setting_interface.py:1662
 msgid "QQ 开放平台的机器人 AppID"
 msgstr "Bot AppID from the QQ Open Platform"
 
-#: app/setting_interface.py:1663
 msgid "机器人 AppSecret"
 msgstr "Bot AppSecret"
 
-#: app/setting_interface.py:1663
 msgid "QQ 开放平台的机器人 AppSecret"
 msgstr "Bot AppSecret from the QQ Open Platform"
 
-#: app/setting_interface.py:1664
 msgid "单聊用户 openid"
 msgstr "Direct message user openid"
 
-#: app/setting_interface.py:1664
 msgid "可选参数，单聊消息的接收用户 openid"
 msgstr "Optional, openid of the user receiving direct messages"
 
-#: app/setting_interface.py:1665
 msgid "群聊 group_openid"
 msgstr "Group chat group_openid"
 
-#: app/setting_interface.py:1665
 msgid "可选参数，群聊消息的接收群 group_openid"
 msgstr "Optional, group_openid of the group receiving group messages"
 
-#: app/setting_interface.py:3186
+#: app/setting_interface.py:1465
 msgid "绑定单聊"
 msgstr "Bind direct message"
 
-#: app/setting_interface.py:3186
+#: app/setting_interface.py:1465
 msgid "绑定群聊"
 msgstr "Bind group chat"
 
-#: app/setting_interface.py:3188
+#: app/setting_interface.py:1467
 msgid "自动绑定收件标识"
 msgstr "Auto-bind recipient IDs"
 
-#: app/setting_interface.py:3197
+#: app/setting_interface.py:1476
 msgid "正在绑定中"
 msgstr "Binding in progress"
 
-#: app/setting_interface.py:3198
+#: app/setting_interface.py:1477
 msgid "请等待当前绑定完成后再试"
 msgstr "Please wait for the current binding to finish and try again"
 
-#: app/setting_interface.py:3211
+#: app/setting_interface.py:1490
 msgid "无法绑定"
 msgstr "Unable to bind"
 
-#: app/setting_interface.py:3212
+#: app/setting_interface.py:1491
 msgid "请先填写机器人 AppID 与 AppSecret"
 msgstr "Please fill in the bot AppID and AppSecret first"
 
-#: app/setting_interface.py:3225
+#: app/setting_interface.py:1504
 msgid "点击「开始监听」后，请在 {seconds} 秒内用 QQ 私聊机器人并发送验证码 {code}"
 msgstr ""
 "After clicking \"Start Listening\", send the verification code {code} to the"
 " bot via QQ direct message within {seconds} seconds"
 
-#: app/setting_interface.py:3227
+#: app/setting_interface.py:1506
 msgid "点击「开始监听」后，请在 {seconds} 秒内在群聊中 @ 机器人并发送验证码 {code}，或将机器人拉进目标群"
 msgstr ""
 "After clicking \"Start Listening\", mention the bot in a group chat and send"
 " the verification code {code} within {seconds} seconds, or invite the bot "
 "into the target group"
 
-#: app/setting_interface.py:3231
+#: app/setting_interface.py:1510
 msgid "开始监听"
 msgstr "Start listening"
 
-#: app/setting_interface.py:3261
+#: app/setting_interface.py:1540
 msgid "绑定成功"
 msgstr "Bound successfully"
 
-#: app/setting_interface.py:3261
+#: app/setting_interface.py:1540
 msgid "绑定失败"
 msgstr "Binding failed"
 
-#: app/setting_interface.py:3243
+#: app/setting_interface.py:1522
 msgid "监听中，请私聊机器人发送验证码 {code}（{seconds} 秒内）"
 msgstr ""
 "Listening… Send the verification code {code} to the bot via QQ direct "
 "message (within {seconds} seconds)"
 
-#: app/setting_interface.py:3245
+#: app/setting_interface.py:1524
 msgid "监听中，请在群聊中 @ 机器人发送验证码 {code}（{seconds} 秒内）"
 msgstr ""
 "Listening… Mention the bot in a group chat and send the verification code "
@@ -6358,7 +5820,7 @@ msgstr ""
 msgid "不打开图形界面时必须选择一项任务，将以命令行窗口执行，与手动运行命令行版一致"
 msgstr ""
 
-#: app/setting_interface.py:2532
+#: app/setting_interface.py:1006
 msgid "登录后自动启动，点击「配置」进行详细设置；无人值守可能需要自行配置 Windows 自动登录"
 msgstr ""
 
@@ -6382,55 +5844,47 @@ msgstr ""
 msgid "{error}（详情见日志）"
 msgstr ""
 
-#: app/setting_interface.py:1054
+#: app/setting_interface.py:732
 msgid "启动器路径"
 msgstr "Launcher Path"
 
-#: app/setting_interface.py:1060
+#: app/setting_interface.py:738
 msgid "启动器类型"
 msgstr "Launcher Type"
 
-#: app/setting_interface.py:1062
+#: app/setting_interface.py:740
 msgid "米哈游启动器"
 msgstr "MiHoYo Launcher"
 
-#: app/setting_interface.py:1062
+#: app/setting_interface.py:740
 msgid "HoYoPlay"
 msgstr "HoYoPlay"
 
-#: app/setting_interface.py:3386
+#: app/setting_interface.py:1665
 msgid "选择启动器路径"
 msgstr "Select Launcher Path"
 
-#: app/card/messagebox_custom.py:276
 msgid "显示更早的更新记录"
 msgstr ""
 
-#: app/card/messagebox_custom.py:309
 msgid "正在加载历史更新记录……"
 msgstr ""
 
-#: app/card/messagebox_custom.py:314
 msgid "查看完整更新日志"
 msgstr ""
 
-#: app/card/messagebox_custom.py:328
 msgid "以下为已收录的更新记录，部分历史版本可能未收录"
 msgstr ""
 
-#: app/card/messagebox_custom.py:330
 msgid "已加载 {count} 份版本更新记录"
 msgstr ""
 
-#: app/card/messagebox_custom.py:357
 msgid "继续显示更早的更新记录（还有 {count} 份）"
 msgstr ""
 
-#: app/tools/check_update.py:62
 msgid "历史更新记录暂时无法加载，仍可正常更新"
 msgstr ""
 
-#: app/tools/check_update.py:204
 msgid "该渠道版本与目标版本不一致，请稍后重试"
 msgstr ""
 
@@ -6442,30 +5896,30 @@ msgstr ""
 msgid "{date}（{weekday}）{time}"
 msgstr ""
 
-#: app/schedule_dialog.py:269
+#: app/schedule_dialog.py:261
 msgid "执行星期："
 msgstr ""
 
-#: app/schedule_dialog.py:279
+#: app/schedule_dialog.py:271
 msgid "按电脑本地日期判断执行星期"
 msgstr ""
 
-#: app/schedule_dialog.py:366
+#: app/schedule_dialog.py:357
 msgid "请至少选择一个执行星期"
 msgstr ""
 
-#: app/schedule_dialog.py:378
+#: app/schedule_dialog.py:369
 msgid "任务“{name}”已占用{days}的 {time}，请调整时间或星期"
 msgstr ""
 
-#: app/schedule_dialog.py:465
+#: app/schedule_dialog.py:442
 msgid ""
 "按时启动：在选中的星期到达设定时间后，直接启动当前任务，星期按电脑本地日期判断。\n"
 "链式启动：不会单独按时间触发，需要放在前一个任务后面；当前一个任务正常结束后，会按列表顺序立即启动，不单独判断星期。\n"
 "立即运行：不受星期限制，从当前任务开始，后面连续的链式任务也会跟随执行。"
 msgstr ""
 
-#: app/schedule_dialog.py:745
+#: app/schedule_dialog.py:688
 msgid "执行计划"
 msgstr ""
 
@@ -6484,21 +5938,20 @@ msgstr ""
 msgid "下次：{time}"
 msgstr ""
 
-#: module/update/version_check.py:331
 msgid "更新接口未返回有效版本信息，请稍后重试"
 msgstr ""
 "The update service did not return valid version information. Please try "
 "again later."
 
-#: app/setting_interface.py:2555
+#: app/setting_interface.py:1029
 msgid "复制提示词"
 msgstr "Copy prompt"
 
-#: app/setting_interface.py:2557
+#: app/setting_interface.py:1031
 msgid "AI 助手"
 msgstr "AI Assistant"
 
-#: app/setting_interface.py:2558
+#: app/setting_interface.py:1032
 msgid "复制一段提示词发给 DeepSeek Harness、Codex、Claude Code 等 AI 助手，让它学会操作三月七小助手"
 msgstr ""
 "Copy a prompt for AI assistants such as DeepSeek Harness, Codex or Claude "
@@ -6514,33 +5967,33 @@ msgstr ""
 "Please read {skill_file} first and follow its instructions to operate it for me.\n"
 "If you support Skills, copy the folder {skill_dir} to your user-level skills directory (for example ~/.agents/skills/ or ~/.claude/skills/) so I don't need to give you these instructions again."
 
-#: app/setting_interface.py:3406
+#: app/setting_interface.py:1685
 msgid "粘贴给你的 AI 助手即可"
 msgstr "Paste it to your AI assistant"
 
-#: app/setting_interface.py:2513
+#: app/setting_interface.py:987
 msgid "本地操作模式"
 msgstr "Local control mode"
 
-#: app/setting_interface.py:2514
+#: app/setting_interface.py:988
 msgid "后台操作遇到鼠标干扰时会等待并重试；滚轮临时切前台，下次启动任务生效。"
 msgstr ""
 "Background operations wait and retry when the mouse is busy. Scrolling "
 "temporarily brings the game forward. Applies to the next task."
 
-#: app/setting_interface.py:2515
+#: app/setting_interface.py:989
 msgid "前台"
 msgstr "Foreground"
 
-#: app/setting_interface.py:2515
+#: app/setting_interface.py:989
 msgid "后台"
 msgstr "Background"
 
-#: app/setting_interface.py:2519
+#: app/setting_interface.py:993
 msgid "重试失败时短暂锁定鼠标"
 msgstr "Temporarily protect the mouse after retries fail"
 
-#: app/setting_interface.py:2520
+#: app/setting_interface.py:994
 msgid "仅保护必要的鼠标操作，保留键盘和暂停热键。"
 msgstr ""
 "Protects only mouse operations; keyboard and pause hotkeys remain available."
@@ -6557,11 +6010,10 @@ msgstr "Waiting for the mouse to be idle. The task will resume automatically."
 msgid "滚轮操作需临时切换游戏到前台"
 msgstr "Scrolling temporarily brings the game to the foreground"
 
-#: app/setting_interface.py:3034
+#: app/setting_interface.py:1360
 msgid "启用后台模式前请确认"
 msgstr "Confirm Before Enabling Background Mode"
 
-#: app/setting_interface.py:3035
 msgid ""
 "后台模式下，任务运行时你可以继续使用电脑，但仍有以下限制：\n"
 "\n"
@@ -6583,15 +6035,15 @@ msgstr ""
 "\n"
 "The setting takes effect the next time a task starts; turn Auto Dialogue off and on again to apply it. See \"Background Running\" in the documentation for details."
 
-#: app/setting_interface.py:3044
+#: app/setting_interface.py:1369
 msgid "我已了解，启用后台模式"
 msgstr "I understand, enable background mode"
 
-#: app/help_interface.py:221
+#: app/help_interface.py:202
 msgid "后台运行"
 msgstr "Background Running"
 
-#: app/help_interface.py:35
+#: app/help_interface.py:34
 msgid "在官网查看"
 msgstr "View on Website"
 
@@ -6626,7 +6078,7 @@ msgstr ""
 msgid "至"
 msgstr ""
 
-#: app/setting_interface.py:906
+#: app/setting_interface.py:692
 msgid "虚构叙事配置"
 msgstr ""
 
@@ -6657,3 +6109,27 @@ msgstr "Stellar Mode"
 #: app/challenge_config_dialog.py:196
 msgid "常规模式"
 msgstr "Regular Mode"
+
+#: app/schedule_dialog.py:863
+msgid "流程编排（已移除）"
+msgstr ""
+
+#: app/setting_interface.py:639
+msgid "建议仅在低性能设备开启，可以提高事件和随意门交互的成功率"
+msgstr ""
+
+#: app/setting_interface.py:1053
+msgid "打开发布页"
+msgstr ""
+
+#: app/setting_interface.py:1361
+msgid ""
+"后台模式下，任务运行时你可以继续使用电脑，但仍有以下限制：\n"
+"\n"
+"• 点击和拖动会短暂借用鼠标，完成后归还；你正在移动鼠标时，任务会等鼠标停下再操作。\n"
+"• 在大世界中按键时，光标会被短暂锁定在游戏窗口中央。\n"
+"• 需要滚轮时会临时把游戏切到前台，完成后恢复原来的窗口。\n"
+"• 游戏窗口可以放在其他窗口后面，但不能最小化；运行期间请保持系统解锁。\n"
+"\n"
+"设置在下次启动任务时生效，自动对话需重新开启。完整说明见使用文档“后台运行”。"
+msgstr ""
