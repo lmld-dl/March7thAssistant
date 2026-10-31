@@ -85,15 +85,15 @@ msgstr "임무 중지됨"
 msgid "赞赏"
 msgstr "후원"
 
-#: app/setting_interface.py:1262
+#: app/setting_interface.py:1256
 msgid "体力"
 msgstr "개척력"
 
-#: app/setting_interface.py:1264
+#: app/setting_interface.py:1258
 msgid "日常"
 msgstr "일일 숙제"
 
-#: app/setting_interface.py:1265
+#: app/setting_interface.py:1259
 msgid "货币战争"
 msgstr "신용 포인트 파밍"
 
@@ -115,7 +115,7 @@ msgstr "프로그램"
 msgid "云游戏"
 msgstr "클라우드"
 
-#: app/setting_interface.py:1276
+#: app/setting_interface.py:1270
 msgid "推送"
 msgstr "알림"
 
@@ -123,11 +123,11 @@ msgstr "알림"
 msgid "杂项"
 msgstr "기타"
 
-#: app/setting_interface.py:1282
+#: app/setting_interface.py:1276
 msgid "账号"
 msgstr "계정"
 
-#: app/setting_interface.py:1021
+#: app/setting_interface.py:1015
 msgid "关于"
 msgstr "프로그램 정보"
 
@@ -718,7 +718,7 @@ msgstr "임무 완료 시"
 msgid "“退出”指退出游戏，不再建议使用循环模式，请改用日志界面的定时运行功能"
 msgstr "'종료'는 게임 종료를 의미합니다. 순환 모드 대신 로그 화면의 예약 실행 기능을 사용하세요."
 
-#: app/card/messagebox_custom.py:1137
+#: app/card/messagebox_custom.py:1110
 msgid "无"
 msgstr "없음"
 
@@ -810,11 +810,11 @@ msgstr "창을 닫을 때의 기본 동작 선택, 또는 닫을 때마다 묻�
 msgid "询问"
 msgstr "묻기"
 
-#: app/card/messagebox_custom.py:1184
+#: app/card/messagebox_custom.py:1157
 msgid "最小化到托盘"
 msgstr "트레이로 최소화"
 
-#: app/card/messagebox_custom.py:1185
+#: app/card/messagebox_custom.py:1158
 msgid "关闭程序"
 msgstr "프로그램 종료"
 
@@ -898,37 +898,37 @@ msgstr "게임 경로 자동 설정 활성화"
 msgid "通过快捷方式、官方启动器、运行中的游戏进程等方式尝试自动配置游戏路径（支持国服和国际服）"
 msgstr "바로가기, 공식 런처, 실행 중인 프로세스 등으로 게임 경로 자동 설정 시도 (중국/글로벌 서버 지원)"
 
-#: app/setting_interface.py:1005
+#: app/setting_interface.py:999
 msgid "在用户登录时启动"
 msgstr "사용자 로그인 시 시작"
 
 msgid "通过任务计划程序在开机后自动执行完整运行模式（可能还需要自行配置电脑无需输入密码自动登录）"
 msgstr "작업 스케줄러를 통해 부팅 후 '전체 실행' 모드 자동 수행 (자동 로그인 설정 필요할 수 있음)"
 
-#: app/setting_interface.py:1017
+#: app/setting_interface.py:1011
 msgid "修改按键"
 msgstr "단축키 변경"
 
-#: app/setting_interface.py:1018
+#: app/setting_interface.py:1012
 msgid "配置秘技、地图、跃迁、停止任务等按键设置"
 msgstr "비술, 지도, 워프, 임무 중지 등 단축키 설정"
 
-#: app/setting_interface.py:1023
+#: app/setting_interface.py:1017
 msgid "项目主页"
 msgstr "프로젝트 홈페이지"
 
-#: app/setting_interface.py:1041
+#: app/setting_interface.py:1035
 msgid "加入群聊"
 msgstr "채팅방 참여"
 
-#: app/setting_interface.py:1043
+#: app/setting_interface.py:1037
 msgid "QQ群"
 msgstr "QQ 그룹"
 
 msgid "检查更新"
 msgstr "업데이트 확인"
 
-#: app/setting_interface.py:1056
+#: app/setting_interface.py:1050
 msgid "当前版本："
 msgstr "현재 버전:"
 
@@ -1004,7 +1004,7 @@ msgstr "메인 화면 표시"
 msgid "完整运行"
 msgstr "전체 실행"
 
-#: app/card/messagebox_custom.py:342
+#: app/card/messagebox_custom.py:343
 msgid "退出"
 msgstr "종료"
 
@@ -1139,15 +1139,15 @@ msgstr "게임 경로"
 msgid "修改"
 msgstr "수정"
 
-#: app/card/messagebox_custom.py:1178
+#: app/card/messagebox_custom.py:1151
 msgid "关闭确认"
 msgstr "닫기 확인"
 
-#: app/card/messagebox_custom.py:1179
+#: app/card/messagebox_custom.py:1152
 msgid "您希望如何处理程序?"
 msgstr "프로그램을 어떻게 처리하시겠습니까?"
 
-#: app/card/messagebox_custom.py:1188
+#: app/card/messagebox_custom.py:1161
 msgid "记住我的选择,下次不再询问"
 msgstr "선택을 기억하고 다음에 묻지 않음"
 
@@ -1245,7 +1245,7 @@ msgstr "최종 확인: 신중하게 조작하세요"
 msgid "确认继续并允许启用触屏模式？"
 msgstr "계속 진행하고 터치스크린 모드를 활성화하시겠습니까?"
 
-#: app/card/messagebox_custom.py:390
+#: app/card/messagebox_custom.py:363
 msgid "确认"
 msgstr "확인"
 
@@ -1273,7 +1273,7 @@ msgstr "사용된 리딤코드가 없습니다"
 msgid "已使用兑换码"
 msgstr "사용된 리딤코드"
 
-#: app/card/messagebox_custom.py:230
+#: app/card/messagebox_custom.py:229
 msgid "关闭"
 msgstr "닫기"
 
@@ -1478,11 +1478,11 @@ msgstr "등급"
 msgid "卡池"
 msgstr "워프"
 
-#: app/setting_interface.py:1684
+#: app/setting_interface.py:1687
 msgid "复制成功(＾∀＾●)"
 msgstr "복사 성공(＾∀＾●)"
 
-#: app/setting_interface.py:1694
+#: app/setting_interface.py:1697
 msgid "复制失败(╥╯﹏╰╥)"
 msgstr "복사 실패(╥╯﹏╰╥)"
 
@@ -1702,7 +1702,7 @@ msgstr " 분 (0은 비활성화)"
 msgid "完成后推送通知"
 msgstr "완료 후 알림 전송"
 
-#: app/card/messagebox_custom.py:715
+#: app/card/messagebox_custom.py:688
 msgid "无操作"
 msgstr "작업 없음"
 
@@ -1753,7 +1753,7 @@ msgstr "인수/작업"
 msgid "通知"
 msgstr "알림"
 
-#: app/card/messagebox_custom.py:1276
+#: app/card/messagebox_custom.py:1249
 msgid "添加"
 msgstr "추가"
 
@@ -1761,7 +1761,7 @@ msgstr "추가"
 msgid "编辑"
 msgstr "편집"
 
-#: app/card/messagebox_custom.py:1007
+#: app/card/messagebox_custom.py:980
 msgid "删除"
 msgstr "삭제"
 
@@ -1873,11 +1873,11 @@ msgstr "토요일"
 msgid "周日"
 msgstr "일요일"
 
-#: app/card/messagebox_custom.py:184
+#: app/card/messagebox_custom.py:183
 msgid "下次一定"
 msgstr "다음에 할게요"
 
-#: app/card/messagebox_custom.py:192
+#: app/card/messagebox_custom.py:191
 msgid "收到"
 msgstr "확인"
 
@@ -1902,19 +1902,19 @@ msgstr "수동 다운로드"
 msgid "好的"
 msgstr "확인"
 
-#: app/card/messagebox_custom.py:343
+#: app/card/messagebox_custom.py:344
 msgid "我已知晓"
 msgstr "알겠습니다"
 
-#: app/card/messagebox_custom.py:415
+#: app/card/messagebox_custom.py:388
 msgid "获取最新兑换码"
 msgstr "최신 리딤코드 가져오기"
 
-#: app/card/messagebox_custom.py:416
+#: app/card/messagebox_custom.py:389
 msgid "查看已使用兑换码"
 msgstr "사용된 리딤코드 보기"
 
-#: app/card/messagebox_custom.py:417
+#: app/card/messagebox_custom.py:390
 msgid "清空已使用兑换码"
 msgstr "사용된 리딤코드 비우기"
 
@@ -1926,19 +1926,19 @@ msgstr "아직 실행되지 않음"
 msgid "重置时间"
 msgstr "시간 초기화"
 
-#: app/card/messagebox_custom.py:460
+#: app/card/messagebox_custom.py:433
 msgid "设置为当前时间"
 msgstr "현재 시간으로 설정"
 
-#: app/card/messagebox_custom.py:534
+#: app/card/messagebox_custom.py:507
 msgid "说明：清体力是根据选择的副本类型来判断，副本名称也会用于双倍活动"
 msgstr "설명: 개척력 소모는 선택한 던전 유형에 따라 판단되며, 던전 이름은 두 배 이벤트에도 사용됩니다."
 
-#: app/card/messagebox_custom.py:553
+#: app/card/messagebox_custom.py:526
 msgid "输入错误"
 msgstr "입력 오류"
 
-#: app/card/messagebox_custom.py:554
+#: app/card/messagebox_custom.py:527
 msgid "\"{type}\"的输入\"{input_text}\"不在可选项中，请重新选择"
 msgstr "\"{type}\"의 입력값 \"{input_text}\"이(가) 선택 항목에 없습니다. 다시 선택해주세요."
 
@@ -1962,72 +1962,72 @@ msgstr "침식된 터널"
 msgid "饰品提取"
 msgstr "장신구 추출"
 
-#: app/card/messagebox_custom.py:905
+#: app/card/messagebox_custom.py:878
 msgid "历战余响"
 msgstr "전쟁의 여운"
 
-#: app/card/messagebox_custom.py:691
+#: app/card/messagebox_custom.py:664
 msgid "说明：{ } 中的内容会在实际发送时被替换，\\n 代表换行"
 msgstr "설명: { } 안의 내용은 실제 전송 시 교체되며, \\n 은 줄바꿈을 의미합니다."
 
-#: app/card/messagebox_custom.py:714
+#: app/card/messagebox_custom.py:687
 msgid "秘技 / 开怪"
 msgstr "비술 / 전투 시작"
 
-#: app/card/messagebox_custom.py:716
+#: app/card/messagebox_custom.py:689
 msgid "秘技 1 次"
 msgstr "비술 1회"
 
-#: app/card/messagebox_custom.py:717
+#: app/card/messagebox_custom.py:690
 msgid "秘技 2 次"
 msgstr "비술 2회"
 
-#: app/card/messagebox_custom.py:725
+#: app/card/messagebox_custom.py:698
 msgid "{index}号位"
 msgstr "{index}번 자리"
 
-#: app/card/messagebox_custom.py:748
+#: app/card/messagebox_custom.py:721
 msgid "每个队伍只允许一名角色配置为“秘技 / 开怪”"
 msgstr "각 파티당 한 명의 캐릭터만 '비술 / 전투 시작'으로 설정할 수 있습니다."
 
-#: app/card/messagebox_custom.py:764
+#: app/card/messagebox_custom.py:737
 msgid "第{i}号位角色\"{char_text}\"不在可选项中，请重新选择"
 msgstr "{i}번 자리 캐릭터 \"{char_text}\"이(가) 선택 항목에 없습니다. 다시 선택해주세요."
 
-#: app/card/messagebox_custom.py:776
+#: app/card/messagebox_custom.py:749
 msgid "第{i}号位秘技\"{tech_text}\"不在可选项中，请重新选择"
 msgstr "{i}번 자리 비술 \"{tech_text}\"이(가) 선택 항목에 없습니다. 다시 선택해주세요."
 
-#: app/card/messagebox_custom.py:855
+#: app/card/messagebox_custom.py:828
 msgid "第{i}个好友角色\"{char_text}\"不在可选项中，请重新选择"
 msgstr "{i}번째 친구 캐릭터 \"{char_text}\"이(가) 선택 항목에 없습니다. 다시 선택해주세요."
 
-#: app/card/messagebox_custom.py:915
+#: app/card/messagebox_custom.py:888
 msgid "体力计划会在清体力前优先执行，未勾选保留时，完成后会自动从列表中删除"
 msgstr ""
 "개척력 계획은 개척력 소모 전에 우선 실행됩니다. '개척력 계획 유지'를 선택하지 않으면 완료 후 목록에서 자동으로 삭제됩니다."
 
-#: app/card/messagebox_custom.py:920
+#: app/card/messagebox_custom.py:893
 msgid "保留体力计划"
 msgstr "개척력 계획 유지"
 
-#: app/card/messagebox_custom.py:935
+#: app/card/messagebox_custom.py:908
 msgid "添加计划"
 msgstr "계획 추가"
 
-#: app/card/messagebox_custom.py:974
+#: app/card/messagebox_custom.py:947
 msgid "无法添加"
 msgstr "추가 불가"
 
-#: app/card/messagebox_custom.py:975
+#: app/card/messagebox_custom.py:948
 msgid "已达到最大计划数量"
 msgstr "최대 계획 수량에 도달했습니다"
 
-#: app/card/messagebox_custom.py:1123
+#: app/card/messagebox_custom.py:1096
 msgid "第{i}个计划的副本类型无效"
 msgstr "{i}번째 계획의 던전 유형이 유효하지 않습니다"
 
-#: app/card/messagebox_custom.py:1144
+#: app/card/messagebox_custom.py:1117
 msgid "第{i}个计划的副本名称\"{input_text}\"不在可选项中，请重新选择"
 msgstr "{i}번째 계획의 던전 이름 \"{input_text}\"이(가) 선택 항목에 없습니다. 다시 선택해주세요."
 
@@ -2037,14 +2037,14 @@ msgstr "Chrome"
 msgid "Edge"
 msgstr "Edge"
 
-#: app/setting_interface.py:1653
+#: app/setting_interface.py:1656
 msgid "选择游戏路径"
 msgstr "게임 경로 선택"
 
 msgid "选择米哈游启动器路径"
 msgstr "미호요 런처 경로 선택"
 
-#: app/setting_interface.py:1713
+#: app/setting_interface.py:1716
 msgid "脚本或程序路径"
 msgstr "스크립트 또는 프로그램 경로"
 
@@ -2169,7 +2169,7 @@ msgstr "개척력 소모"
 msgid "混沌回忆"
 msgstr "혼돈의 기억"
 
-#: app/card/messagebox_custom.py:842
+#: app/card/messagebox_custom.py:815
 msgid ""
 "说明：左侧选择角色后，在右侧对应的文本框中填写好友名称。\n"
 "例如好友名称为“持明上網”，填写“持明上”也可以匹配成功，\n"
@@ -2606,7 +2606,7 @@ msgstr "석련"
 msgid "大丽花"
 msgstr "달리아"
 
-#: app/card/messagebox_custom.py:1137
+#: app/card/messagebox_custom.py:1110
 msgid "跳过"
 msgstr "건너뛰기"
 
@@ -3229,7 +3229,7 @@ msgstr "항법사 / 명장 세트"
 msgid "开启后可能提升运行速度，若出现错误、异常或不稳定，请关闭此选项"
 msgstr "활성화하면 실행 속도가 향상될 수 있습니다. 오류, 예외 또는 불안정이 발생하면 이 옵션을 끄세요."
 
-#: app/setting_interface.py:1655
+#: app/setting_interface.py:1658
 msgid "脚本或可执行文件 (*.exe *.bat *.cmd *.ps1)"
 msgstr "스크립트 또는 실행 파일 (*.exe *.bat *.cmd *.ps1)"
 
@@ -3257,7 +3257,7 @@ msgstr "게임 창 캡처"
 msgid "手动选择图片"
 msgstr "이미지 수동 선택"
 
-#: app/card/messagebox_custom.py:1011
+#: app/card/messagebox_custom.py:984
 msgid "上移"
 msgstr "위로 이동"
 
@@ -3277,11 +3277,11 @@ msgstr "백그라운드 스크린샷 우선 사용"
 msgid "默认开启，可以避免悬浮窗等干扰"
 msgstr "기본적으로 활성화되어 있으며, 플로팅 창 등의 간섭을 피할 수 있습니다"
 
-#: app/setting_interface.py:1011
+#: app/setting_interface.py:1005
 msgid "启用调试模式"
 msgstr "디버그 모드 활성화"
 
-#: app/setting_interface.py:1012
+#: app/setting_interface.py:1006
 msgid "开启后会在屏幕上实时绘制检测范围框（透明悬浮窗），用于调试自动化识别效果。仅 Windows 生效。"
 msgstr ""
 "활성화하면 자동화 인식 디버깅을 위해 화면에 감지 범위 상자가 실시간으로 그려집니다(투명 오버레이). Windows에서만 작동합니다."
@@ -3290,7 +3290,7 @@ msgstr ""
 msgid "为特定的副本配置队伍"
 msgstr "특정 던전을 위한 팀 구성"
 
-#: app/card/messagebox_custom.py:1255
+#: app/card/messagebox_custom.py:1228
 msgid "当没有匹配到任何规则时，默认出战队伍："
 msgstr "규칙이 일치하지 않을 때 기본 출전 팀: "
 
@@ -3916,15 +3916,15 @@ msgstr "창 크기와 위치 기억"
 msgid "都不记忆"
 msgstr "아무것도 기억하지 않음"
 
-#: app/setting_interface.py:1035
+#: app/setting_interface.py:1029
 msgid "立即前往"
 msgstr "지금 이동"
 
-#: app/setting_interface.py:1037
+#: app/setting_interface.py:1031
 msgid "哔哩哔哩"
 msgstr "빌리빌리"
 
-#: app/setting_interface.py:1038
+#: app/setting_interface.py:1032
 msgid "欢迎关注我们的B站账号，获取最新动态和教程"
 msgstr "최신 소식과 튜토리얼을 위해 저희 빌리빌리 계정을 팔로우해 주세요"
 
@@ -4103,15 +4103,15 @@ msgstr "직급 등급 올리기"
 msgid "快捷配置"
 msgstr "빠른 설정"
 
-#: app/setting_interface.py:1750
+#: app/setting_interface.py:1753
 msgid "已应用快捷配置"
 msgstr "빠른 설정이 적용되었습니다"
 
-#: app/setting_interface.py:1775
+#: app/setting_interface.py:1778
 msgid "当前为“提升晋升等级”模式"
 msgstr "현재 '승급 등급 올리기' 모드입니다"
 
-#: app/setting_interface.py:1790
+#: app/setting_interface.py:1793
 msgid "当前为“提升职级等级”模式"
 msgstr "현재 '직급 등급 올리기' 모드입니다"
 
@@ -4860,7 +4860,7 @@ msgstr ""
 "\n"
 "이 데이터는 기능 사용 현황 분석, 호환성 문제 발견, 버전 안정성 평가, 공통 장애 원인 파악에만 사용됩니다."
 
-#: app/setting_interface.py:1430
+#: app/setting_interface.py:1424
 msgid "该参数用于配置该通知方式的请求字段"
 msgstr ""
 
@@ -4868,7 +4868,7 @@ msgstr ""
 msgid "教程"
 msgstr "튜토리얼"
 
-#: app/setting_interface.py:1611
+#: app/setting_interface.py:1605
 msgid "{name} 配置教程"
 msgstr "{name} 설정 튜토리얼"
 
@@ -5123,15 +5123,15 @@ msgstr "'설정' → '프로그램'에서 올바른 게임 경로를 설정해 �
 msgid "快捷键：{hotkey}（可在设置中修改）"
 msgstr "단축키: {hotkey} (설정에서 변경 가능)"
 
-#: app/card/messagebox_custom.py:1067
+#: app/card/messagebox_custom.py:1040
 msgid "类型："
 msgstr "유형:"
 
-#: app/card/messagebox_custom.py:1071
+#: app/card/messagebox_custom.py:1044
 msgid "次数："
 msgstr "횟수:"
 
-#: app/card/messagebox_custom.py:1344
+#: app/card/messagebox_custom.py:1317
 msgid "队伍："
 msgstr "팀: "
 
@@ -5424,22 +5424,22 @@ msgstr ""
 msgid "每周获得特殊物品：收集翁法罗斯忆质残晶（收集记忆代币-1）"
 msgstr ""
 
-#: app/setting_interface.py:1760
+#: app/setting_interface.py:1763
 msgid "远程一号位锄地"
 msgstr ""
 
-#: app/setting_interface.py:1763
+#: app/setting_interface.py:1766
 msgid "黄泉一号位锄地"
 msgstr ""
 
-#: app/setting_interface.py:1766
+#: app/setting_interface.py:1769
 msgid "仅获取特殊物品"
 msgstr ""
 
 msgid "一键切换地图版本，并把三项特殊物品领取都设为「启用」"
 msgstr ""
 
-#: app/setting_interface.py:1751
+#: app/setting_interface.py:1754
 msgid "当前为“{name}”模式"
 msgstr ""
 
@@ -5530,61 +5530,61 @@ msgstr "그룹 채팅 group_openid"
 msgid "可选参数，群聊消息的接收群 group_openid"
 msgstr "선택 사항, 그룹 채팅 메시지 수신 그룹 group_openid"
 
-#: app/setting_interface.py:1465
+#: app/setting_interface.py:1459
 msgid "绑定单聊"
 msgstr "1:1 채팅 연결"
 
-#: app/setting_interface.py:1465
+#: app/setting_interface.py:1459
 msgid "绑定群聊"
 msgstr "그룹 채팅 연결"
 
-#: app/setting_interface.py:1467
+#: app/setting_interface.py:1461
 msgid "自动绑定收件标识"
 msgstr "수신 ID 자동 연결"
 
-#: app/setting_interface.py:1476
+#: app/setting_interface.py:1470
 msgid "正在绑定中"
 msgstr "연결 처리 중"
 
-#: app/setting_interface.py:1477
+#: app/setting_interface.py:1471
 msgid "请等待当前绑定完成后再试"
 msgstr "현재 연결이 완료될 때까지 기다린 후 다시 시도하세요"
 
-#: app/setting_interface.py:1490
+#: app/setting_interface.py:1484
 msgid "无法绑定"
 msgstr "연결할 수 없음"
 
-#: app/setting_interface.py:1491
+#: app/setting_interface.py:1485
 msgid "请先填写机器人 AppID 与 AppSecret"
 msgstr "먼저 봇 AppID와 AppSecret을 입력하세요"
 
-#: app/setting_interface.py:1504
+#: app/setting_interface.py:1498
 msgid "点击「开始监听」后，请在 {seconds} 秒内用 QQ 私聊机器人并发送验证码 {code}"
 msgstr "\"수신 대기 시작\"을 클릭한 후 {seconds}초 안에 QQ에서 봇에게 1:1 메시지로 인증 코드 {code}를 보내세요"
 
-#: app/setting_interface.py:1506
+#: app/setting_interface.py:1500
 msgid "点击「开始监听」后，请在 {seconds} 秒内在群聊中 @ 机器人并发送验证码 {code}，或将机器人拉进目标群"
 msgstr ""
 "\"수신 대기 시작\"을 클릭한 후 {seconds}초 안에 그룹 채팅에서 봇을 @하여 인증 코드 {code}를 보내거나, 봇을 대상 "
 "그룹에 초대하세요"
 
-#: app/setting_interface.py:1510
+#: app/setting_interface.py:1504
 msgid "开始监听"
 msgstr "수신 대기 시작"
 
-#: app/setting_interface.py:1540
+#: app/setting_interface.py:1534
 msgid "绑定成功"
 msgstr "연결 완료"
 
-#: app/setting_interface.py:1540
+#: app/setting_interface.py:1534
 msgid "绑定失败"
 msgstr "연결 실패"
 
-#: app/setting_interface.py:1522
+#: app/setting_interface.py:1516
 msgid "监听中，请私聊机器人发送验证码 {code}（{seconds} 秒内）"
 msgstr "수신 대기 중… {seconds}초 안에 QQ에서 봇에게 1:1 메시지로 인증 코드 {code}를 보내세요"
 
-#: app/setting_interface.py:1524
+#: app/setting_interface.py:1518
 msgid "监听中，请在群聊中 @ 机器人发送验证码 {code}（{seconds} 秒内）"
 msgstr "수신 대기 중… {seconds}초 안에 그룹 채팅에서 봇을 @하여 인증 코드 {code}를 보내세요"
 
@@ -5676,7 +5676,7 @@ msgstr ""
 msgid "不打开图形界面时必须选择一项任务，将以命令行窗口执行，与手动运行命令行版一致"
 msgstr ""
 
-#: app/setting_interface.py:1006
+#: app/setting_interface.py:1000
 msgid "登录后自动启动，点击「配置」进行详细设置；无人值守可能需要自行配置 Windows 自动登录"
 msgstr ""
 
@@ -5716,7 +5716,7 @@ msgstr "미호요 런처"
 msgid "HoYoPlay"
 msgstr "HoYoPlay"
 
-#: app/setting_interface.py:1665
+#: app/setting_interface.py:1668
 msgid "选择启动器路径"
 msgstr "런처 경로 선택"
 
@@ -5797,15 +5797,15 @@ msgstr ""
 msgid "更新接口未返回有效版本信息，请稍后重试"
 msgstr ""
 
-#: app/setting_interface.py:1029
+#: app/setting_interface.py:1023
 msgid "复制提示词"
 msgstr ""
 
-#: app/setting_interface.py:1031
+#: app/setting_interface.py:1025
 msgid "AI 助手"
 msgstr ""
 
-#: app/setting_interface.py:1032
+#: app/setting_interface.py:1026
 msgid "复制一段提示词发给 DeepSeek Harness、Codex、Claude Code 等 AI 助手，让它学会操作三月七小助手"
 msgstr ""
 
@@ -5816,7 +5816,7 @@ msgid ""
 "如果你支持 Skill（技能），请把文件夹 {skill_dir} 复制到你的用户级技能目录（例如 ~/.agents/skills/ 或 ~/.claude/skills/），以后就不需要我再提供这段说明。"
 msgstr ""
 
-#: app/setting_interface.py:1685
+#: app/setting_interface.py:1688
 msgid "粘贴给你的 AI 助手即可"
 msgstr ""
 
@@ -5827,8 +5827,8 @@ msgstr "로컬 조작 모드"
 #: app/setting_interface.py:988
 msgid "后台点击、拖动和滚轮发给游戏窗口，不移动系统鼠标，也不抢前台。下次启动任务生效。"
 msgstr ""
-"백그라운드 클릭, 드래그, 스크롤은 게임 창으로 전달됩니다. 시스템 마우스를 움직이지 않고 전경을 가져오지도 않습니다. 다음 작업 "
-"시작 시 적용됩니다."
+"백그라운드 클릭, 드래그, 스크롤은 게임 창으로 전달됩니다. 시스템 마우스를 움직이지 않고 전경을 가져오지도 않습니다. 다음 작업 시작 "
+"시 적용됩니다."
 
 #: app/setting_interface.py:989
 msgid "前台"
@@ -5838,19 +5838,15 @@ msgstr "포그라운드"
 msgid "后台"
 msgstr "백그라운드"
 
-#: app/setting_interface.py:993
 msgid "重试失败时短暂锁定鼠标"
 msgstr "재시도 실패 시 마우스 일시 잠금"
 
-#: app/setting_interface.py:994
 msgid "仅保护必要的鼠标操作，保留键盘和暂停热键。"
 msgstr "필요한 마우스 조작만 보호합니다. 키보드와 일시 정지 단축키는 계속 사용할 수 있습니다."
 
-#: module/automation/background_input.py:462
 msgid "正在短暂保护鼠标，键盘和暂停热键仍可用"
 msgstr "마우스를 잠시 보호하고 있습니다. 키보드와 일시 정지 단축키는 사용할 수 있습니다"
 
-#: module/automation/background_input.py:463
 msgid "等待鼠标空闲，任务将自动继续"
 msgstr "마우스 조작이 끝나기를 기다리고 있습니다. 작업은 자동으로 계속됩니다"
 
@@ -5858,10 +5854,11 @@ msgstr "마우스 조작이 끝나기를 기다리고 있습니다. 작업은 �
 msgid "滚轮操作需临时切换游戏到前台"
 msgstr "스크롤을 위해 게임을 잠시 앞으로 전환합니다"
 
-#: app/setting_interface.py:1360
+#: app/setting_interface.py:1354
 msgid "启用后台模式前请确认"
 msgstr "백그라운드 모드를 활성화하기 전에 확인하세요"
 
+#: app/setting_interface.py:1355
 msgid ""
 "后台模式下，任务运行时你可以继续使用电脑，但仍有以下限制：\n"
 "\n"
@@ -5881,7 +5878,7 @@ msgstr ""
 "\n"
 "설정은 다음에 작업을 시작할 때 적용되며, 자동 대화는 껐다가 다시 켜야 합니다. 자세한 내용은 문서의 \"백그라운드 실행\"을 참고하세요."
 
-#: app/setting_interface.py:1369
+#: app/setting_interface.py:1363
 msgid "我已了解，启用后台模式"
 msgstr "이해했으며 백그라운드 모드 활성화"
 
@@ -5963,7 +5960,6 @@ msgstr ""
 msgid "建议仅在低性能设备开启，可以提高事件和随意门交互的成功率"
 msgstr ""
 
-#: app/setting_interface.py:1053
+#: app/setting_interface.py:1047
 msgid "打开发布页"
 msgstr ""
-
