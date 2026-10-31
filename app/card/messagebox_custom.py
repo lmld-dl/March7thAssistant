@@ -12,7 +12,6 @@ from module.config import cfg
 from module.localization import tr, get_raw_instance_names, get_instance_names, instance_display_to_raw
 import datetime
 import json
-import time
 import base64
 import markdown
 
@@ -336,46 +335,20 @@ class MessageBoxTutorial(MessageBox):
 
 
 class MessageBoxDisclaimer(MessageBoxHtml):
+    """首次免责确认。点「我已知晓」立即确认，不再要求停留或倒计时。"""
+
     def __init__(self, title: str, content: str, parent=None):
         super().__init__(title, content, parent)
 
         self.yesButton.setText(tr('退出'))
         self.cancelButton.setText(tr('我已知晓'))
         self.setContentCopyable(True)
-        self._opened_at: float | None = time.monotonic()
-        self._min_confirm_seconds = 10
-
-    def exec(self):
-        """记录打开时间后再阻塞式显示。"""
-        self._opened_at = time.monotonic()
-        return super().exec()
-
-    def _confirm_waited_long_enough(self) -> bool:
-        return self._opened_at is not None and (time.monotonic() - self._opened_at) >= self._min_confirm_seconds
-
-    def _show_fast_warning(self):
-        InfoBar.error(
-            title=base64.b64decode("6ZiF6K+75pe26Ze05aSq55+t5LqG77yM5aSa5YGc55WZ5LiA5Lya5ZCnKO+8vuKIgO+8vuKXjyk=").decode("utf-8"),
-            content="",
-            orient=Qt.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=5000,
-            parent=self
-        )
 
     def accept(self):
-        # if not self._confirm_waited_long_enough():
-        #     self._show_fast_warning()
-        #     return
         _cleanup_infobars(self)
         super().accept()
 
     def reject(self):
-        if not self._confirm_waited_long_enough():
-            self._show_fast_warning()
-            self._opened_at = time.monotonic()
-            return
         _cleanup_infobars(self)
         super().reject()
 
