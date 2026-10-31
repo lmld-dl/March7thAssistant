@@ -3,6 +3,7 @@ from tasks.base.base import Base
 from module.notification.notification import NotificationLevel
 from .basechallenge import BaseChallenge
 from module.automation.screenshot import Screenshot
+from module.game.resolution import window_ratio_crop
 from module.screen import screen
 from module.automation import auto
 from module.config import cfg
@@ -15,6 +16,12 @@ class Apocalyptic(BaseChallenge):
         self.team1 = team1
         self.team2 = team2
         self.level_range = level_range
+
+    def _window_crop(self, top_left, base_width, base_height):
+        """把窗口像素原点换成比例裁剪。尺寸仍按 1920×1080 基准。"""
+        window = Screenshot.get_window(cfg.game_title_name)
+        _, _, width, height = Screenshot.get_window_region(window)
+        return window_ratio_crop(top_left[0], top_left[1], base_width, base_height, width, height)
 
     def run(self):
         '''执行挑战'''
@@ -199,7 +206,7 @@ class Apocalyptic(BaseChallenge):
             top_left = self.find_node("节点二")
         # log.info(top_left)
         time.sleep(0.5)
-        if auto.click_element('./assets/images/apocalyptic/team.png', "image", 0.5, max_retries=20, crop=(top_left[0] / 1920, top_left[1] / 1080, 792.0 / 1920, 254.0 / 1080)):
+        if auto.click_element('./assets/images/apocalyptic/team.png', "image", 0.5, max_retries=20, crop=self._window_crop(top_left, 792.0, 254.0)):
             # log.info("选择角色")
             time.sleep(1)
             auto.take_screenshot(crop=(30 / 1920, 110 / 1080, 550 / 1920, 850 / 1080))
@@ -228,11 +235,11 @@ class Apocalyptic(BaseChallenge):
     def select_buff(self):
         '''选择增益效果'''
         top_left = self.find_node("节点一")
-        if auto.click_element("./assets/images/purefiction/plus.png", "image", 0.8, max_retries=10, crop=(top_left[0] / 1920, top_left[1] / 1080, 792.0 / 1920, 254.0 / 1080)):
+        if auto.click_element("./assets/images/purefiction/plus.png", "image", 0.8, max_retries=10, crop=self._window_crop(top_left, 792.0, 254.0)):
             if auto.click_element("./assets/images/purefiction/choose.png", "image", 0.8, max_retries=10):
                 if auto.click_element("./assets/images/purefiction/confirm.png", "image", 0.8, max_retries=10):
                     top_left = self.find_node("节点二")
-                    if auto.click_element("./assets/images/purefiction/plus.png", "image", 0.8, max_retries=10, crop=(top_left[0] / 1920, top_left[1] / 1080, 792.0 / 1920, 254.0 / 1080)):
+                    if auto.click_element("./assets/images/purefiction/plus.png", "image", 0.8, max_retries=10, crop=self._window_crop(top_left, 792.0, 254.0)):
                         if auto.click_element("./assets/images/purefiction/choose.png", "image", 0.8, max_retries=10):
                             auto.click_element("./assets/images/purefiction/confirm.png", "image", 0.8, max_retries=10)
                             return True

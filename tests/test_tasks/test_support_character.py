@@ -20,6 +20,22 @@ def test_support_avatar_retries_with_corner_mask(monkeypatch):
     click.assert_called_once_with(match, (0, 0))
 
 
+def test_support_avatar_scales_1080p_box_to_1440p(monkeypatch):
+    match = ((48, 477), (156, 578))
+    find_element = Mock(return_value=[match])
+    click = Mock()
+    monkeypatch.setattr(character.auto, "find_element", find_element)
+    monkeypatch.setattr(character.auto, "click_element_with_pos", click)
+    monkeypatch.setattr(character.auto, "screenshot_scale_factor", 1920 / 2560)
+    monkeypatch.setattr(character.time, "sleep", lambda _: None)
+
+    assert character.Character.find_character_and_click("Cyrene", "", 10, 20, 2560, 1440)
+
+    factor = 2560 / 1920
+    expected = ((48 * factor, 477 * factor), (156 * factor, 578 * factor))
+    click.assert_called_once_with(expected, (10, 20))
+
+
 def test_support_avatar_uses_original_match_without_retry(monkeypatch):
     match = ((48, 477), (156, 578))
     find_element = Mock(return_value=[match])
