@@ -51,63 +51,12 @@ def init_ocr() -> None:
     log.info("[✓] OCR初始化完成")
 
 
-def update_universe() -> None:
-    """更新Universe"""
-    log.info("[*] 更新Universe...")
-    from tasks.weekly.universe import Universe
-    Universe.update()
-    log.info("[✓] Universe更新完成")
-
-
-def update_fight() -> None:
-    """更新Fight"""
-    log.info("[*] 更新Fight...")
-    from tasks.daily.fight import Fight
-    Fight.update()
-    log.info("[✓] Fight更新完成")
-
-
 def update_fps_unlocker() -> None:
     """更新FPS解锁器"""
     log.info("[*] 更新Genshin StarRail FPS解锁器...")
     from tasks.base.genshin_starRail_fps_unlocker import Genshin_StarRail_fps_unlocker
     Genshin_StarRail_fps_unlocker.update()
     log.info("[✓] FPS解锁器更新完成")
-
-
-def download_browser() -> None:
-    """下载集成浏览器"""
-    log.info("[*] 下载集成浏览器...")
-    # 通过环境变量 MARCH7TH_BROWSER_DOWNLOAD_USE_MIRROR 控制是否使用镜像
-    try:
-        from module.game import cloud_game
-        cloud_game.download_intergrated_browser()
-    except ImportError:
-        import sys
-        if sys.platform == "linux":
-            import os
-            from selenium.webdriver.common.selenium_manager import SeleniumManager
-            browser_path = "./3rdparty/WebBrowser/chrome/linux64/140.0.7339.207/chrome"
-            driver_path = "./3rdparty/WebBrowser/chromedriver/linux64/140.0.7339.207/chromedriver"
-            if not os.path.exists(browser_path) or not os.path.exists(driver_path):
-                args = ["--browser", "chrome",
-                        "--cache-path", "./3rdparty/WebBrowser",
-                        "--browser-version", "140.0.7339.207",
-                        "--force-browser-download",
-                        "--skip-driver-in-path",
-                        "--skip-browser-in-path"]
-                if os.environ.get("MARCH7TH_BROWSER_DOWNLOAD_USE_MIRROR", "false").lower() in ("true", "1"):
-                    mirror_url = "https://registry.npmmirror.com/-/binary/chrome-for-testing/"
-                    log.info(f"正在使用镜像源，浏览器镜像源：{mirror_url}，驱动镜像源：{mirror_url}")
-                    args.extend([
-                        "--browser-mirror-url", mirror_url,
-                        "--driver-mirror-url", mirror_url,
-                    ])
-                log.info("正在下载浏览器和驱动...")
-                SeleniumManager().binary_paths(args)
-        else:
-            raise
-    log.info("[✓] 浏览器下载完成")
 
 
 def execute_all_tasks(version: str = None, output_file: Path = None) -> None:
@@ -117,10 +66,7 @@ def execute_all_tasks(version: str = None, output_file: Path = None) -> None:
     log.info("=" * 50)
 
     init_ocr()
-    update_universe()
-    update_fight()
     update_fps_unlocker()
-    download_browser()
 
     if version and output_file:
         generate_changelog(version, output_file)
@@ -138,10 +84,7 @@ def main():
 示例:
   python build.py --help                                      # 显示帮助信息
   python build.py --task ocr                                  # 只初始化OCR
-  python build.py --task universe                             # 只更新Universe
-  python build.py --task fight                                # 只更新Fight
   python build.py --task fps-unlocker                         # 只更新FPS解锁器
-  python build.py --task browser                              # 只下载浏览器
   python build.py --task changelog -v v1.0.0 -o changelog.md  # 只生成日志
   python build.py --task all -v v1.0.0 -o changelog.md        # 执行全部任务
   python build.py -v v1.0.0 -o changelog.md                   # 默认执行全部任务
@@ -152,7 +95,7 @@ def main():
         "--task",
         "-t",
         type=str,
-        choices=["ocr", "universe", "fight", "fps-unlocker", "browser", "changelog", "all"],
+        choices=["ocr", "fps-unlocker", "changelog", "all"],
         help="要执行的任务(默认: all)"
     )
     parser.add_argument(
@@ -188,14 +131,8 @@ def main():
     try:
         if task == "ocr":
             init_ocr()
-        elif task == "universe":
-            update_universe()
-        elif task == "fight":
-            update_fight()
         elif task == "fps-unlocker":
             update_fps_unlocker()
-        elif task == "browser":
-            download_browser()
         elif task == "changelog":
             if not args.version or not args.output:
                 log.error("错误: changelog 任务需要 --version 和 --output 参数")

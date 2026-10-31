@@ -35,12 +35,12 @@ Before asking for help, please check: [FAQ](https://m7a.top/docs/#/assets/docs/F
 
 ## Feature Overview
 
-- **Daily**: Spend Trailblaze Power, Daily Training, claim rewards, dispatch, field farming
-- **Weekly**: Echo of War, Simulated Universe, Divergent Universe, Currency Wars, Memory of Chaos, Pure Fiction, Apocalyptic Shadow
-- **Cloud Honkai: Star Rail**: Supports background execution, headless execution, and [Docker](https://m7a.top/docs/#/assets/docs/Docker) deployment
+- **Daily**: Spend Trailblaze Power, Daily Training, claim rewards, dispatch
+- **Weekly**: Echo of War, Divergent Universe, Currency Wars, Memory of Chaos, Pure Fiction, Apocalyptic Shadow
 - **Gacha record export**: Supports the [UIGF](https://uigf.org/zh/standards/uigf.html) / [SRGF](https://uigf.org/zh/standards/srgf.html) standards
 - **Toolbox**: Auto dialogue, FPS unlock, redemption codes, touch mode
-- Task results such as Daily Training support **push notifications**
+- Local game start/stop, launcher game updates, startup and scheduled tasks
+- Task results such as Daily Training support **Windows toast notifications**
 - Supports **automatic start** after task refresh or when Trailblaze Power recovers to a specified value
 - Supports **sound alerts, automatic game exit, shutdown, and more** after tasks finish
 
@@ -126,11 +126,8 @@ Your support helps keep the project developed and maintained.
 
 March7thAssistant depends on the following open-source projects and runtime dependencies. Thanks to all maintainers and contributors.
 
-- Simulated Universe automation [https://github.com/CHNZYX/Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe): provides Simulated Universe related capabilities
-- Field farming automation [https://github.com/linruowuyin/Fhoe-Rail](https://github.com/linruowuyin/Fhoe-Rail): provides field farming related capabilities
 - OCR text recognition [https://github.com/RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR): provides in-game text recognition
 - GUI component library [https://github.com/zhiyiYo/PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets): provides the main interface components and interaction experience
-- MirrorChyan [https://github.com/MirrorChyan/docs](https://github.com/MirrorChyan/docs): provides update checking, download distribution, and CDN acceleration related capabilities
 - Image processing and automation related dependencies `OpenCV`, `PyAutoGUI`, and others: provide screenshot capture, image processing, and foundational automation capabilities
 - Inference acceleration related dependencies `ONNX Runtime`, `OpenVINO`: provide CPU / GPU acceleration for OCR and model inference
 

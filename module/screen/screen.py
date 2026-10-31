@@ -337,13 +337,8 @@ class Screen(metaclass=SingletonMeta):
         记录错误日志并抛出异常
         """
         self.logger.error(log_message)
-        # self.logger.error("如果游戏是从本地启动：")
-        if not cfg.cloud_game_enable:
-            self.logger.error("请关闭帧率监控HUD、微星小飞机、游戏加加、HDR或N卡游戏滤镜等等任何可能影响游戏画面的软件")
-            self.logger.error("你可以通过 工具箱-游戏截图 判断当前游戏画面是否被正确获取")
-        # self.logger.error("如果是云·星穹铁道：")
-        else:
-            self.logger.error("使用云·星穹铁道请确保网络正常，浏览器能正常加载游戏画面")
+        self.logger.error("请关闭帧率监控HUD、微星小飞机、游戏加加、HDR或N卡游戏滤镜等等任何可能影响游戏画面的软件")
+        self.logger.error("你可以通过 工具箱-游戏截图 判断当前游戏画面是否被正确获取")
         raise RuntimeError(error_message)
 
     def ensure_current_screen_is_clean(self):

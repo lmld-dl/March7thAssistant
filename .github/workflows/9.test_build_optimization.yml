@@ -47,10 +47,9 @@ jobs:
         run: |
           $p1 = Start-Process -FilePath "uv" -ArgumentList 'run pyinstaller --distpath ".\dist" ".\March7th Assistant.spec" -y' -PassThru -NoNewWindow
           $p2 = Start-Process -FilePath "uv" -ArgumentList 'run pyinstaller --distpath ".\dist" ".\March7th Launcher.spec" -y' -PassThru -NoNewWindow
-          $p3 = Start-Process -FilePath "uv" -ArgumentList 'run pyinstaller --distpath ".\dist\March7thAssistant" ".\March7th Updater.spec" -y' -PassThru -NoNewWindow
-          $p1.WaitForExit(); $p2.WaitForExit(); $p3.WaitForExit()
-          if ($p1.ExitCode -ne 0 -or $p2.ExitCode -ne 0 -or $p3.ExitCode -ne 0) {
-            Write-Host "Exit codes: Assistant=$($p1.ExitCode) Launcher=$($p2.ExitCode) Updater=$($p3.ExitCode)"
+          $p1.WaitForExit(); $p2.WaitForExit()
+          if ($p1.ExitCode -ne 0 -or $p2.ExitCode -ne 0) {
+            Write-Host "Exit codes: Assistant=$($p1.ExitCode) Launcher=$($p2.ExitCode)"
             exit 1
           }
 
@@ -151,11 +150,9 @@ jobs:
       - name: Get 3rdparty release tags
         id: deps-tags
         run: |
-          $asu = (gh api repos/moesnow/Auto_Simulated_Universe/releases/latest --jq '.tag_name' 2>$null)
-          $fhoe = (gh api repos/linruowuyin/Fhoe-Rail/releases/latest --jq '.tag_name' 2>$null)
           $fps = (gh api repos/winTEuser/Genshin_StarRail_fps_unlocker/releases/latest --jq '.tag_name' 2>$null)
-          $buildHash = "${{ hashFiles('build.py', 'module/game/cloud.py') }}"
-          $hash = "${asu}-${fhoe}-${fps}-${buildHash}"
+          $buildHash = "${{ hashFiles('build.py', 'tasks/base/genshin_starRail_fps_unlocker.py') }}"
+          $hash = "${fps}-${buildHash}"
           echo "hash=$hash" >> $env:GITHUB_OUTPUT
           Write-Host "3rdparty cache key: $hash"
         env:

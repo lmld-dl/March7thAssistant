@@ -11,8 +11,6 @@ import datetime
 import json
 import re
 import sys
-from ..tools.check_update import checkUpdate
-from module.update.version_check import validate_mirrorchyan_cdk
 from module.localization import tr, tn, get_character_names, instance_display_to_raw
 
 
@@ -134,11 +132,7 @@ class _CdkValidationThread(QThread):
         self.cdk = cdk
 
     def run(self):
-        try:
-            cdk_expired_time = validate_mirrorchyan_cdk(self.cdk)
-            self.validationFinished.emit(True, str(cdk_expired_time))
-        except Exception as e:
-            self.validationFinished.emit(False, str(e))
+        self.validationFinished.emit(False, "精简客户端已移除 Mirror酱 更新")
 
 
 class PushSettingCardMirrorchyan(SettingCard):
@@ -448,9 +442,6 @@ class PushSettingCardCode(CustomPushSettingCard):
 
     def _get_server(self):
         try:
-            # 如果云游戏启用，默认使用国服
-            if cfg.cloud_game_enable:
-                return 'cn'
             if sys.platform == 'win32':
                 from utils.registry.star_rail_setting import get_server_by_registry
                 server = get_server_by_registry()
@@ -461,7 +452,7 @@ class PushSettingCardCode(CustomPushSettingCard):
                         self.message_box
                     )
             else:
-                server = 'cn'  # 云游戏默认国服
+                server = 'cn'
             return server
         except Exception as e:
             self._info_warning(tr('获取服务器信息失败'), str(e), self.message_box)

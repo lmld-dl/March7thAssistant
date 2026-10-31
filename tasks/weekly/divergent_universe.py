@@ -472,7 +472,7 @@ class DivergentUniverse:
         return width * height
 
     def process_event_stage(self):
-        stable_mode = cfg.cloud_game_enable or cfg.weekly_divergent_stable_mode
+        stable_mode = cfg.weekly_divergent_stable_mode
         window = Screenshot.get_window(cfg.game_title_name)
         win_x, _, width, _ = Screenshot.get_window_region(window)
         screen_center_x = win_x + width // 2
@@ -715,7 +715,7 @@ class DivergentUniverse:
             enemy_crop = (675 / 1920, 41 / 1080, 274 / 1920, 37 / 1080)
             auto.press_key_down("w")
             time.sleep(0.2)
-            if not cfg.cloud_game_enable and not cfg.weekly_divergent_stable_mode:
+            if not cfg.weekly_divergent_stable_mode:
                 auto.press_key_down("shift")
             start_time = time.monotonic()
             while time.monotonic() - start_time < 3:  # 最多等待3秒
@@ -726,7 +726,7 @@ class DivergentUniverse:
                 log.info("未检测到敌对目标")
             time.sleep(0.8)
             auto.press_key_up("w")
-            if not cfg.cloud_game_enable and not cfg.weekly_divergent_stable_mode:
+            if not cfg.weekly_divergent_stable_mode:
                 auto.press_key_up("shift")
 
             if auto.find_element("./assets/images/share/base/F.png", "image", 0.9, crop=(998.0 / 1920, 473.0 / 1080, 392.0 / 1920, 296.0 / 1080)) and auto.find_element(("战利品", "混沌药箱"), "text", crop=(1205 / 1920, 589 / 1080, 193 / 1920, 49 / 1080), include=True):
@@ -939,7 +939,7 @@ class DivergentUniverse:
         return auto.find_element((LOWER, UPPER), "hsv", take_screenshot=False)
 
     def process_random_door(self, stable_mode=False, timeout=15):
-        if cfg.cloud_game_enable or cfg.weekly_divergent_stable_mode:
+        if cfg.weekly_divergent_stable_mode:
             stable_mode = True
         window = Screenshot.get_window(cfg.game_title_name)
         win_x, _, width, _ = Screenshot.get_window_region(window)

@@ -10,8 +10,6 @@ from module.logger import log
 
 from ..tools.disclaimer import disclaimer
 
-import base64
-
 
 class SampleCard(CardWidget):
     """ Sample card """
@@ -53,7 +51,7 @@ class SampleCard(CardWidget):
         # self.contentLabel.setObjectName('contentLabel')
 
     def showSuccessTip(self):
-        if not cfg.get_value(base64.b64decode("YXV0b191cGRhdGU=").decode("utf-8")):
+        if not cfg.get_value("disclaimer_accepted", False):
             disclaimer(self)
         TeachingTip.create(
             target=self.iconWidget,

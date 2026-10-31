@@ -13,7 +13,6 @@ from app.components.ascii_spin_box import AsciiSpinBox
 from qfluentwidgets import InfoBar, InfoBarPosition
 from qfluentwidgets import FluentIcon as FIF
 from utils.tasks import TASK_NAMES
-from module.workflow import load_workflows
 import uuid
 import os
 import json
@@ -138,10 +137,9 @@ class AddEditScheduleDialog(MessageBox):
         # 默认时间设置为 04:00
         self.time_picker.setTime(QTime(4, 0))
 
-        # 程序类型（本体、流程编排或外部程序）
+        # 程序类型（本体或外部程序）
         self.program_type_combo = ComboBox(self)
-        # 程序类型：本体、流程编排、外部程序，以及来自配置的特殊程序
-        for program_key, label in [('self', tr('本体')), ('workflow', tr('流程编排')), ('external', tr('外部程序'))]:
+        for program_key, label in [('self', tr('本体')), ('external', tr('外部程序'))]:
             self.program_type_combo.addItem(label, userData=program_key)
         for sp in SPECIAL_PROGRAMS:
             self.program_type_combo.addItem(tr(sp.get('display_name')), userData=sp.get('key'))
@@ -171,12 +169,6 @@ class AddEditScheduleDialog(MessageBox):
         self.args_combo.setVisible(True)
         # 当用户选择内置任务时，自动填写任务名称（仅在用户操作时触发）
         self.args_combo.activated.connect(self._on_args_activated)
-
-        self.workflow_combo = ComboBox(self)
-        self.workflow_names = []
-        self._workflows_loaded = False
-        self.workflow_combo.setVisible(False)
-        self.workflow_combo.activated.connect(self._on_workflow_activated)
 
         # 超时强制停止，默认60分钟，单位分钟
         self.timeout_spin = AsciiSpinBox(self)
@@ -294,7 +286,6 @@ class AddEditScheduleDialog(MessageBox):
         row.addWidget(self.args_label)
         row.addWidget(self.args_edit)
         row.addWidget(self.args_combo)
-        row.addWidget(self.workflow_combo)
         form.addLayout(row)
 
         # 超时与任务完成后操作同一行
@@ -389,14 +380,7 @@ class AddEditScheduleDialog(MessageBox):
         # 程序路径不能为空（非本体类型都要求路径）
         if self._current_program_type() != 'self':
             prog = self.program_path_edit.text().strip()
-            if self._current_program_type() == 'workflow':
-                if self.workflow_combo.currentText().strip() not in self.workflow_names:
-                    m = MessageBox(tr('错误'), tr('请选择要运行的流程编排'), self)
-                    m.cancelButton.hide()
-                    m.yesButton.setText(tr('确认'))
-                    m.exec()
-                    return
-            elif not prog:
+            if not prog:
                 m = MessageBox(tr('错误'), tr('程序路径不能为空'), self)
                 m.cancelButton.hide()
                 m.yesButton.setText(tr('确认'))
@@ -424,13 +408,6 @@ class AddEditScheduleDialog(MessageBox):
             if self.program_type_combo.itemData(index) == program_key:
                 self.program_type_combo.setCurrentIndex(index)
                 return
-
-    def _load_workflow_choices(self):
-        if self._workflows_loaded:
-            return
-        self.workflow_names = [workflow.get('name', '') for workflow in load_workflows() if workflow.get('name')]
-        self.workflow_combo.addItems(self.workflow_names)
-        self._workflows_loaded = True
 
     def _on_timeout_changed(self, _value):
         self._timeout_edited = True
@@ -480,21 +457,9 @@ class AddEditScheduleDialog(MessageBox):
             self.prog_btn.setVisible(False)
             self.args_edit.setVisible(False)
             self.args_combo.setVisible(True)
-            self.workflow_combo.setVisible(False)
             # 更新标签为任务选择
             try:
                 self.args_label.setText(tr('选择任务：'))
-            except Exception:
-                pass
-        elif program_type == 'workflow':
-            self._load_workflow_choices()
-            self.program_path_edit.setVisible(False)
-            self.prog_btn.setVisible(False)
-            self.args_edit.setVisible(False)
-            self.args_combo.setVisible(False)
-            self.workflow_combo.setVisible(True)
-            try:
-                self.args_label.setText(tr('选择流程：'))
             except Exception:
                 pass
         elif program_type == 'external':
@@ -502,7 +467,6 @@ class AddEditScheduleDialog(MessageBox):
             self.prog_btn.setVisible(True)
             self.args_edit.setVisible(True)
             self.args_combo.setVisible(False)
-            self.workflow_combo.setVisible(False)
             # 更新标签为启动参数
             try:
                 self.args_label.setText(tr('启动参数：'))
@@ -521,7 +485,6 @@ class AddEditScheduleDialog(MessageBox):
                 self.prog_btn.setVisible(True)
                 self.args_edit.setVisible(True)
                 self.args_combo.setVisible(False)
-                self.workflow_combo.setVisible(False)
                 try:
                     self.args_label.setText(tr('启动参数：'))
                     # 显示可执行文件示例作为 placeholder
@@ -542,14 +505,12 @@ class AddEditScheduleDialog(MessageBox):
 
     def _on_program_type_activated(self, index):
         """仅在用户手动选择时应用默认参数（若参数为空）"""
-        # 本体/流程编排/外部程序手动选择 -> 清空名称与参数（让用户填写）
+        # 本体/外部程序手动选择 -> 清空名称与参数（让用户填写）
         program_type = self._current_program_type()
-        if program_type in ('self', 'workflow', 'external'):
+        if program_type in ('self', 'external'):
             self.name_edit.setText('')
             self.args_edit.setText('')
             self.kill_processes_edit.setText('')
-            if program_type == 'workflow' and self.workflow_combo.count() > 0:
-                self._on_workflow_activated(self.workflow_combo.currentIndex())
             return
         # 特殊程序：查找配置并应用 short_name 与默认 args（仅当 args 为空时）
         for sp in SPECIAL_PROGRAMS:
@@ -575,14 +536,6 @@ class AddEditScheduleDialog(MessageBox):
             label = self.args_combo.currentText()
         # 直接设置名称以反映当前选中的内置任务
         self.name_edit.setText(label)
-
-    def _on_workflow_activated(self, index):
-        try:
-            name = self.workflow_combo.itemText(index)
-        except Exception:
-            name = self.workflow_combo.currentText()
-        if name:
-            self.name_edit.setText(f"{tr('流程编排')} - {name}")
 
     def _load_task(self, task):
         self._set_trigger_mode(task_trigger_mode(task))
@@ -611,14 +564,10 @@ class AddEditScheduleDialog(MessageBox):
                     idx = len(self._task_keys) - 1
             self.args_combo.setCurrentIndex(idx)
         elif isinstance(prog, str) and prog.strip().lower() == 'workflow':
-            self._set_program_type('workflow')
-            workflow_name = task.get('workflow_name') or task.get('args', '')
-            if workflow_name in self.workflow_names:
-                self.workflow_combo.setCurrentIndex(self.workflow_names.index(workflow_name))
-            elif workflow_name:
-                self.workflow_combo.addItem(workflow_name)
-                self.workflow_combo.setCurrentIndex(self.workflow_combo.count() - 1)
-            self.name_edit.setText(task.get('name') or f"{tr('流程编排')} - {workflow_name}")
+            # 精简客户端已移除流程编排：打开时改成外部程序，要求重新填写路径。
+            self._set_program_type('external')
+            self.program_path_edit.setText('')
+            self.args_edit.setText('')
         else:
             # 外部程序或特定外部类型
             self.program_path_edit.setText(str(prog))
@@ -685,18 +634,12 @@ class AddEditScheduleDialog(MessageBox):
             # args 保存为任务 id（key）而不是中文 label
             idx = self.args_combo.currentIndex() if self.args_combo.count() > 0 else 0
             task['args'] = self._task_keys[idx] if idx >= 0 and idx < len(self._task_keys) else 'main'
-        elif program_type == 'workflow':
-            task['program'] = 'workflow'
-            workflow_name = self.workflow_combo.currentText().strip()
-            task['args'] = workflow_name
-            task['workflow_name'] = workflow_name
         else:
             task['program'] = self.program_path_edit.text().strip() or ''
             task['args'] = self.args_edit.text().strip()
 
-        if program_type != 'workflow':
-            task.pop('workflow_name', None)
-            task.pop('workflow_step_path', None)
+        task.pop('workflow_name', None)
+        task.pop('workflow_step_path', None)
 
         # 存储为秒（与现有运行/超时逻辑兼容）
         task['timeout'] = int(self.timeout_spin.value()) * 60 if self._timeout_edited else task_timeout_seconds(self.task)
@@ -917,7 +860,7 @@ class ScheduleManagerDialog(MessageBox):
                 prog_display = tr('本体')
                 prog_item = QTableWidgetItem(prog_display)
             elif prog == 'workflow':
-                prog_display = tr('流程编排')
+                prog_display = tr('流程编排（已移除）')
                 prog_item = QTableWidgetItem(prog_display)
             else:
                 prog_str = str(prog)

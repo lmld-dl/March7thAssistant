@@ -33,7 +33,7 @@ LOCALES = ["zh_CN", "zh_TW", "ja_JP", "ko_KR", "en_US"]
 
 # 参与提取的源码目录/文件（tests、3rdparty 等不参与）
 SCAN_DIRS = ["app", "module", "tasks", "utils", "tools"]
-SCAN_FILES = ["main.py", "app.py", "updater.py", "build.py"]
+SCAN_FILES = ["main.py", "app.py", "build.py"]
 
 # 视为翻译调用的函数名（含 self.tr(...) 形式）
 TRANSLATION_FUNCS = {"tr", "tn"}
@@ -237,8 +237,6 @@ def collect_code_literals() -> tuple[set[str], set[str], int]:
 #   - 键为元组表示只取这些 dict 键对应的值，避免把图标路径、task_id 等一起登记；
 #   - 必须用 AST 读取、绝不 import —— 否则会把 PySide6 / qfluentwidgets 拖进工具链。
 TABLE_SOURCES = [
-    ("module/workflow/__init__.py", (("STEP_TYPE_LABELS", None), ("CONDITION_TYPE_LABELS", None))),
-    ("module/update/version_check.py", (("_CDK_ERROR_MESSAGES", None),)),
     # 任务名与主页卡片文案：常量里存的是中文原文（msgid），显示时才 tr()
     ("utils/tasks.py", (("AVAILABLE_TASKS", None),)),
     ("app/card/card_edit_dialog.py", (
@@ -473,7 +471,7 @@ def run_checks() -> tuple[list[str], list[str]]:
 
 # 界面实际加载的文档基名（help_interface / changelog_interface 经 localized_doc_path 读取）。
 # 后缀登记校验、译文完整性校验、zh_TW 生成共用此清单，防止多处清单漂移。
-DOC_BASES = ("Tutorial", "Workflow", "FAQ", "Background", "TasksTable", "Changelog")
+DOC_BASES = ("Tutorial", "FAQ", "Background", "TasksTable", "Changelog")
 
 
 def check_docs(docs_dir: Path | None = None) -> list[str]:

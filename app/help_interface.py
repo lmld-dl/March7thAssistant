@@ -14,7 +14,6 @@ from module.localization import tr
 # 各标签对应的文档：“在官网查看”按钮打开当前标签的同一份文档（按界面语言）
 DOC_OF_TAB = {
     'tutorialLabel': 'Tutorial',
-    'workflowLabel': 'Workflow',
     'faqLabel': 'FAQ',
     'backgroundLabel': 'Background',
     'tasksLabel': 'TasksTable',
@@ -34,7 +33,6 @@ class HelpInterface(ScrollArea):
         self.helpLabel = QLabel(tr("帮助"), self)
         self.websiteButton = PushButton(FluentIcon.GLOBE, tr("在官网查看"), self)
         self.tutorialLabel = TextBrowser(parent)
-        self.workflowLabel = TextBrowser(parent)
         self.faqLabel = TextBrowser(parent)
         self.backgroundLabel = TextBrowser(parent)
         self.tasksLabel = TextBrowser(parent)
@@ -102,22 +100,6 @@ th, td {
             self.tutorialLabel.setText(self.tutorial_content)
         self.tutorialLabel.setOpenExternalLinks(True)
         self.tutorialLabel.anchorClicked.connect(self.open_url)
-
-        workflow_file = self._get_localized_doc_path("Workflow")
-        try:
-            with open(workflow_file, 'r', encoding='utf-8') as file:
-                self.content = file.read()
-                self.content = '\n'.join(self.content.split('\n')[1:])
-        except FileNotFoundError:
-            sys.exit(1)
-        self.workflow_content = tutorial_style + markdown.markdown(self.content, extensions=['tables']).replace('<h2>', '<br><h2>').replace('</h2>', '</h2><hr>').replace('<br>', '', 1) + '<br>'
-
-        if qconfig.theme.name == "DARK":
-            self.workflowLabel.setText(self.workflow_content.replace("border: 1px solid black;", "border: 1px solid white;"))
-        else:
-            self.workflowLabel.setText(self.workflow_content)
-        self.workflowLabel.setOpenExternalLinks(True)
-        self.workflowLabel.anchorClicked.connect(self.open_url)
 
         faq_style = """
 <style>
@@ -216,7 +198,6 @@ a {
 
         # self.vBoxLayout.addWidget(self.tutorialLabel, 0, Qt.AlignTop)
         self.addSubInterface(self.tutorialLabel, 'tutorialLabel', tr('使用教程'))
-        self.addSubInterface(self.workflowLabel, 'workflowLabel', tr('流程编排'))
         self.addSubInterface(self.faqLabel, 'faqLabel', tr('常见问题'))
         self.addSubInterface(self.backgroundLabel, 'backgroundLabel', tr('后台运行'))
         self.addSubInterface(self.tasksLabel, 'tasksLabel', tr('每日实训'))
@@ -320,11 +301,6 @@ a {
             self.tutorialLabel.setText(self.tutorial_content.replace("border: 1px solid black;", "border: 1px solid white;"))
         else:
             self.tutorialLabel.setText(self.tutorial_content)
-
-        if qconfig.theme.name == "DARK":
-            self.workflowLabel.setText(self.workflow_content.replace("border: 1px solid black;", "border: 1px solid white;"))
-        else:
-            self.workflowLabel.setText(self.workflow_content)
 
         if qconfig.theme.name == "DARK":
             self.backgroundLabel.setText(self.background_content.replace("border: 1px solid black;", "border: 1px solid white;"))

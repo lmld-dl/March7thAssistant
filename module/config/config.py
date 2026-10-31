@@ -114,14 +114,8 @@ def _is_retryable_io_error(e):
 # 环境变量覆盖映射：环境变量名 -> (配置键, 转换函数)
 # 环境变量值为 "true"/"1" 时为 True，"false"/"0" 时为 False
 _ENV_OVERRIDE_MAP = {
-    "MARCH7TH_CLOUD_GAME_ENABLE": ("cloud_game_enable", lambda v: v.lower() in ("true", "1")),
-    "MARCH7TH_CLOUD_GAME_USE_PAID_TIME": ("cloud_game_use_paid_time", lambda v: v.lower() in ("true", "1")),
-    "MARCH7TH_BROWSER_HEADLESS_ENABLE": ("browser_headless_enable", lambda v: v.lower() in ("true", "1")),
-    "MARCH7TH_BROWSER_HEADLESS_RESTART_ON_NOT_LOGGED_IN": ("browser_headless_restart_on_not_logged_in", lambda v: v.lower() in ("true", "1")),
-    "MARCH7TH_BROWSER_DOWNLOAD_USE_MIRROR": ("browser_download_use_mirror", lambda v: v.lower() in ("true", "1")),
     "MARCH7TH_LOG_LEVEL": ("log_level", lambda v: v.upper()),  # 日志等级：INFO, DEBUG, WARNING, ERROR
     "MARCH7TH_AFTER_FINISH": ("after_finish", lambda v: v),  # 任务完成后操作：None, Exit, Loop, Shutdown, Sleep, Hibernate, Restart, Logoff, TurnOffDisplay, RunScript
-    "MARCH7TH_BROWSER_TYPE": ("browser_type", lambda v: v),  # 浏览器类型：integrated, edge, chrome
 }
 
 # 反向映射：配置键 -> 环境变量名

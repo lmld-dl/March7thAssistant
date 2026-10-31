@@ -1,18 +1,16 @@
 import urllib.request
 import subprocess
-import requests
 import os
 
 from utils.progress import ProgressBar
-from module.update.download_proxy import get_update_download_aria2_args, get_update_download_requests_proxies
 
 
 def download_with_progress(download_url, save_path, use_update_proxy=False):
+    """下载文件并显示进度。use_update_proxy 保留签名以兼容旧调用，精简客户端统一走系统代理。"""
+    del use_update_proxy
 
     aria2_path = os.path.abspath("./assets/binary/aria2c.exe")
-    proxies = urllib.request.getproxies() if not use_update_proxy else {}
-    aria2_proxy_args = get_update_download_aria2_args() if use_update_proxy else []
-    request_proxies = get_update_download_requests_proxies() if use_update_proxy else None
+    proxies = urllib.request.getproxies()
 
     if os.path.exists(aria2_path):
         command = [
@@ -25,37 +23,20 @@ def download_with_progress(download_url, save_path, use_update_proxy=False):
             command.insert(2, "--max-connection-per-server=16")
             if os.path.exists(save_path):
                 command.insert(2, "--continue=true")
-        if use_update_proxy:
-            command.extend(aria2_proxy_args)
-        else:
-            for scheme, proxy in proxies.items():
-                if scheme in ("http", "https", "ftp"):
-                    command.append(f"--{scheme}-proxy={proxy}")
+        for scheme, proxy in proxies.items():
+            if scheme in ("http", "https", "ftp"):
+                command.append(f"--{scheme}-proxy={proxy}")
         command.append(download_url)
         subprocess.run(command, check=True)
     else:
-        if use_update_proxy:
-            with requests.get(download_url, stream=True, timeout=(10, 30), proxies=request_proxies) as response:
-                response.raise_for_status()
-                file_size = int(response.headers.get("Content-Length", 0)) or None
+        response = urllib.request.urlopen(download_url)
+        file_size = int(response.info().get('Content-Length', -1))
 
-                with ProgressBar(total=file_size) as pbar:
-                    with open(save_path, "wb") as file:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            if chunk:
-                                file.write(chunk)
-                                pbar.update(len(chunk))
-        else:
-            # 获取文件大小
-            response = urllib.request.urlopen(download_url)
-            file_size = int(response.info().get('Content-Length', -1))
+        with ProgressBar(total=file_size) as pbar:
+            def update_bar(block_count, block_size, total_size):
+                if pbar.total != total_size:
+                    pbar.total = total_size
+                downloaded = block_count * block_size
+                pbar.update(downloaded - pbar.n)
 
-            # 使用进度条显示下载进度
-            with ProgressBar(total=file_size) as pbar:
-                def update_bar(block_count, block_size, total_size):
-                    if pbar.total != total_size:
-                        pbar.total = total_size
-                    downloaded = block_count * block_size
-                    pbar.update(downloaded - pbar.n)
-
-                urllib.request.urlretrieve(download_url, save_path, reporthook=update_bar)
+            urllib.request.urlretrieve(download_url, save_path, reporthook=update_bar)

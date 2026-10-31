@@ -12,13 +12,11 @@ from .help_interface import HelpInterface
 # from .changelog_interface import ChangelogInterface
 from .warp_interface import WarpInterface
 from .tools_interface import ToolsInterface
-from .workflow_interface import WorkflowInterface
 from .setting_interface import SettingInterface
 from .log_interface import LogInterface
 from .common.signal_bus import signalBus
 
 from .card.messagebox_custom import MessageBoxSupport
-from .tools.check_update import checkUpdate
 from .tools.check_theme_change import checkThemeChange
 from .tools.announcement import checkAnnouncement
 from .tools.disclaimer import disclaimer
@@ -27,7 +25,6 @@ from module.config import cfg
 from module.logger import log
 from module.game import get_game_controller
 from module.localization import tr
-import base64
 import os
 import sys
 
@@ -126,8 +123,6 @@ class MainWindow(MSFluentWindow):
             # 最小化到托盘启动：不弹出任何窗口，检查更新与公告推迟到主窗口首次显示
             self._defer_startup_checks = True
         else:
-            # 检查更新
-            checkUpdate(self, flag=True)
             checkAnnouncement(self)
 
     def _executeStartupTask(self):
@@ -269,8 +264,7 @@ class MainWindow(MSFluentWindow):
         self._refreshWindowTitleBar()
 
     def _on_update_version_badge_clicked(self):
-        if self.detected_update_version:
-            checkUpdate(self)
+        return
 
     def initInterface(self):
         self.homeInterface = HomeInterface(self)
@@ -278,7 +272,6 @@ class MainWindow(MSFluentWindow):
         # self.changelogInterface = ChangelogInterface(self)
         self.warpInterface = WarpInterface(self)
         self.toolsInterface = ToolsInterface(self)
-        self.workflowInterface = WorkflowInterface(self)
         self.logInterface = LogInterface(self)
         self.settingInterface = SettingInterface(self)
 
@@ -299,7 +292,6 @@ class MainWindow(MSFluentWindow):
         # self.addSubInterface(self.changelogInterface, FIF.UPDATE, '更新日志')
         self.addSubInterface(self.warpInterface, FIF.SHARE, tr('抽卡记录'))
         self.addSubInterface(self.toolsInterface, FIF.DEVELOPER_TOOLS, tr('工具箱'))
-        self.addSubInterface(self.workflowInterface, FIF.CODE, tr('流程编排'))
 
         self.navigationInterface.addWidget(
             'startGameButton',
@@ -338,7 +330,7 @@ class MainWindow(MSFluentWindow):
         self.splashScreen.finish()
         self.themeListener = checkThemeChange(self)
 
-        if not cfg.get_value(base64.b64decode("YXV0b191cGRhdGU=").decode("utf-8")):
+        if not cfg.get_value("disclaimer_accepted", False):
             disclaimer(self)
 
     def initSystemTray(self):
@@ -399,7 +391,6 @@ class MainWindow(MSFluentWindow):
         super().showEvent(event)
         if self._defer_startup_checks:
             self._defer_startup_checks = False
-            checkUpdate(self, flag=True)
             checkAnnouncement(self)
 
     def _show_main_window(self):
@@ -464,8 +455,6 @@ class MainWindow(MSFluentWindow):
             # 切换到日志界面
             self.switchTo(self.logInterface)
             return
-        # 静默检查更新
-        checkUpdate(self, silent=True)
         # 切换到日志界面
         self.switchTo(self.logInterface)
         # 启动任务
@@ -556,7 +545,6 @@ class MainWindow(MSFluentWindow):
                 ('helpInterface', FIF.BOOK_SHELF, tr('帮助'), HelpInterface),
                 ('warpInterface', FIF.SHARE, tr('抽卡记录'), WarpInterface),
                 ('toolsInterface', FIF.DEVELOPER_TOOLS, tr('工具箱'), ToolsInterface),
-                ('workflowInterface', FIF.CODE, tr('流程编排'), WorkflowInterface),
             ]
             for attr, icon, label, cls in top_specs:
                 old = getattr(self, attr, None)
@@ -879,31 +867,10 @@ class MainWindow(MSFluentWindow):
             if start_game_button:
                 start_game_button.setEnabled(True)
             return
-        if cfg.cloud_game_enable and cfg.browser_type == "integrated" and not game.is_integrated_browser_downloaded():
-            InfoBar.warning(
-                title=tr('正在下载内置浏览器(ง •̀_•́)ง'),
-                content=tr("下载成功后，将自动启动云·星穹铁道"),
-                orient=Qt.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=10000,
-                parent=self
-            )
-        elif cfg.cloud_game_enable:
-            InfoBar.warning(
-                title=tr('正在启动游戏(❁´◡`❁)'),
-                content="",
-                orient=Qt.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self
-            )
-        else:
-            from tasks.game.starrailcontroller import StarRailController
-            starrail = StarRailController(cfg=cfg, logger=log)
-            if cfg.auto_battle_detect_enable:
-                starrail.change_auto_battle(True)
+        from tasks.game.starrailcontroller import StarRailController
+        starrail = StarRailController(cfg=cfg, logger=log)
+        if cfg.auto_battle_detect_enable:
+            starrail.change_auto_battle(True)
 
         self.game_launch_thread = GameLaunchThread(game, cfg)
         self.game_launch_thread.finished_signal.connect(self.on_game_launched)

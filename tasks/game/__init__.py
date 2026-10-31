@@ -11,8 +11,7 @@ from .starrailcontroller import StarRailController
 from utils.date import Date
 from utils.console import pause_on_success
 from tasks.power.power import Power
-from module.game import cloud_game, get_game_controller
-from module.game.cloud import CloudGameLoginTimeoutError, CloudGameZeroDurationError
+from module.game import get_game_controller
 from module.logger import log
 from module.screen import screen
 from module.automation import auto
@@ -55,25 +54,21 @@ def switch_to_game():
 
 
 def ensure_game_ready():
-    """校验游戏窗口存在并切换到前台（workflow 执行前置）。
-
-    与流程编排启动语义一致：游戏未启动或切换失败时记录错误并返回 False，
-    由调用方决定如何终止（本地与云游戏均经 controller 处理）。
-    """
+    """校验游戏窗口存在并切换到前台。游戏未启动或切换失败时记录错误并返回 False。"""
     controller = get_game_controller()
     if not controller.is_game_running():
-        log.error("未检测到游戏窗口，workflow 未执行")
+        log.error("未检测到游戏窗口，任务未执行")
         return False
     if getattr(auto.input_handler, 'is_background', False) is True:
         # 后台模式不切换前台：窗口暂时不可操作（例如被最小化）时等待还原，失败时写明原因
         try:
             auto.input_handler.wait_for_window(WINDOW_WAIT_SECONDS)
         except (InputInterrupted, GameWindowLost) as error:
-            log.error(f"{error}，workflow 未执行")
+            log.error(f"{error}，任务未执行")
             return False
         return True
     if not controller.switch_to_game():
-        log.error("切换到游戏窗口失败，workflow 未执行")
+        log.error("切换到游戏窗口失败，任务未执行")
         return False
     return True
 
@@ -125,41 +120,6 @@ def start_game():
             auto.click_element("./assets/images/screen/bilibili_agree_update_2.png", "image", 0.9, take_screenshot=False)
 
         return False
-
-    def cloud_game_check_and_enter():
-        def cloud_click_element(*args, **kwargs):
-            kwargs.setdefault("prefer_frame_screenshot", False)
-            return auto.click_element(*args, **kwargs)
-
-        # 点击进入
-        if cloud_click_element("./assets/images/screen/click_enter.png", "image", 0.9):
-            return True
-        # 同意浏览器授权
-        if cloud_click_element("./assets/images/screen/cloud/agree_to_authorize.png", "image", 0.9, take_screenshot=False):
-            time.sleep(0.5)
-            cloud_click_element("每次访问时都充许", "text", 0.9)
-        # 是否保存网页地址，点击 x 关闭
-        cloud_click_element("./assets/images/screen/cloud/close.png", "image", 0.9, take_screenshot=False)
-        # 是否将《云·星穹铁道》添加到桌面，需要点击“下次再说”
-        cloud_click_element("./assets/images/screen/cloud/next_time.png", "image", 0.9, take_screenshot=False)
-        # 免责声明，需要点击“接受”
-        cloud_click_element("./assets/images/screen/cloud/accept.png", "image", 0.9, take_screenshot=False)
-        # 适配用户协议和隐私政策更新提示，需要点击“同意”
-        cloud_click_element("./assets/images/screen/agree_update.png", "image", 0.9, take_screenshot=False)
-        # 云游戏设置的引导，需要多次点击 “下一步”
-        if cloud_click_element("下一步", "text", 0.9, include=True, take_screenshot=False):
-            time.sleep(0.5)
-            cloud_click_element("下一步", "text", 0.9, include=True)
-            time.sleep(0.5)
-            cloud_click_element("我知道了", "text", 0.9, include=True)
-        # 由于浏览器语言原因，云游戏启动时可能会是默认英文，需要改成中文
-        if cloud_click_element("Settings", "text", 0.9, take_screenshot=False):
-            time.sleep(0.5)
-            cloud_click_element("English", "text", 0.9, crop=(1541.0 / 1920, 198.0 / 1080, 156.0 / 1920, 58.0 / 1080))
-            time.sleep(0.5)
-            cloud_click_element("简体中文", "text", 0.9)
-            time.sleep(0.5)
-            auto.press_key("esc")
 
     def get_process_path(name):
         # 通过进程名获取运行路径
@@ -216,58 +176,29 @@ def start_game():
                     log.info(f"游戏路径更新成功：{program_path}")
             time.sleep(1)
 
-    def start_cloud_game():
-        if not cloud_game.start_game_process():
-            raise ConnectionError("启动或连接浏览器失败")
-        if not cloud_game.is_in_game():
-            if not cloud_game.enter_cloud_game():
-                raise ConnectionError("进入云游戏失败")
-            time.sleep(10)
-            if not wait_until(lambda: cloud_game_check_and_enter(), cfg.start_game_timeout * 60):
-                raise TimeoutError("查找并点击进入按钮超时")
-            time.sleep(10)
-
     for retry in range(MAX_RETRY):
         try:
-            if cfg.cloud_game_enable:
-                start_cloud_game()
-            else:
-                starrail = StarRailController(cfg=cfg, logger=log)
-                start_local_game(starrail)
+            starrail = StarRailController(cfg=cfg, logger=log)
+            start_local_game(starrail)
             if not wait_until(lambda: screen.get_current_screen(), 6 * 60):
                 log.error("获取当前界面超时")
-                # 确保在重试前停止游戏
-                if cfg.cloud_game_enable:
-                    cloud_game.stop_game()
-                else:
-                    starrail.stop_game()
+                starrail.stop_game()
                 continue
             break
-        except CloudGameZeroDurationError:
-            # 时长为 0 时重试也无法进入游戏：关闭浏览器后交给调用方，由主循环决定等待下次运行还是按错误退出
-            cloud_game.stop_game()
-            raise
-        except CloudGameLoginTimeoutError:
-            raise
         except InputInterrupted:
             # 窗口持续最小化等需要用户处理的情况不能触发原有的“关闭游戏后重启”恢复路径；
             # 游戏进程退出（GameWindowLost）仍按普通错误重启游戏。
             raise
         except Exception as e:
             log.error(f"尝试启动游戏时发生错误：{e}")
-            if not cfg.cloud_game_enable and starrail.launch_method == "epic":
+            if starrail.launch_method == "epic":
                 from module.game.epic import EpicLaunchError
                 if isinstance(e, EpicLaunchError):
                     # 渠道启动已给出具体阶段错误，不重放协议/点击，不关闭用户启动器。
                     raise
-            # 确保在重试前停止游戏
-            if cfg.cloud_game_enable:
-                cloud_game.stop_game()
-            else:
-                starrail.stop_game()
-                # 非云游戏模式下，若检测到是版本过低则尝试通过启动器更新
-                if isinstance(e, GameClientOutdatedError) and cfg.update_via_launcher:
-                    update_via_launcher()
+            starrail.stop_game()
+            if isinstance(e, GameClientOutdatedError) and cfg.update_via_launcher:
+                update_via_launcher()
             if retry == MAX_RETRY - 1:
                 raise  # 如果是最后一次尝试，则重新抛出异常
 
@@ -361,19 +292,6 @@ def after_finish_is_loop(force_scheduled=False):
 
     # 启动前重新加载配置 #262
     cfg._load_config()
-
-
-def wait_after_cloud_zero_duration(error):
-    """云游戏时长为 0 时，循环模式下发送通知并等待到下次定时运行，返回 True；
-    非循环模式返回 False，由调用方按错误退出。"""
-    if cfg.after_finish != "Loop":
-        return False
-    msg = cfg.notify_template['ErrorOccurred'].format(error=error)
-    log.error(msg)
-    notif.flush_batch(extra_content=msg, level=NotificationLevel.ERROR)
-    # 无法进入游戏读取开拓力，开拓力循环也改按定时时间等待
-    after_finish_is_loop(force_scheduled=True)
-    return True
 
 
 def _start_launcher_and_get_automation(game):

@@ -22,8 +22,11 @@
 """
 import ast
 import re
+from pathlib import Path
 
 from tools.i18n import iter_source_files
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 CJK = re.compile(r"[\u3400-\u9fff]")
 
@@ -89,7 +92,7 @@ def _parsed_sources():
             tree = ast.parse(source, str(path))
         except (SyntaxError, ValueError):
             continue
-        rel = str(path).replace("\\", "/").split("March7thAssistant/")[-1]
+        rel = Path(path).resolve().relative_to(REPO_ROOT).as_posix()
         yield rel, tree
 
 

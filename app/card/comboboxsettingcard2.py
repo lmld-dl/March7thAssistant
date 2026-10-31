@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QPushButton
 from module.config import cfg
 from module.localization import tr
 from utils.desktop import open_log_folder
-from ..tools.check_update import checkUpdate
 from app.common.signal_bus import signalBus
 
 
@@ -52,7 +51,6 @@ class ComboBoxSettingCardUpdateSource(SettingCard):
 
     def _onCurrentIndexChanged(self, index: int):
         cfg.set_value(self.configname, self.comboBox.itemData(index))
-        checkUpdate(self.update_callback)
 
 
 class ComboBoxSettingCardLog(SettingCard):

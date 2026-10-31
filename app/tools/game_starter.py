@@ -21,21 +21,9 @@ class GameLaunchThread(QThread):
 
     def run(self):
         try:
-            # 根据是否启用云游戏决定启动方式
-            if self.cfg.cloud_game_enable:
-                success = self.game.start_game_process(headless=False)
-            else:
-                success = self.game.start_game_process()
-
-            # 根据结果发送信号
+            success = self.game.start_game_process()
             if success:
                 self.finished_signal.emit(GameStartStatus.SUCCESS)
-            elif self.cfg.cloud_game_enable:
-                # 云游戏启动失败，判断是下载问题还是启动问题
-                if not self.game.is_integrated_browser_downloaded():
-                    self.finished_signal.emit(GameStartStatus.BROWSER_DOWNLOAD_FAIL)
-                else:
-                    self.finished_signal.emit(GameStartStatus.BROWSER_LAUNCH_FAIL)
             else:
                 self.finished_signal.emit(GameStartStatus.LOCAL_LAUNCH_FAIL)
         except Exception as e:

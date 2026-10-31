@@ -131,7 +131,7 @@ proot-distro reset march7thassistant
 | `power` | 仅执行清体力 |
 | `currencywars` | 仅执行货币战争 |
 | `divergent` | 仅执行差分宇宙 |
-| `notify` | 测试消息推送 |
+| `game` | 启动游戏 |
 | `-l` | 查看完整任务列表 |
 
 ---
@@ -223,7 +223,7 @@ pipx ensurepath
 ```bash
 git clone https://github.com/moesnow/March7thAssistant --depth 1
 cd March7thAssistant
-uv sync --only-group docker
+uv sync
 ```
 
 > **注意**：克隆仓库需要访问 GitHub，如果遇到网络问题，可以尝试通过代理下载，或使用 GitHub 镜像站。
@@ -259,7 +259,7 @@ export MARCH7TH_DRIVER_PATH=/usr/bin/chromedriver
 ### 8. 运行
 
 ```bash
-uv run --only-group docker main.py
+uv run main.py
 ```
 
 首次运行时，程序会自动进入**二维码登录**模式。
@@ -275,7 +275,7 @@ uv run --only-group docker main.py
 ```bash
 cd ~/March7thAssistant
 git pull
-uv sync --only-group docker
+uv sync
 ```
 
 ### 启动非完整运行任务
@@ -283,19 +283,19 @@ uv sync --only-group docker
 默认情况下运行的是**完整运行**，如果只想执行某个子任务，可以在命令后指定任务名称：
 
 ```bash
-uv run --only-group docker main.py daily
+uv run main.py daily
 ```
 
 常见示例：
 
 | 命令 | 说明 |
 |------|------|
-| `uv run --only-group docker main.py daily` | 仅执行每日实训 |
-| `uv run --only-group docker main.py power` | 仅执行清体力 |
-| `uv run --only-group docker main.py currencywars` | 仅执行货币战争 |
-| `uv run --only-group docker main.py divergent` | 仅执行差分宇宙 |
-| `uv run --only-group docker main.py notify` | 测试消息推送 |
-| `uv run --only-group docker main.py -l` | 查看完整任务列表 |
+| `uv run main.py daily` | 仅执行每日实训 |
+| `uv run main.py power` | 仅执行清体力 |
+| `uv run main.py currencywars` | 仅执行货币战争 |
+| `uv run main.py divergent` | 仅执行差分宇宙 |
+| `uv run main.py game` | 启动游戏 |
+| `uv run main.py -l` | 查看完整任务列表 |
 
 ### 附录：传统方式快速启动脚本
 
@@ -314,7 +314,7 @@ proot-distro login debian -- bash -c '
   export MARCH7TH_BROWSER_PATH=/usr/bin/chromium
   export MARCH7TH_DRIVER_PATH=/usr/bin/chromedriver
   cd ~/March7thAssistant
-  uv run --only-group docker main.py
+  uv run main.py
 '
 EOF
 chmod +x ~/start-m7a.sh

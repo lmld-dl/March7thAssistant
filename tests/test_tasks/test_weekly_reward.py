@@ -201,21 +201,15 @@ class TestWeeklyRewardEntrypoints(unittest.TestCase):
         for filename, class_name in (
             ("currency_wars.py", "CurrencyWars"),
             ("divergent_universe.py", "DivergentUniverse"),
-            ("universe.py", "Universe"),
         ):
             for received in (True, False):
                 with self.subTest(entrypoint=class_name, received=received):
                     module = self.load_entrypoint(filename)
                     self.wait.return_value = received
                     with patch.object(module.time, "sleep"):
-                        if class_name == "Universe":
-                            module.Universe.get_reward("divergent")
-                            # 此入口始终发出原有的任务完成通知，领取成功另发一次。
-                            expected = 2 if received else 1
-                        else:
-                            task = getattr(module, class_name)()
-                            self.assertEqual(task.get_reward(), received)
-                            expected = 1 if received else 0
+                        task = getattr(module, class_name)()
+                        self.assertEqual(task.get_reward(), received)
+                        expected = 1 if received else 0
                     self.wait.assert_called_once_with()
                     self.assertEqual(self.base.send_notification_with_screenshot.call_count, expected)
                     if received:

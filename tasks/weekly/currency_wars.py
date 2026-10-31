@@ -494,8 +494,6 @@ class CurrencyWars:
             if time.monotonic() - start_time > timeout:
                 self.abort_run("货币战争主循环超时（120分钟），停止任务")
 
-            if cfg.cloud_game_enable:
-                self.check_connection()
             active = False
             try:
                 active = self.check_main_screen() is True
@@ -535,32 +533,13 @@ class CurrencyWars:
             time.sleep(4)
 
     def check_battle_keepalive(self) -> bool:
-        """仅在新截图确认战斗时，向云游戏发送低频、无按键的鼠标移动。"""
+        """确认当前是否处于可识别的战斗画面，用于避免长时间无点击被误判为卡死。"""
         if not auto.find_element("./assets/images/forgottenhall/pause.png", "image", 0.9):
             # 货币战争的暂停图标与忘却之庭模板不同，使用实际战斗状态文字兜底。
             if not auto.find_element(("敌方行动中", "我方行动中"), "text", crop=(0.85, 0.89, 0.15, 0.08)):
                 return False
-            # 文字识别使用了局部截图，恢复完整截图用于下面的归一化坐标换算。
             if not auto.take_screenshot():
                 return False
-        if not cfg.cloud_game_enable:
-            return True
-
-        now = time.monotonic()
-        if self._last_battle_keepalive is None:
-            self._last_battle_keepalive = now
-        if now - self._last_battle_keepalive < 60:
-            return True
-
-        # 使用战斗检测的完整截图换算坐标，两个不同的点保证产生实际移动。
-        # 只发 mouseMoved；不点击、不拖动、不按键，不切换自动战斗/倍速/暂停。
-        # 在主循环内同步执行，避免后台线程与商店、部署、结算操作争用输入。
-        for crop in ((0.49, 0.05, 0.002, 0.002), (0.50, 0.05, 0.002, 0.002)):
-            position = auto.find_element(crop, "crop", take_screenshot=False, need_ocr=False)
-            if position:
-                auto.click_element_with_pos(position, action="move")
-        self._last_battle_keepalive = now
-        log.info("云游戏战斗保活：发送鼠标移动")
         return True
 
     def abort_run(self, reason: str):

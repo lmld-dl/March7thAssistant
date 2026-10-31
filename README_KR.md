@@ -35,12 +35,12 @@
 
 ## 기능 소개
 
-- **일상**: 개척력 소모, 일일 훈련, 보상 수령, 위탁, 필드 파밍
-- **주간**: 전쟁의 여운, 시뮬레이션 우주, 차분 우주, 화폐 전쟁, 혼돈의 기억, 허구 이야기, 종말의 환영
-- **클라우드 스타레일**: 백그라운드 실행, 무창 실행, [Docker](https://m7a.top/docs/#/assets/docs/Docker) 실행 지원
+- **일상**: 개척력 소모, 일일 훈련, 보상 수령, 위탁
+- **주간**: 전쟁의 여운, 차분 우주, 화폐 전쟁, 혼돈의 기억, 허구 이야기, 종말의 환영
 - **가챠 기록 내보내기**: [UIGF](https://uigf.org/zh/standards/uigf.html) / [SRGF](https://uigf.org/zh/standards/srgf.html) 표준 지원
 - **도구 상자**: 자동 대화, FPS 잠금 해제, 리딤 코드, 터치스크린 모드
-- 일일 훈련 등 작업 완료 여부에 대한 **메시지 푸시** 지원
+- 로컬 게임 시작/종료, 런처를 통한 게임 업데이트, 자동 시작과 예약 실행
+- 일일 훈련 등 작업 완료 여부에 대한 **Windows 알림** 지원
 - 작업 갱신 또는 개척력 회복 시점의 **자동 시작** 지원
 - 작업 완료 후 **알림음, 게임 자동 종료, 시스템 종료 등** 지원
 
@@ -126,11 +126,8 @@ crop 매개변수에 쓰이는 자르기 좌표는 도구 상자 '게임 스크�
 
 March7thAssistant는 다음 오픈소스 프로젝트와 런타임 의존성의 도움을 받고 있습니다. 모든 유지보수자와 기여자에게 감사드립니다.
 
-- 시뮬레이션 우주 자동화 [https://github.com/CHNZYX/Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe): 시뮬레이션 우주 관련 기능 제공
-- 필드 파밍 자동화 [https://github.com/linruowuyin/Fhoe-Rail](https://github.com/linruowuyin/Fhoe-Rail): 필드 파밍 관련 기능 제공
 - OCR 문자 인식 [https://github.com/RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR): 게임 내 문자 인식 제공
 - GUI 컴포넌트 라이브러리 [https://github.com/zhiyiYo/PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets): 주요 UI 컴포넌트와 상호작용 경험 제공
-- Mirror짱 [https://github.com/MirrorChyan/docs](https://github.com/MirrorChyan/docs): 업데이트 확인, 다운로드 배포, CDN 가속 관련 기능 제공
 - 이미지 처리 및 자동화 관련 의존성 `OpenCV`, `PyAutoGUI` 등: 스크린샷 수집, 이미지 처리, 기본 자동화 기능 제공
 - 추론 가속 관련 의존성 `ONNX Runtime`, `OpenVINO`: OCR 및 모델 추론에 CPU / GPU 가속 제공
 

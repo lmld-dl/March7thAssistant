@@ -181,14 +181,11 @@ def test_game_start_does_not_kill_game_on_input_interruption(monkeypatch):
     controller.start_game_process.assert_not_called()
 
 
-def test_cloud_selection_ignores_local_background_setting(monkeypatch):
-    import module.game as game
+@pytest.mark.skipif(sys.platform != 'win32', reason='后台输入仅限 Windows')
+def test_background_setting_enables_local_background_input():
     from module.automation.input_base import background_enabled
-    from module.automation.cdp_input import CdpInput
-    cfg=config('background',cloud=True)
-    assert not background_enabled(cfg)
-    monkeypatch.setattr(game,'cfg',cfg)
-    assert isinstance(game.get_game_controller().get_input_handler(),CdpInput)
+    assert background_enabled(config('background', cloud=False))
+    assert not background_enabled(config('foreground', cloud=False))
 
 
 

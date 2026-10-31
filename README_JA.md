@@ -35,12 +35,12 @@
 
 ## 機能紹介
 
-- **日常**: 開拓力消化、デイリー訓練、報酬受け取り、委託、フィールド探索
-- **週常**: 歴戦余韻、模擬宇宙、差分宇宙、貨幣戦争、混沌の記憶、虚構叙事、末日の幻影
-- **雲・星穹鉄道**: バックグラウンド実行、ヘッドレス実行、[Docker](https://m7a.top/docs/#/assets/docs/Docker) 実行に対応
+- **日常**: 開拓力消化、デイリー訓練、報酬受け取り、委託
+- **週常**: 歴戦余韻、差分宇宙、貨幣戦争、混沌の記憶、虚構叙事、末日の幻影
 - **ガチャ記録エクスポート**: [UIGF](https://uigf.org/zh/standards/uigf.html) / [SRGF](https://uigf.org/zh/standards/srgf.html) 標準に対応
 - **ツールボックス**: 自動会話、FPS アンロック、交換コード、タッチモード
-- デイリー訓練などの完了状況で **通知送信** に対応
+- ローカルでのゲーム起動停止、ランチャー経由のゲーム更新、自動起動とスケジュール
+- デイリー訓練などの完了状況で **Windows 通知** に対応
 - タスク更新時や開拓力が指定値まで回復したときの **自動起動** に対応
 - タスク完了後の **音声通知、ゲーム自動終了、シャットダウンなど** に対応
 
@@ -126,11 +126,8 @@ crop パラメータで使う切り抜き座標は、ツールボックスの「
 
 March7thAssistant は以下のオープンソースプロジェクトおよび実行時依存に支えられています。保守者と貢献者の皆さんに感謝します。
 
-- 模擬宇宙自動化 [https://github.com/CHNZYX/Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe): 模擬宇宙関連機能を提供
-- フィールド探索自動化 [https://github.com/linruowuyin/Fhoe-Rail](https://github.com/linruowuyin/Fhoe-Rail): 鋤大地関連機能を提供
 - OCR 文字認識 [https://github.com/RapidAI/RapidOCR](https://github.com/RapidAI/RapidOCR): ゲーム内文字認識を提供
 - GUI コンポーネントライブラリ [https://github.com/zhiyiYo/PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets): 主要な UI コンポーネントと操作体験を提供
-- Mirror酱 [https://github.com/MirrorChyan/docs](https://github.com/MirrorChyan/docs): 更新確認、配布、CDN 加速関連機能を提供
 - 画像処理と自動化関連依存 `OpenCV`、`PyAutoGUI` など: スクリーンショット取得、画像処理、基本的な自動化を提供
 - 推論高速化関連依存 `ONNX Runtime`、`OpenVINO`: OCR とモデル推論に CPU / GPU 高速化を提供
 

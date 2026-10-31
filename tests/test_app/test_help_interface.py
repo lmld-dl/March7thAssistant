@@ -27,7 +27,7 @@ def test_background_tab_follows_faq_and_links_open_on_site(qapp):
     page = HelpInterface()
     try:
         order = [page.stackedWidget.widget(i).objectName() for i in range(page.stackedWidget.count())]
-        assert order == ['tutorialLabel', 'workflowLabel', 'faqLabel', 'backgroundLabel', 'tasksLabel', 'changelogLabel']
+        assert order == ['tutorialLabel', 'faqLabel', 'backgroundLabel', 'tasksLabel', 'changelogLabel']
         html = page.backgroundLabel.toHtml()
         assert 'href="/assets/docs/' not in html
         assert 'https://m7a.top/docs/#/assets/docs/Docker' in html
