@@ -985,20 +985,14 @@ class SettingInterface(ScrollArea):
         )
         self.localControlModeCard = ExpandableComboBoxSettingCard(
             'local_control_mode', FIF.GAME, tr('本地操作模式'),
-            tr('后台操作遇到鼠标干扰时会等待并重试；滚轮临时切前台，下次启动任务生效。'),
+            tr('后台点击、拖动和滚轮发给游戏窗口，不移动系统鼠标，也不抢前台。下次启动任务生效。'),
             texts={tr('前台'): 'foreground', tr('后台'): 'background'},
             confirm=self.__confirmLocalControlMode,
         )
-        self.backgroundMouseProtectionCard = SwitchSettingCard1(
-            FIF.GAME, tr('重试失败时短暂锁定鼠标'),
-            tr('仅保护必要的鼠标操作，保留键盘和暂停热键。'),
-            'background_mouse_protection',
-        )
-        self.localControlModeCard.addSettingCard(self.backgroundMouseProtectionCard)
-        def refresh_mouse_protection_option(*_args):
-            self.backgroundMouseProtectionCard.setEnabled(cfg.get_value('local_control_mode') == 'background')
-        self.localControlModeCard.currentIndexChanged.connect(refresh_mouse_protection_option)
-        refresh_mouse_protection_option()
+        # 鼠标保护开关已去掉：后台指针不再占用系统光标，展开后没有可选项。
+        expand_button = getattr(self.localControlModeCard, 'expandButton', None)
+        if expand_button is not None:
+            expand_button.hide()
         if sys.platform == 'win32':
             self.autostartCard = AutostartSettingCard(
                 FIF.GAME,
@@ -1359,10 +1353,10 @@ class SettingInterface(ScrollArea):
         confirm = MessageBox(
             tr("启用后台模式前请确认"),
             tr("后台模式下，任务运行时你可以继续使用电脑，但仍有以下限制：\n\n"
-               "• 点击和拖动会短暂借用鼠标，完成后归还；你正在移动鼠标时，任务会等鼠标停下再操作。\n"
-               "• 在大世界中按键时，光标会被短暂锁定在游戏窗口中央。\n"
-               "• 需要滚轮时会临时把游戏切到前台，完成后恢复原来的窗口。\n"
-               "• 游戏窗口可以放在其他窗口后面，但不能最小化；运行期间请保持系统解锁。\n\n"
+               "• 点击、拖动和滚轮通过窗口消息发给游戏，不会移动你的鼠标，也不会把游戏切到前台。\n"
+               "• 在大世界中按键或点击时，游戏可能短暂把光标锁在窗口中央，操作结束后会尝试归还。\n"
+               "• 游戏窗口可以放在其他窗口后面，但不能最小化；独占全屏时窗口消息可能无效。\n"
+               "• 锄大地、第三方模拟宇宙等独立程序不受此设置影响，仍需前台运行。\n\n"
                "设置在下次启动任务时生效，自动对话需重新开启。完整说明见使用文档“后台运行”。"),
             self.window()
         )

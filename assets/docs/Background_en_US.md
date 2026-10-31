@@ -6,7 +6,7 @@ To keep using your computer while the assistant runs tasks, choose one of the fo
 
 | Approach | For | Your keyboard and mouse | Setup |
 |------|------|-----------|---------|
-| Windows background mode (recommended) | Local game on Windows | Briefly borrows the mouse for clicks and returns it | Switch in settings |
+| Windows background mode (recommended) | Local game on Windows | Clicks, drags, and scrolling do not move the system mouse | Switch in settings |
 | Cloud Honkai: Star Rail | Cloud game | Not used | Enable in settings |
 | Remote local multi-user desktop (advanced) | Local game on Windows | Does not use your current desktop | Requires modifying system components |
 
@@ -22,31 +22,33 @@ You can also edit the configuration file directly:
 
 ```yaml
 local_control_mode: background
-background_mouse_protection: false
 ```
+
+`background_mouse_protection` may remain in an old config file, but it no longer does anything: background input no longer locks or borrows the system mouse.
 
 The cloud game uses its own input method and is not affected by this setting.
 
 ### Requirements
 
 - The game window can stay behind other windows but **must not be minimized**: a minimized window cannot be captured and does not process input.
-- **Keep the system unlocked** while tasks run: while the lock screen or a secure desktop such as UAC is shown, the cursor cannot be read or moved, and background operation stops with an explanation.
+- The lock screen or a secure desktop such as UAC does not block the window messages themselves. If the game locks the cursor to the center of the window during that time, the assistant may be unable to put it back until the system is unlocked.
 - If the game runs with administrator privileges, the assistant needs the same privileges (a normally started assistant requests them automatically).
 - Background mode always uses window capture; if window capture fails, recognition stops instead of falling back to a desktop screenshot that might include other applications.
 
 ### Effects on Your Mouse and Keyboard
 
-- **Clicks and drags** briefly borrow the real cursor and return it to its original position afterwards. If you keep moving the mouse meanwhile, that movement is carried back too: the cursor returns to your area and keeps moving there instead of staying at the click point. When an absolute pointing device such as a pen tablet, touch screen, or remote desktop has already put the cursor back where you are, the cursor is not moved again.
-- Before operating, the assistant **waits for the mouse to be idle**: if interference occurs before pressing, it retries up to three times, then shows "Waiting for the mouse to be idle. The task will resume automatically." and waits. The task resumes automatically and can still be paused or stopped as usual. Slight jitter within 3 pixels does not count as interference.
-- **Key presses** do not take over the foreground window or keyboard focus, but the game only accepts keys while it is "active", so each background key press briefly makes the game believe it is active. In the open-world view, the game locks the cursor to the center of the window during that moment; the lock is released when the key press ends and the cursor is returned.
-- **Scrolling**: when the game is not in the foreground, the banner "Scrolling temporarily brings the game to the foreground" appears, the game is briefly brought to the front to scroll, and your previous window and cursor are restored afterwards. If you switch windows yourself during this time, the remaining scrolling for that step stops, your window choice is kept, and focus is not pulled back to the old window. When the game is already in the foreground, it scrolls directly.
-- **Mouse protection** (optional): expand "Local control mode" to turn on "Temporarily protect the mouse after retries fail" (off by default). It only blocks the physical mouse briefly after repeated conflicts and keeps the keyboard and the pause/stop hotkeys available; each lock lasts at most two seconds and is released immediately when the action ends, pauses, stops, or fails. A protected long press or drag that lasts longer than two seconds releases the held button, and the task checks the screen again.
-- A normal attack without coordinates recognizes the cursor lock of the open-world view and presses and releases at the current point, without reusing the click position from a previous screen.
-- Auto Dialogue runs inside the GUI: while the mouse is in use or the window is temporarily unavailable, it only waits briefly and leaves the work to the next check, so the interface does not freeze.
+This follows BetterGI's background channel: client coordinates go into window messages addressed to the game window. The assistant does not call `SetCursorPos` and does not bring the game forward, so you can keep moving your own mouse.
+
+- **Clicks, hovers, and drags** send `WM_MOUSEMOVE`, `WM_LBUTTONDOWN`, and `WM_LBUTTONUP`. The point is the client coordinate in the message, not where the system cursor is.
+- **Scrolling** sends `WM_MOUSEWHEEL`. The screen coordinate is taken from the virtual pointer. The cursor is not moved onto the game, and the game is not brought forward.
+- **Keys** still use `WM_KEYDOWN` / `WM_KEYUP` and do not take keyboard focus. When the game is not in front, a `WM_ACTIVATE` is posted first; otherwise Unity drops the input.
+- In the **open-world view**, the game may lock the cursor to the center of the window for the short time it believes it is active. If the assistant sees that lock, it puts the cursor back when the action ends. It does not move the cursor onto the button being clicked. Menus usually do not lock the cursor, so the system mouse stays still during clicks.
+- A normal attack without coordinates, when the view has captured the cursor, presses and releases at that locked point. It does not reuse a previous UI click and does not move the system cursor.
+- Clicks and drags no longer wait while you are using the mouse, and they no longer show "waiting for the mouse to be idle" or "scrolling needs the foreground".
 
 ### Window State Changes
 
-- **Switching windows**: bringing the game to the front or switching to another window is normal and does not end the task with an error. If it happens in the middle of an input, the keys, mouse button, and temporary protection held by that input are released first, and the task then recognizes the game screen again; keys, text, clicks, and drags that were already sent are not replayed automatically.
+- **Switching windows**: bringing the game to the front or switching to another window is normal and does not end the task with an error. The assistant does not pull focus back for a click or a scroll. If the switch happens in the middle of an input, the keys and mouse button held by that input are released first, and the task then recognizes the game screen again; keys, text, clicks, and drags that were already sent are not replayed automatically.
 - **Minimized or temporarily invisible**: no input is sent; screenshots and input wait up to 60 seconds and prompt you to restore the game window. Once it is restored, the task continues automatically (the input put on hold during the wait returns as not completed and is not sent later); on timeout the task stops with the reason, for example the log message "游戏窗口已最小化（已等待 60 秒）" (the game window is minimized; waited 60 seconds). Within one period of unavailability the wait happens only once, and time spent paused does not count. The program never restores or activates the game window by itself.
 - **Game process exited**: reported immediately as "游戏进程已退出" (the game process has exited) without waiting, and without asking you to restore the window. During game startup, the game is closed and restarted as in foreground mode; in the middle of a task, it ends as a normal error.
 - **Game window not found while the process is still running** (for example while the game is starting or recreating its window): the assistant also waits up to 60 seconds, and a timeout is handled as a normal error.
@@ -57,12 +59,13 @@ The cloud game uses its own input method and is not affected by this setting.
 
 ### Pause and Stop
 
-Pausing and stopping first release the keys and mouse held by the backend and end any temporary foreground operation, then acknowledge the state. After resuming from a pause, interrupted long presses or drags are not replayed; check the current screen before continuing. When you stop a task from the GUI, a stop command is sent first and the GUI waits for the "input released" acknowledgement before ending the process; if no acknowledgement arrives in time, the original forced termination is still used and logged. The command-line `--control <run ID> stop` uses the same command.
+Pausing and stopping first release the keys and mouse held by the backend, then acknowledge the state. After resuming from a pause, interrupted long presses or drags are not replayed; check the current screen before continuing. When you stop a task from the GUI, a stop command is sent first and the GUI waits for the "input released" acknowledgement before ending the process; if no acknowledgement arrives in time, the original forced termination is still used and logged. The command-line `--control <run ID> stop` uses the same command.
 
 ### Known Limitations
 
 - The launcher and standalone programs such as Fhoe-Rail and third-party Simulated Universe tools do not gain background capability; run them in the foreground as they require.
-- While you keep using the mouse, steps that need clicks keep waiting for the mouse to become idle; mouse protection only blocks the physical mouse and cannot guarantee that clicks complete while you keep operating it.
+- **Exclusive fullscreen**, some anti-cheat, and camera modes that read the real cursor (`GetCursorPos` / Raw Input) instead of the coordinates in the window message may ignore clicks or scrolling. Switch back to foreground mode in that case. BetterGI's background channel also does not support relative movement. This assistant additionally posts `WM_MOUSEWHEEL`; if the game ignores that message, the step needs foreground mode.
+- Foreground mode still uses the system mouse and keyboard and does move the real cursor. The cloud game uses its own input and is not affected by local background mode.
 - Text input clicks the most recently located input box again within the same activation session and then sends the characters; IME candidates and appending text in arbitrary editors are not supported.
 - Currency Wars reward orbs are collected with short sweeps that release the mouse after each segment; if a step is not completed, the current stage is kept and checked again in the next round instead of going straight to purchasing or deploying.
 - If you run into recognition or operation problems, switch back to foreground mode first to confirm whether the problem is related to background mode, then report it with the logs.

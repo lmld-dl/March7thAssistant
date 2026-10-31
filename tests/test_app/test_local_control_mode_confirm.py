@@ -114,7 +114,7 @@ def test_switching_to_background_explains_limits_and_follows_choice(confirm_mode
     assert confirm_mode.call('background') is bool(answer)
     box = confirm_mode.boxes[0]
     assert box.parent == 'main-window'
-    for limit in ('借用鼠标', '不能最小化', '保持系统解锁', '临时把游戏切到前台', '独立程序'):
+    for limit in ('不会移动你的鼠标', '不能最小化', '不会把游戏切到前台', '独占全屏', '独立程序'):
         assert limit in box.content
     box.yesButton.setText.assert_called_once()
     box.cancelButton.setText.assert_called_once()
