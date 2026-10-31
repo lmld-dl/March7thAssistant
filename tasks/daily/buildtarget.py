@@ -16,6 +16,7 @@ from module.notification.notification import NotificationLevel
 from module.localization import get_raw_instance_names
 from tasks.base.base import Base
 from utils.image_utils import ImageUtils
+from module.game.resolution import scale_base_point
 
 
 class BuildTargetHandler(ABC):
@@ -244,7 +245,8 @@ class DefaultHandler(BuildTargetHandler):
         elif "赤" in calyx_type:
             calyx_type = "拟造花萼（赤）"
             for i in range(2):
-                click_offset = (i * 88 / auto.screenshot_scale_factor, 64 / auto.screenshot_scale_factor)
+                screenshot_scale = getattr(auto, "screenshot_scale_factor", None) or 1
+                click_offset = scale_base_point(i * 88, 64, screenshot_scale)
                 if not auto.click_element(
                     "可能获取", "text", offset=click_offset, max_retries=5, crop=(1196.0 / 1920, 492.0 / 1080, 705.0 / 1920, 456.0 / 1080)
                 ):
@@ -348,12 +350,17 @@ class DropHandler(BuildTargetHandler):
         positions = [pos for pos in positions if pos[0][1] > paging_boundary_y]
 
         screenshot_left, screenshot_top, _, _ = screenshot_pos
+        screenshot_scale = getattr(auto, "screenshot_scale_factor", None) or 1
 
         for pos in positions:
-            x1, y1 = screenshot_left + pos[0][0], screenshot_top + pos[0][1]
-            x2, y2 = screenshot_left + pos[1][0], screenshot_top + pos[1][1]
+            # 匹配点在 1920 基准图上，加到窗口原点前要按当前分辨率放大。
+            dx1, dy1 = scale_base_point(pos[0][0], pos[0][1], screenshot_scale)
+            dx2, dy2 = scale_base_point(pos[1][0], pos[1][1], screenshot_scale)
+            x1, y1 = screenshot_left + dx1, screenshot_top + dy1
+            x2, y2 = screenshot_left + dx2, screenshot_top + dy2
+            offset = scale_base_point(-510, 0, screenshot_scale)
 
-            if not auto.click_element_with_pos(((x1, y1), (x2, y2)), offset=(-510 * auto.screenshot_scale_factor, 0)):
+            if not auto.click_element_with_pos(((x1, y1), (x2, y2)), offset=offset):
                 log.error("尝试点击进入按钮时出错")
                 yield pos, None
                 return

@@ -3,6 +3,7 @@ from module.logger import log
 from module.config import cfg
 import time
 from module.automation.screenshot import Screenshot
+from module.game.resolution import scale_base_box
 
 
 class Character:
@@ -95,11 +96,14 @@ class Character:
                 scale_range=0.9, crop=crop, relative=True,
                 mask_top_right_ratio=mask_ratio,
             ) or []
+            # relative 图像坐标在缩放后的 1920 基准图上。2560×1440 时再乘 4/3。
+            screenshot_scale = getattr(auto, "screenshot_scale_factor", None) or 1
             for match in matches:
-                top_right = (match[1][0] + width * crop[0], match[0][1] + height * crop[1])
+                scaled = scale_base_box(match, screenshot_scale)
+                top_right = (scaled[1][0] + width * crop[0], scaled[0][1] + height * crop[1])
                 crop_new = (top_right[0] / width, top_right[1] / height, 402.0 / 1920, 43.0 / 1080)
                 if value == "":
-                    auto.click_element_with_pos(match, (left, top))
+                    auto.click_element_with_pos(scaled, (left, top))
                     time.sleep(1)
                     return True
                 elif auto.click_element(value, "text", crop=crop_new, include=True):

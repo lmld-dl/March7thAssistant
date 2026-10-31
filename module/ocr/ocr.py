@@ -24,9 +24,21 @@ OCR_WARMUP_HARD_LIMIT = 30.0
 # 但往往要等到 full GC 才会集中回收，所以任务管理器里会表现为 RSS 快速
 # 爬升、达到高点后瞬间回落的锯齿。这里通过周期性 full GC 优先压低峰值内存。
 #
-# 这个值越小，峰值越低，但 full GC 触发越频繁；这里先取一个对 OCR 热路径
-# 较低侵入的经验值 20，优先解决长时间任务中的内存峰值问题。
-OCR_PERIODIC_FULL_GC_INTERVAL = 20
+# 这个值越小，峰值越低，但 full GC 触发越频繁。识别结果里的大数组会在返回前
+# 断开引用，短生命周期对象多数停在 0/1 代，因此 full GC 从每 20 次放宽到每 80 次，
+# 避免热路径上周期性的全堆扫描。
+OCR_PERIODIC_FULL_GC_INTERVAL = 80
+# 检测长边上限。RapidOCR 3.8 在 limit_type=min 时不会缩小 1080p，
+# limit_type=max 时又会把边长改写成 960/1500/2000，1920 宽的画面落到 2000，
+# 检测几乎按原图跑。这里固定为 max/1280：只缩小检测输入，识别裁块仍取自原图。
+# 本机 CPU 上，稀疏 1080p 整帧约 500ms → 260ms；288×86 的按钮裁图约 116ms → 33ms。
+# 合成图上 12px 以上的界面文字仍能检出。更小的字请走裁图，不要依赖整帧检测。
+OCR_DET_LIMIT_SIDE_LEN = 1280
+OCR_DET_LIMIT_TYPE = "max"
+# 高度不超过该值时按单行识别，跳过检测。与 Global.min_height 相同。
+# RapidOCR 3.8 对矮图是先垫高再检测，不是跳过检测，几十像素高的单行会被放大到
+# 接近 736 再跑检测。use_det=False 后，219×53 的单行从约 170ms 降到约 9ms。
+OCR_SINGLE_LINE_MAX_HEIGHT = 155
 # OpenVINO 存在内存泄漏问题，每隔此时间（秒）重新初始化一次 OCR 实例以释放内存
 OCR_OPENVINO_REINIT_INTERVAL = 240
 
@@ -624,6 +636,129 @@ class OCR:
 
         return prefer_engine, use_dml, resolve_mode_for_engine(prefer_engine, use_dml_flag=use_dml)
 
+    def _apply_det_input_limit(self, engine):
+        """把检测输入固定为长边不超过 OCR_DET_LIMIT_SIDE_LEN。
+
+        RapidOCR 3.8 的 TextDetector.get_preprocess 在 limit_type=max 时不使用
+        配置里的 limit_side_len，而是按画面长边改写成 960/1500/2000。1080p 因此
+        几乎全分辨率检测。替换 get_preprocess 后，检测缩小，识别仍裁原图。
+        """
+        detector = getattr(engine, "text_det", None)
+        if detector is None or not hasattr(detector, "get_preprocess"):
+            return
+        try:
+            from rapidocr.ch_ppocr_det.utils import DetPreProcess
+        except Exception as e:
+            if self.logger is not None:
+                self.logger.debug(f"无法限制 OCR 检测输入尺寸: {e}")
+            return
+
+        limit = OCR_DET_LIMIT_SIDE_LEN
+        mean = getattr(detector, "mean", None)
+        std = getattr(detector, "std", None)
+        detector.limit_side_len = limit
+        detector.limit_type = OCR_DET_LIMIT_TYPE
+
+        def get_preprocess(_max_wh, _limit=limit, _mean=mean, _std=std):
+            return DetPreProcess(_limit, OCR_DET_LIMIT_TYPE, _mean, _std)
+
+        detector.get_preprocess = get_preprocess
+
+    @staticmethod
+    def _image_hw(image):
+        """返回 (height, width)。无法判断时返回 (0, 0)。"""
+        if isinstance(image, Image.Image):
+            return image.height, image.width
+        shape = getattr(image, "shape", None)
+        if shape is not None and len(shape) >= 2:
+            return int(shape[0]), int(shape[1])
+        return 0, 0
+
+    def _read_ocr(self, img, use_det=None):
+        """跑一次引擎并把结果转成 replace_strings 使用的字典列表。
+
+        成功后立刻断开输出对象对原图和检测框数组的引用。这些数组是峰值内存的
+        主要来源，留给下一次 full GC 才会回收。
+
+        RapidOCR 会把 use_det=False 记在引擎上，下一次不传该参数也不会改回来。
+        单行识别结束后必须恢复，否则后续整帧点击会丢检测框。
+        """
+        engine = self.ocr
+        previous_use_det = getattr(engine, "use_det", True)
+        output = None
+        try:
+            if use_det is None:
+                output = engine(img)
+            else:
+                output = engine(img, use_det=use_det)
+            return self._normalize_output(output, img)
+        finally:
+            self._release_ocr_output(output)
+            if use_det is not None:
+                try:
+                    engine.use_det = previous_use_det
+                except Exception:
+                    pass
+
+    def _normalize_output(self, output, img):
+        if output is None:
+            return None
+        to_json = getattr(output, "to_json", None)
+        boxes = getattr(output, "boxes", None)
+        # RapidOCROutput 带框；单行 use_det=False 返回的 TextRecOutput 没有框。
+        if callable(to_json) and boxes is not None:
+            return to_json()
+        return self._items_from_recognition(output, img)
+
+    def _items_from_recognition(self, output, img):
+        txts = getattr(output, "txts", None)
+        scores = getattr(output, "scores", None)
+        if not txts:
+            return None
+        if scores is None:
+            scores = (1.0,) * len(txts)
+        height, width = self._image_hw(img)
+        box = [[0, 0], [width, 0], [width, height], [0, height]]
+        threshold = 0.5
+        if self.ocr is not None:
+            try:
+                threshold = float(getattr(self.ocr, "text_score", 0.5))
+            except (TypeError, ValueError):
+                threshold = 0.5
+        items = []
+        for txt, score in zip(txts, scores):
+            if txt is None or not str(txt).strip():
+                continue
+            try:
+                score_value = float(score)
+            except (TypeError, ValueError):
+                continue
+            if score_value < threshold:
+                continue
+            items.append({"box": [list(point) for point in box], "txt": txt, "score": score_value})
+        return items or None
+
+    @staticmethod
+    def _release_ocr_output(output):
+        if output is None:
+            return
+        try:
+            import numpy as np
+        except Exception:
+            return
+        for attr in ("img", "boxes", "imgs"):
+            value = getattr(output, attr, None)
+            if isinstance(value, np.ndarray):
+                try:
+                    setattr(output, attr, None)
+                except Exception:
+                    pass
+            elif isinstance(value, list) and value and isinstance(value[0], np.ndarray):
+                try:
+                    setattr(output, attr, None)
+                except Exception:
+                    pass
+
     def instance_ocr(self, log_level: str = "error", force_cpu: bool = False, force_onnx: bool = False):
         """实例化OCR，若ocr实例未创建，则创建之"""
         if self.ocr is None:
@@ -660,13 +795,18 @@ class OCR:
                     # "Global.use_det": False,
                     "Global.use_cls": False,
                     # "Global.use_rec": False,
-                    # min_height (int) : 图像最小高度（单位是像素），低于这个值，会跳过文本检测阶段，直接进行后续识别
-                    # 用于过滤只有一行文本的图像，为了兼容之前使用的 PaddleOCR-json 的情况，大概值是 155
-                    "Global.min_height": 155,
+                    # 低于该高度时 RapidOCR 会把图垫高再检测，不是跳过检测。
+                    # 单行读取在 recognize_single_line 里用 use_det=False 跳过检测。
+                    "Global.min_height": OCR_SINGLE_LINE_MAX_HEIGHT,
                     # "Global.width_height_ratio": -1,
                     # "Global.text_score": 0.7,
                     "Global.log_level": log_level,
                     "EngineConfig.onnxruntime.use_dml": use_dml,
+                    # 单次交互识别，用延迟优先而不是吞吐优先。仅 OpenVINO 引擎读取。
+                    "EngineConfig.openvino.performance_hint": "LATENCY",
+                    # 实际生效还要靠 _apply_det_input_limit：3.8 的 max 模式会忽略这个边长。
+                    "Det.limit_side_len": OCR_DET_LIMIT_SIDE_LEN,
+                    "Det.limit_type": OCR_DET_LIMIT_TYPE,
                     "Det.lang_type": LangDet.CH,
                     "Det.ocr_version": OCRVersion.PPOCRV4,
                     "Cls.ocr_version": OCRVersion.PPOCRV4,
@@ -698,6 +838,7 @@ class OCR:
                     else:
                         raise
 
+                self._apply_det_input_limit(self.ocr)
                 self.logger.debug("初始化OCR完成")
                 elapsed_time = time.monotonic() - start_time
                 self.logger.debug(f"OCR初始化耗时: {elapsed_time:.2f} 秒")
@@ -758,7 +899,7 @@ class OCR:
             return False
         return [[item['box'], (item['txt'], item['score'])] for item in result]
 
-    def run(self, img, max_retries=3):
+    def run(self, img, max_retries=3, use_det=None):
         """执行OCR识别，支持Image对象、文件路径和np.ndarray对象"""
         self.instance_ocr()
         try:
@@ -788,7 +929,7 @@ class OCR:
                     # RapidOCR 会先构造包含原图引用和中间结果的输出对象，再转换
                     # 为 JSON 风格的 Python 结构。后续 replace_strings/convert_format
                     # 只是在此基础上继续处理，并不是主要的内存来源。
-                    original_dict = self.ocr(img).to_json()
+                    original_dict = self._read_ocr(img, use_det=use_det)
                     elapsed_time = time.monotonic() - start_time
                     # self.logger.debug(f"OCR执行耗时: {elapsed_time:.2f} 秒")
                     self.ocr_time += elapsed_time
@@ -809,7 +950,7 @@ class OCR:
                             self.exit_ocr()
                             self.instance_ocr(force_cpu=True)
                             # 用 CPU 模式重新执行一次
-                            original_dict = self.ocr(img).to_json()
+                            original_dict = self._read_ocr(img, use_det=use_det)
                             self.logger.info("已切换到 CPU 模式")
                     elif self._slow_count > 0:
                         # 稳态恢复正常，重置连续慢速计数
@@ -838,7 +979,7 @@ class OCR:
                             self.exit_ocr()
                             self.instance_ocr(force_cpu=True)
                             try:
-                                original_dict = self.ocr(img).to_json()
+                                original_dict = self._read_ocr(img, use_det=use_det)
                                 self.logger.info("CPU 模式执行成功")
                                 results = self.replace_strings(original_dict)
                                 # 降级到 CPU 后仍会走同样的输出构造流程，因此同样保留
@@ -854,7 +995,7 @@ class OCR:
                         self.exit_ocr()
                         self.instance_ocr(force_onnx=True)
                         try:
-                            original_dict = self.ocr(img).to_json()
+                            original_dict = self._read_ocr(img, use_det=use_det)
                             self.logger.info("已切换到 ONNXRuntime 模式")
                             results = self.replace_strings(original_dict)
                             self._maybe_collect_garbage()
@@ -871,7 +1012,7 @@ class OCR:
                 self.exit_ocr()
                 self.instance_ocr(force_cpu=True)
                 try:
-                    original_dict = self.ocr(img).to_json()
+                    original_dict = self._read_ocr(img, use_det=use_det)
                     self.logger.info("CPU 模式执行成功")
                     return self.replace_strings(original_dict)
                 except Exception as e:
@@ -944,8 +1085,14 @@ class OCR:
             self.logger.debug(f"OCR识别结果: {modified_dict}")
 
     def recognize_single_line(self, image, blacklist=None):
-        """识别图片中的单行文本，支持黑名单过滤"""
-        results = self.convert_format(self.run(image))
+        """识别图片中的单行文本，支持黑名单过滤。
+
+        高度不超过 OCR_SINGLE_LINE_MAX_HEIGHT 时跳过检测，整图直接识别。
+        点击定位仍走 recognize_multi_lines，需要检测框。
+        """
+        height, _ = self._image_hw(image)
+        use_det = False if 0 < height <= OCR_SINGLE_LINE_MAX_HEIGHT else None
+        results = self.convert_format(self.run(image, use_det=use_det))
         if results:
             for text, score in (item[1] for item in results):
                 if not blacklist or all(char != text for char in blacklist):

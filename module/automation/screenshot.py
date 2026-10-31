@@ -1,5 +1,6 @@
 from PIL import Image
 from module.config import cfg
+from module.game.resolution import scale_to_base, scaled_capture_size
 
 
 class Screenshot:
@@ -170,17 +171,19 @@ class Screenshot:
                     return False
 
             real_width, _ = Screenshot.get_window_real_resolution(window)
-            if real_width > 1920:
-                screenshot_scale_factor = 1920 / real_width
-                screenshot = screenshot.resize((int(1920 * crop[2]), int(1080 * crop[3])))
-            else:
-                screenshot_scale_factor = 1
+            # 1920×1080 保持原图。更宽的 16:9（例如 2560×1440，缩放 3/4）
+            # 先缩到 1920 宽的基准图上做模板匹配和 OCR，点击时再乘回去。
+            screenshot_scale_factor = scale_to_base(real_width)
+            if screenshot_scale_factor != 1:
+                screenshot = screenshot.resize(
+                    scaled_capture_size(screenshot.width, screenshot.height, real_width)
+                )
 
             screenshot_pos = (
                 int(left + width * crop[0]),
                 int(top + height * crop[1]),
-                int(width * crop[2] * screenshot_scale_factor),
-                int(height * crop[3] * screenshot_scale_factor)
+                screenshot.width,
+                screenshot.height,
             )
 
             return screenshot, screenshot_pos, screenshot_scale_factor
