@@ -1,6 +1,10 @@
 from module.ocr.ocr import (
     OCR,
+    OCR_DET_LIMIT_SIDE_LEN,
+    OCR_DET_LIMIT_TYPE,
     OCR_MODE_CPU,
+    OCR_PERIODIC_FULL_GC_INTERVAL,
+    OCR_SINGLE_LINE_MAX_HEIGHT,
     OCR_SLOW_CONSECUTIVE_LIMIT,
     OCR_SLOW_THRESHOLD,
     OCR_WARMUP_HARD_LIMIT,
@@ -371,3 +375,109 @@ class TestWarmupDmlFallback:
         assert ocr._use_dml is True
         assert ocr._dml_fallback is False
         assert ocr._cfg.values.get("ocr_gpu_acceleration") == "auto"
+
+
+class TestDetInputLimit:
+    def test_full_gc_interval_is_sparser_than_the_old_hot_path(self):
+        assert OCR_PERIODIC_FULL_GC_INTERVAL == 80
+
+    def test_preprocess_caps_1080p_and_does_not_upscale_short_crops(self):
+        import numpy as np
+        from types import SimpleNamespace
+
+        ocr = _create_ocr_for_internal_tests()
+        detector = SimpleNamespace(
+            mean=[0.5, 0.5, 0.5],
+            std=[0.5, 0.5, 0.5],
+            get_preprocess=lambda max_wh: None,
+        )
+        ocr._apply_det_input_limit(SimpleNamespace(text_det=detector))
+
+        preprocess = detector.get_preprocess(1920)
+        assert preprocess.limit_side_len == OCR_DET_LIMIT_SIDE_LEN == 1280
+        assert preprocess.limit_type == OCR_DET_LIMIT_TYPE == "max"
+
+        full = preprocess(np.zeros((1080, 1920, 3), dtype=np.uint8))
+        assert full.shape[2:] == (704, 1280)
+
+        short = preprocess(np.zeros((86, 288, 3), dtype=np.uint8))
+        assert short.shape[2] < 150
+        assert short.shape[3] < 400
+
+
+class TestSingleLineSkipsDetection:
+    def _running(self, engine):
+        ocr = _create_ocr_for_internal_tests()
+        ocr._use_dml = False
+        ocr._dml_fallback = False
+        ocr._using_openvino = False
+        ocr._openvino_fallback = False
+        ocr._periodic_gc_interval = 0
+        ocr.ocr_time = 0.0
+        ocr.ocr_count = 0
+        ocr.ocr = engine
+        ocr.instance_ocr = lambda *args, **kwargs: None
+        return ocr
+
+    def test_short_crop_skips_det_and_returns_text(self):
+        import numpy as np
+
+        calls = []
+
+        class Engine:
+            text_score = 0.5
+            use_det = True
+
+            def __call__(self, img, use_det=None):
+                calls.append(use_det)
+                if use_det is not None:
+                    self.use_det = use_det
+                return type("Rec", (), {"txts": ("第3阶",), "scores": (0.91,), "imgs": None})()
+
+        engine = Engine()
+        ocr = self._running(engine)
+        text, score = ocr.recognize_single_line(np.zeros((53, 219, 3), dtype=np.uint8))
+        assert calls == [False]
+        assert text == "第3阶"
+        assert score == 0.91
+        assert engine.use_det is True
+        assert 53 <= OCR_SINGLE_LINE_MAX_HEIGHT
+
+    def test_tall_image_still_runs_detection(self):
+        import numpy as np
+
+        calls = []
+
+        class Engine:
+            text_score = 0.5
+
+            def __call__(self, img, use_det=None):
+                calls.append(use_det)
+
+                class Rec:
+                    txts = ("确认",)
+                    scores = (0.99,)
+                    boxes = [[[0, 0], [10, 0], [10, 10], [0, 10]]]
+
+                    def to_json(self):
+                        return [{"box": [[0, 0], [10, 0], [10, 10], [0, 10]], "txt": "确认", "score": 0.99}]
+
+                return Rec()
+
+        ocr = self._running(Engine())
+        text, score = ocr.recognize_single_line(np.zeros((200, 320, 3), dtype=np.uint8))
+        assert calls == [None]
+        assert text == "确认"
+        assert score == 0.99
+
+    def test_low_score_single_line_is_dropped(self):
+        import numpy as np
+
+        class Engine:
+            text_score = 0.5
+
+            def __call__(self, img, use_det=None):
+                return type("Rec", (), {"txts": ("噪声",), "scores": (0.1,), "imgs": None})()
+
+        ocr = self._running(Engine())
+        assert ocr.recognize_single_line(np.zeros((40, 120, 3), dtype=np.uint8)) is None
