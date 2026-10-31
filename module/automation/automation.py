@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from .match_frame import frame_for_match
 from .screenshot import Screenshot
 from .debug_overlay import get_debug_overlay, DebugOverlay
 from utils.logger.logger import Logger
@@ -259,7 +260,8 @@ class Automation(metaclass=SingletonMeta):
                     raise ValueError(f"读取图片失败：{target}")
                 if cacheable:
                     self.img_cache[target] = {'mask': mask, 'template': template}
-            screenshot = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)  # 将截图转换为RGB
+            # 历史转换：PIL 的 RGB 走 COLOR_BGR2RGB 后与 cv2.imread 的 BGR 模板对齐。
+            screenshot = frame_for_match(self, cv2.COLOR_BGR2RGB)
             if mask is not None:
                 matchVal, matchLoc = ImageUtils.scale_and_match_template(screenshot, template, threshold, scale_range, mask)  # 执行缩放并匹配模板
             else:
@@ -303,7 +305,7 @@ class Automation(metaclass=SingletonMeta):
         返回:
         - 黑白图数组。
         """
-        screenshot = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2RGB)
+        screenshot = frame_for_match(self, cv2.COLOR_BGR2RGB)
         bw_map = np.zeros(screenshot.shape[:2], dtype=np.uint8)
         bw_map[np.sum((screenshot - pixel_bgr) ** 2, axis=-1) <= 800] = 255
         return bw_map
@@ -337,7 +339,7 @@ class Automation(metaclass=SingletonMeta):
             template = ImageUtils.read_image(target, cv2.IMREAD_GRAYSCALE)
             if template is None:
                 raise ValueError(f"读取图片失败：{target}")
-            screenshot = cv2.cvtColor(np.array(self.screenshot), cv2.COLOR_BGR2GRAY)
+            screenshot = frame_for_match(self, cv2.COLOR_BGR2GRAY)
             matches = ImageUtils.scale_and_match_template_with_multiple_targets(
                 screenshot, template, threshold, scale_range, mask_top_right_ratio=mask_top_right_ratio
             )
@@ -412,15 +414,24 @@ class Automation(metaclass=SingletonMeta):
         return None, None
 
     def perform_ocr(self):
-        """执行OCR识别，并更新OCR结果列表。如果未识别到文字，保留ocr_result为一个空列表。"""
+        """执行OCR识别，并更新OCR结果列表。如果未识别到文字，保留ocr_result为一个空列表。
+
+        同一张截图对象只识别一次。界面判断会先 perform_ocr，随后对同一帧做文字点击，
+        默认 need_ocr=True 会再跑一遍整帧识别。
+        """
         try:
-            self.ocr_result = ocr.recognize_multi_lines(np.array(self.screenshot))
+            screenshot = self.screenshot
+            if screenshot is not None and getattr(self, "_ocr_source", None) is screenshot:
+                return
+            self.ocr_result = ocr.recognize_multi_lines(np.array(screenshot))
             if not self.ocr_result:
                 self.logger.debug(f"未识别出任何文字")
                 self.ocr_result = []
+            self._ocr_source = screenshot
         except Exception as e:
             self.logger.error(f"OCR识别失败：{e}")
             self.ocr_result = []  # 确保在异常情况下，ocr_result为列表类型
+            self._ocr_source = None
 
     @pause_guard
     def find_text_element(self, target, include, need_ocr=True, relative=False):
