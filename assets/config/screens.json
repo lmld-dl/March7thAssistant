@@ -712,7 +712,7 @@
             {
                 "target_screen": "currency_wars_mode_select",
                 "actions_list": [
-                    "auto.click_element('./assets/images/screen/currency_wars/homepage.png', 'image', 0.9, 10)",
+                    "auto.click_element('./assets/images/screen/currency_wars/homepage.png', 'image', 0.88, 2) or auto.click_element('货币战争', 'text', None, 5, crop=(1100.0 / 1920, 840.0 / 1080, 800.0 / 1920, 220.0 / 1080), include=True)",
                     "time.sleep(2)"
                 ]
             }
