@@ -47,6 +47,7 @@ class _FakeGame:
     def __init__(self, back_stack, swallowed_presses=0):
         self.stack = list(back_stack)  # 栈顶即当前界面
         self.swallowed_presses = swallowed_presses
+        self.esc_presses = 0
         self.esc_transitions = []
 
     @property
@@ -54,6 +55,7 @@ class _FakeGame:
         return self.stack[-1]
 
     def press_esc(self):
+        self.esc_presses += 1
         if self.swallowed_presses > 0:
             # 遗器已满提示浮层会吞掉第一次 esc（实测要按两次才能退回上一级）
             self.swallowed_presses -= 1
@@ -179,6 +181,47 @@ def test_relic_bag_navigation_keeps_menu_entry_untouched(monkeypatch):
     assert game.esc_transitions == [("guide3", "menu")]
 
 
+
+
+def test_opening_the_phone_menu_presses_esc_again_when_the_first_is_swallowed(monkeypatch):
+    """大世界第一次 ESC 只退出鼠标光标时，不能就此一直停在主界面。"""
+    screen, game = _build_screen(monkeypatch, ["main"], swallowed_presses=1)
+
+    screen.change_to("menu")
+
+    assert game.state == "menu"
+    assert game.esc_presses == 2
+
+
+def test_opening_the_phone_menu_does_not_close_a_menu_that_just_opened(monkeypatch):
+    """菜单已经打开时不能再补一次 ESC，否则会把它关掉。"""
+    screen, game = _build_screen(monkeypatch, ["main"])
+
+    screen.change_to("menu")
+
+    assert game.state == "menu"
+    assert game.esc_presses == 1
+    assert game.esc_transitions == [("main", "menu")]
+
+
+def test_detection_prefers_the_stronger_screen_match(monkeypatch):
+    """主界面锚点先越过阈值时，不能盖过更像手机菜单的匹配。"""
+    screen, _game = _build_screen(monkeypatch, ["main"])
+    auto = type(screen).__init__.__globals__["auto"]
+
+    def find_element(image_path, find_type=None, threshold=None, **kwargs):
+        if not isinstance(image_path, str):
+            return None
+        if image_path.endswith("main.png"):
+            return 0.90
+        if image_path.endswith("/menu/more.png"):
+            return 0.97
+        return None
+
+    auto.find_element = find_element
+
+    assert screen.get_current_screen(autotry=False) is True
+    assert screen.current_screen == "menu"
 
 
 def test_background_window_errors_are_not_swallowed_as_unmatched(monkeypatch):

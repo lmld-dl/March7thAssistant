@@ -104,8 +104,36 @@ class TestCurrencyWarsStart(unittest.TestCase):
     def test_level_selection_failure_does_not_attempt_start(self):
         self.war.choose_level.return_value = False
         self.assertFalse(self.war.start_war())
-        self.module.auto.find_element.assert_not_called()
+        self.assertFalse(any(
+            call.args and call.args[0] == "开始对局"
+            for call in self.module.auto.find_element.call_args_list
+        ))
+        self.module.auto.press_key.assert_not_called()
         self.assertEqual(self.clicks, 0)
+
+    def test_world_interaction_enters_before_the_phone_menu(self):
+        def find_element(target, kind, *args, **kwargs):
+            if target == "货币战争":
+                return ((900, 520), (1100, 560))
+            return TestCurrencyWarsStart.find_element(self, target, kind, *args, **kwargs)
+
+        self.module.auto.find_element.side_effect = find_element
+        self.module.screen.check_screen.side_effect = lambda name: name == "currency_wars_homepage"
+
+        self.assertTrue(self.war.start_war())
+
+        world_calls = [
+            call for call in self.module.auto.find_element.call_args_list
+            if call.args and call.args[0] == "货币战争"
+        ]
+        self.assertEqual(len(world_calls), 1)
+        origin_x, origin_y, width, height = world_calls[0].kwargs["crop"]
+        # 中央交互提示。左侧任务栏和右侧队伍栏不在这块里。
+        self.assertGreaterEqual(origin_x, 0.2)
+        self.assertLessEqual(origin_x + width, 0.85)
+        self.assertGreaterEqual(origin_y, 0.25)
+        self.module.auto.press_key.assert_any_call("f")
+        self.module.screen.change_to.assert_any_call("currency_wars_mode_select")
 
 
 if __name__ == '__main__':

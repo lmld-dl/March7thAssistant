@@ -31,6 +31,8 @@ CHARACTER_DRAG_RELEASE_SECONDS = 0.30
 CHARACTER_POPUP_APPEAR_SECONDS = 4.0
 
 POPUP_TITLE_CROP = (936.0 / 1920, 52.0 / 1080, 219.0 / 1920, 53.0 / 1080)
+# 大世界交互提示在画面中央，不包含左侧任务栏和右侧队伍栏。
+WORLD_INTERACTION_CROP = (480.0 / 1920, 340.0 / 1080, 960.0 / 1920, 540.0 / 1080)
 POPUP_MARKERS = ("盛会之星", "命运卜者", "我来当策划", "祈愿试炼", "选择伙伴")
 POPUP_APPEAR_POLLS = 3
 POPUP_POLL_SECONDS = 0.35
@@ -447,8 +449,28 @@ class CurrencyWars:
         auto.press_key("esc")
         return False
 
+    def _enter_from_world_interaction(self) -> bool:
+        """站在货币战争装置前时，画面中央就是「F 货币战争」。
+
+        这种时候不必再绕手机菜单。提示不在中央时什么都不按。
+        """
+        if not auto.find_element(
+            "货币战争", "text", crop=WORLD_INTERACTION_CROP, include=True, max_retries=1,
+        ):
+            return False
+        log.info("检测到世界交互「货币战争」，直接进入")
+        auto.press_key("f")
+        for _ in range(16):
+            if screen.check_screen("currency_wars_homepage"):
+                log.info("已通过世界交互进入货币战争")
+                return True
+            time.sleep(0.5)
+        log.info("世界交互没有进入货币战争主界面，改从指南进入")
+        return False
+
     def start_war(self, type: Literal["normal", "overclock"] = "normal") -> bool:
         log.info("开始「货币战争」")
+        self._enter_from_world_interaction()
         screen.change_to("currency_wars_mode_select")
 
         if auto.click_element("结束并结算", "text", crop=(1253 / 1920, 915 / 1080, 271 / 1920, 95 / 1080)):
