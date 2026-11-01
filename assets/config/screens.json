@@ -48,36 +48,36 @@
             {
                 "target_screen": "guide2",
                 "actions_list": [
-                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080))",
+                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080)) or auto.click_element('指南', 'text', None, 2, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080), include=True)",
                     "time.sleep(2)",
-                    "auto.click_element('./assets/images/screen/guide/enter_guide2.png', 'image', 0.9)",
+                    "auto.click_element('./assets/images/screen/guide/enter_guide2.png', 'image', 0.88) or auto.click_element('每日实训', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)",
                     "time.sleep(1)"
                 ]
             },
             {
                 "target_screen": "guide3",
                 "actions_list": [
-                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080))",
+                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080)) or auto.click_element('指南', 'text', None, 2, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080), include=True)",
                     "time.sleep(2)",
-                    "auto.click_element('./assets/images/screen/guide/enter_guide3.png', 'image', 0.9)",
+                    "auto.click_element('./assets/images/screen/guide/enter_guide3.png', 'image', 0.88) or auto.click_element('生存索引', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)",
                     "time.sleep(1)"
                 ]
             },
             {
                 "target_screen": "guide4",
                 "actions_list": [
-                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080))",
+                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080)) or auto.click_element('指南', 'text', None, 2, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080), include=True)",
                     "time.sleep(2)",
-                    "auto.click_element('./assets/images/screen/guide/enter_guide4.png', 'image', 0.9)",
+                    "auto.click_element('./assets/images/screen/guide/enter_guide4.png', 'image', 0.88) or auto.click_element('逐光捡金', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)",
                     "time.sleep(1)"
                 ]
             },
             {
                 "target_screen": "guide5",
                 "actions_list": [
-                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080))",
+                    "auto.click_element('./assets/images/share/menu/guide.png', 'image', 2000000, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080)) or auto.click_element('指南', 'text', None, 2, crop=(1264.0 / 1920, 286.0 / 1080, 546.0 / 1920, 746.0 / 1080), include=True)",
                     "time.sleep(2)",
-                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.9)",
+                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.88) or auto.click_element('旷宇纷争', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)",
                     "time.sleep(1)"
                 ]
             },
@@ -366,7 +366,7 @@
             {
                 "target_screen": "guide5",
                 "actions_list": [
-                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.9)"
+                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.88) or auto.click_element('旷宇纷争', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)"
                 ]
             }
         ]
@@ -400,7 +400,7 @@
             {
                 "target_screen": "guide5",
                 "actions_list": [
-                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.9)"
+                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.88) or auto.click_element('旷宇纷争', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)"
                 ]
             }
         ]
@@ -431,7 +431,7 @@
             {
                 "target_screen": "guide5",
                 "actions_list": [
-                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.9)"
+                    "auto.click_element('./assets/images/screen/guide/enter_guide5.png', 'image', 0.88) or auto.click_element('旷宇纷争', 'text', None, 2, crop=(48.0 / 1920, 160.0 / 1080, 260.0 / 1920, 780.0 / 1080), include=True)"
                 ]
             },
             {

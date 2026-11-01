@@ -10,6 +10,7 @@ from typing import Optional
 from module.automation import auto
 from module.automation.background_input import GameWindowLost, InputInterrupted
 from module.config import cfg
+from utils.phone_menu import menu_match_score
 
 
 class Screen(metaclass=SingletonMeta):
@@ -145,31 +146,28 @@ class Screen(metaclass=SingletonMeta):
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        found_event = threading.Event()
-
-        # 定义内部函数用于在线程中识别界面
+        # 定义内部函数用于在线程中识别界面。必须看完所有候选再取最高分：
+        # 谁先越过 0.88 就停的话，主界面的小锚点会抢在手机菜单前面。
         def find_screen(screen_name, screen):
-            if found_event.is_set():
-                return None
             try:
-                result = self._find_image(
-                    screen['image_path'],
-                    "image_threshold",
-                    self.SCREEN_MATCH_THRESHOLD,
-                    take_screenshot=False,
-                )
-                if result and not found_event.is_set():
-                    with self.lock:
-                        if not self.current_screen or self.current_screen_threshold < result:
-                            self.current_screen = screen_name
-                            self.current_screen_threshold = result
-                    found_event.set()
-                    return screen_name
+                if screen_name == "menu":
+                    result = self._menu_match_score(take_screenshot=False)
+                else:
+                    result = self._find_image(
+                        screen['image_path'],
+                        "image_threshold",
+                        self.SCREEN_MATCH_THRESHOLD,
+                        take_screenshot=False,
+                    )
+                self._consider_screen(screen_name, result)
+            except (InputInterrupted, GameWindowLost):
+                raise
             except Exception as e:
                 self.logger.debug(f"识别界面出错：{e}")
-            return None
 
-        if self.current_screen is not None and self._find_image(
+        if self.current_screen == "menu" and self._menu_match_score(take_screenshot=True):
+            return True
+        if self.current_screen not in (None, "menu") and self._find_image(
             self.screen_map[self.current_screen]['image_path'],
             "image_threshold",
             self.SCREEN_MATCH_THRESHOLD,
@@ -179,25 +177,20 @@ class Screen(metaclass=SingletonMeta):
         for i in range(max_retries):
             auto.take_screenshot()
             self._reset_screen_state()
-            found_event.clear()
 
             import psutil
             mem = psutil.virtual_memory()
             if mem.available > 2 * 1024**3:
                 executor = ThreadPoolExecutor(max_workers=len(self.screen_map))
                 futures = [executor.submit(find_screen, name, screen) for name, screen in self.screen_map.items()]
-
-                for future in as_completed(futures):
-                    if future.result() is not None:
-                        executor.shutdown(wait=False, cancel_futures=True)
-                        break
-                else:
-                    executor.shutdown(wait=False)
+                try:
+                    for future in as_completed(futures):
+                        future.result()
+                finally:
+                    executor.shutdown(wait=False, cancel_futures=True)
             else:
                 for name, screen in self.screen_map.items():
                     find_screen(name, screen)
-                    if self.current_screen:
-                        break
 
             if self.current_screen:
                 return True
@@ -284,6 +277,19 @@ class Screen(metaclass=SingletonMeta):
         """
         return self.screen_map[id]["name"]
 
+    def _consider_screen(self, screen_name, score):
+        """保留相似度更高的界面。分数都是越高越好的相关系数。"""
+        if score is None:
+            return
+        score = float(score)
+        with self.lock:
+            if self.current_screen is None or score > self.current_screen_threshold:
+                self.current_screen = screen_name
+                self.current_screen_threshold = score
+
+    def _menu_match_score(self, take_screenshot=True):
+        return menu_match_score(auto.find_element, take_screenshot=take_screenshot)
+
     def check_screen(self, target_screen):
         """
         检查当前界面是否是指定的目标界面。
@@ -291,6 +297,9 @@ class Screen(metaclass=SingletonMeta):
         :param target_screen: 目标界面的标识符。
         :return: 如果当前界面是目标界面，则返回True；否则返回False。
         """
+        if target_screen == "menu" and self._menu_match_score(take_screenshot=True):
+            self.current_screen = target_screen
+            return True
         if self._find_image(self.screen_map[target_screen]['image_path'], "image", self.SCREEN_MATCH_THRESHOLD):
             # 如果找到了目标界面的图像，则更新当前界面状态为目标界面
             self.current_screen = target_screen
@@ -424,7 +433,29 @@ class Screen(metaclass=SingletonMeta):
         operations = self.get_operations(current_screen, next_screen)
         timeout_operations = self.get_timeout_operations(current_screen, next_screen)
         self.perform_operations(operations)
+        if current_screen == "main" and next_screen == "menu":
+            self._press_esc_again_if_still_on_main()
         self.wait_for_screen_change(next_screen, max_recursion, timeout_operations or None)
+
+    def _press_esc_again_if_still_on_main(self):
+        """主界面第一次 ESC 可能只退出鼠标光标。
+
+        菜单动画大约一秒。这段时间里主界面锚点还在，不能立刻再按：
+        第二次会把刚刚打开的菜单关掉。锚点持续还在，才说明这次 ESC 没有生效。
+        """
+        for _ in range(4):
+            if self._menu_match_score(take_screenshot=True):
+                return
+            if not self._find_image(
+                self.screen_map["main"]["image_path"],
+                "image",
+                self.SCREEN_MATCH_THRESHOLD,
+                take_screenshot=False,
+            ):
+                return
+            time.sleep(0.3)
+        self.logger.info("主界面仍在，再按一次 ESC 打开手机菜单")
+        auto.press_key("esc")
 
     def _navigate_through_path(self, path, max_recursion):
         """
