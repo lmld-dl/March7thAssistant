@@ -1326,3 +1326,38 @@ def test_carried_cursor_rules():
     assert near_click == (1500, 900)  # 容差内视为未移动：归还原位置
     assert module._carried_cursor((1500, 900), (300, 400), (380, 360)) == (1580, 860)
     assert module._carried_cursor((1500, 900), (300, 400), (1490, 905)) is None
+
+
+def test_logged_few_pixel_drift_stays_inside_cursor_tolerance():
+    """过夜日志里的 4～6px GetCursorPos 偏差仍算停在写入点，不能当成用户把光标搬走。"""
+    assert module._CURSOR_TOLERANCE >= 6
+    samples = [((1281, 1156), (1277, 1150)), ((332, 205), (328, 203)), ((332, 205), (332, 209))]
+    for expected, actual in samples:
+        assert module._near(actual, expected)
+        assert module._carried_cursor((1500, 900), expected, actual) == (1500, 900)
+
+
+@pytest.mark.parametrize('delta', [(-4, -6), (-4, -2), (0, 4)])
+def test_few_pixel_cursor_drift_does_not_abort_held_drag(backend, delta):
+    """挪人和奖励滑动按住期间，数像素的系统光标漂移不能中断手势，也不再等待鼠标空闲。"""
+    b = backend
+
+    def jitter(message, *_args):
+        if message in (0x200, 0x201, 0x202):
+            b.api.point = (b.api.point[0] + delta[0], b.api.point[1] + delta[1])
+
+    b.api.on_post = jitter
+    assert b.input.mouse_down(300, 400) is not False
+    assert b.input.mouse_move(575, 400, pace=module.HELD_DRAG_PACE_SECONDS, step_px=64) is not False
+    assert b.input.mouse_up() is not False
+    warnings = [call.args[0] for call in b.input.logger.warning.call_args_list if call.args]
+    assert not any('光标位置不同步' in message or '等待鼠标空闲' in message for message in warnings)
+    assert not b.input._mouse_down
+
+
+def test_shorter_held_pace_is_the_drag_wait(backend):
+    b = backend
+    b.input.mouse_down(300, 400)
+    started = b.clock.now
+    b.input.mouse_move(575, 400, pace=0.08, step_px=64)
+    assert abs((b.clock.now - started) - 0.08) < 1e-6

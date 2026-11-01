@@ -7,10 +7,84 @@ from tasks.base.base import Base
 from utils.date import Date
 from tasks.weekly.weekly_reward import wait_for_weekly_reward
 from typing import Literal, Tuple, Optional
-import numpy as np
+import math
 import time
 import os
 import re
+
+
+# 奖励图标在 1080p 参考坐标下的水平间距约 270～287px。
+# 步长大于该间距时，路径只保留每个图标中心，不再按 50px 插一串中间点。
+REWARD_SWIPE_STEP_PX = 320
+# 从一个图标中心移到下一个的时间。后台按这个节拍采样，前台 moveTo 用它做时长。
+REWARD_SWIPE_PACE_SECONDS = 0.04
+# 到达图标中心后按住不动，让游戏在这一帧收走奖励。比旧路径在图标上擦过的时间略短。
+REWARD_ICON_DWELL_SECONDS = 0.05
+# 两个图标中心之间的采样间距（客户区像素）。比默认 16px 疏，仍会经过图标。
+REWARD_SWIPE_SAMPLE_PX = 64
+
+# 棋子拖拽停顿。按下后留给游戏抓起棋子；到位和松开略短于原来的 0.5 秒。
+CHARACTER_DRAG_PICKUP_SECONDS = 0.45
+CHARACTER_DRAG_ARRIVE_SECONDS = 0.30
+CHARACTER_DRAG_RELEASE_SECONDS = 0.30
+# 会弹出选择框的角色，拖完后等界面把标题画出来。这是游戏动画，不放进识别轮询。
+CHARACTER_POPUP_APPEAR_SECONDS = 4.0
+
+POPUP_TITLE_CROP = (936.0 / 1920, 52.0 / 1080, 219.0 / 1920, 53.0 / 1080)
+POPUP_MARKERS = ("盛会之星", "命运卜者", "我来当策划", "祈愿试炼", "选择伙伴")
+POPUP_APPEAR_POLLS = 3
+POPUP_POLL_SECONDS = 0.35
+POPUP_AFTER_HANDLE_SECONDS = 2.0
+POPUP_HANDLE_LIMIT = 5
+
+REWARD_ICON_BOXES = (
+    (1564 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
+    (1289 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
+    (1291.0 / 1920, 182.0 / 1080, 23.0 / 1920, 21.0 / 1080),
+    (1561.0 / 1920, 181.0 / 1080, 23.0 / 1920, 20.0 / 1080),
+    (1569.0 / 1920, 225.0 / 1080, 24.0 / 1920, 23.0 / 1080),
+    (1297.0 / 1920, 227.0 / 1080, 24.0 / 1920, 22.0 / 1080),
+    (1302.0 / 1920, 275.0 / 1080, 25.0 / 1920, 22.0 / 1080),
+    (1580.0 / 1920, 274.0 / 1080, 25.0 / 1920, 23.0 / 1080),
+    (1588.0 / 1920, 309.0 / 1080, 26.0 / 1920, 21.0 / 1080),
+    (1305.0 / 1920, 308.0 / 1080, 27.0 / 1920, 20.0 / 1080),
+    (1311.0 / 1920, 343.0 / 1080, 23.0 / 1920, 21.0 / 1080),
+    (1596.0 / 1920, 343.0 / 1080, 27.0 / 1920, 23.0 / 1080),
+    (1603.0 / 1920, 378.0 / 1080, 25.0 / 1920, 23.0 / 1080),
+    (1315.0 / 1920, 377.0 / 1080, 26.0 / 1920, 22.0 / 1080),
+    (1320.0 / 1920, 411.0 / 1080, 24.0 / 1920, 24.0 / 1080),
+    (1589.0 / 1920, 413.0 / 1080, 27.0 / 1920, 21.0 / 1080),
+    (1551.0 / 1920, 449.0 / 1080, 25.0 / 1920, 22.0 / 1080),
+    (1324.0 / 1920, 449.0 / 1080, 24.0 / 1920, 23.0 / 1080),
+)
+
+
+def reward_icon_pixel_centers(reference_width=1920, reference_height=1080):
+    """奖励图标中心，单位是参考分辨率下的像素。"""
+    return [((x + w / 2) * reference_width, (y + h / 2) * reference_height) for x, y, w, h in REWARD_ICON_BOXES]
+
+
+def build_reward_collect_path(centers, step_px=REWARD_SWIPE_STEP_PX):
+    """沿图标中心生成拖动路径。相邻采样不超过 step_px，每个中心都在路径上。"""
+    if not centers:
+        return []
+    if step_px <= 0 or not math.isfinite(step_px):
+        raise ValueError("奖励滑动步长必须为正数")
+    path = []
+    for index in range(len(centers) - 1):
+        x0, y0 = centers[index]
+        x1, y1 = centers[index + 1]
+        distance = math.hypot(x1 - x0, y1 - y0)
+        steps = max(1, math.ceil(distance / step_px))
+        for step in range(steps):
+            t = step / steps
+            path.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+    path.append((centers[-1][0], centers[-1][1]))
+    return path
+
+
+def _is_popup_title(text) -> bool:
+    return bool(text) and any(marker in text for marker in POPUP_MARKERS)
 
 
 class CurrencyWarsCharacter:
@@ -1873,7 +1947,7 @@ class CurrencyWars:
             log.error("未找到源位置，无法移动")
             return False
         auto.click_element_with_pos(pos1, action="down")
-        time.sleep(0.5)
+        time.sleep(CHARACTER_DRAG_PICKUP_SECONDS)
 
         pos2 = auto.find_element(crop_b, "crop", None, 10)
         if not pos2:
@@ -1882,9 +1956,9 @@ class CurrencyWars:
             return False
 
         auto.click_element_with_pos(pos2, action="move")
-        time.sleep(0.5)
+        time.sleep(CHARACTER_DRAG_ARRIVE_SECONDS)
         auto.mouse_up()
-        time.sleep(0.5)
+        time.sleep(CHARACTER_DRAG_RELEASE_SECONDS)
 
         # 在内部数据结构中交换角色对象引用
         list1 = getattr(self, f"{z1}_characters")
@@ -1909,18 +1983,25 @@ class CurrencyWars:
         if remembrance_trailblazer_name:
             star_characters.add(remembrance_trailblazer_name)
 
-        if list2[i2].name in star_characters or list1[i1].name in star_characters:
-            time.sleep(4)  # 等待选择框出现
-        self.check_festival_star_popup()
+        expect_popup = list2[i2].name in star_characters or list1[i1].name in star_characters
+        if expect_popup:
+            time.sleep(CHARACTER_POPUP_APPEAR_SECONDS)
+        self.check_festival_star_popup(expect_popup=expect_popup)
         return True
 
-    def check_festival_star_popup(self):
+    def check_festival_star_popup(self, expect_popup=False):
         """
-        检查是否弹出盛会之星或命运卜者等内容的选择框
+        检查是否弹出盛会之星或命运卜者等内容的选择框。
+
+        备战界面标题区经常能扫到无关文字。把任意识别结果都当成弹窗时，
+        会空等 2 秒并重复多次；过夜日志里每次挪人因此多出约 11 秒。
+        只有标题匹配已知弹窗才处理。预期会弹窗时才短轮询，等选择框画出来。
         """
-        for _ in range(5):
-            result = auto.get_single_line_text(crop=(936.0 / 1920, 52.0 / 1080, 219.0 / 1920, 53.0 / 1080))
-            if result:
+        polls_left = POPUP_APPEAR_POLLS if expect_popup else 1
+        handled = 0
+        while handled < POPUP_HANDLE_LIMIT:
+            result = auto.get_single_line_text(crop=POPUP_TITLE_CROP, max_retries=1)
+            if _is_popup_title(result):
                 if "盛会之星" in result:
                     log.info("检测到盛会之星")
                     char_crop = (816.0 / 1920, 165.0 / 1080, 222.0 / 1920, 202.0 / 1080)
@@ -1968,10 +2049,15 @@ class CurrencyWars:
                     auto.click_element(choose2_crop, "crop")
                     time.sleep(0.5)
                     auto.click_element("确认选择", "text", crop=(1423 / 1920, 572 / 1080, 135 / 1920, 50 / 1080))
-                time.sleep(2)
+                handled += 1
+                polls_left = 1
+                time.sleep(POPUP_AFTER_HANDLE_SECONDS)
                 continue
-            else:
-                break
+            polls_left -= 1
+            if polls_left > 0:
+                time.sleep(POPUP_POLL_SECONDS)
+                continue
+            return
 
     def identify_current_stage(self):
         """
@@ -2014,90 +2100,41 @@ class CurrencyWars:
         else:
             log.info("检测到存在可领取的奖励，开始滑动收集")
 
-        reward_pos = [
-            (1564 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
-            (1289 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
-            (1291.0 / 1920, 182.0 / 1080, 23.0 / 1920, 21.0 / 1080),
-            (1561.0 / 1920, 181.0 / 1080, 23.0 / 1920, 20.0 / 1080),
-            (1569.0 / 1920, 225.0 / 1080, 24.0 / 1920, 23.0 / 1080),
-            (1297.0 / 1920, 227.0 / 1080, 24.0 / 1920, 22.0 / 1080),
-            (1302.0 / 1920, 275.0 / 1080, 25.0 / 1920, 22.0 / 1080),
-            (1580.0 / 1920, 274.0 / 1080, 25.0 / 1920, 23.0 / 1080),
-            (1588.0 / 1920, 309.0 / 1080, 26.0 / 1920, 21.0 / 1080),
-            (1305.0 / 1920, 308.0 / 1080, 27.0 / 1920, 20.0 / 1080),
-            (1311.0 / 1920, 343.0 / 1080, 23.0 / 1920, 21.0 / 1080),
-            (1596.0 / 1920, 343.0 / 1080, 27.0 / 1920, 23.0 / 1080),
-            (1603.0 / 1920, 378.0 / 1080, 25.0 / 1920, 23.0 / 1080),
-            (1315.0 / 1920, 377.0 / 1080, 26.0 / 1920, 22.0 / 1080),
-            (1320.0 / 1920, 411.0 / 1080, 24.0 / 1920, 24.0 / 1080),
-            (1589.0 / 1920, 413.0 / 1080, 27.0 / 1920, 21.0 / 1080),
-            (1551.0 / 1920, 449.0 / 1080, 25.0 / 1920, 22.0 / 1080),
-            (1324.0 / 1920, 449.0 / 1080, 24.0 / 1920, 23.0 / 1080)
-        ]
-
-        # 提取每个区域的中心点（归一化坐标）
-        centers = []
-        for x, y, w, h in reward_pos:
-            cx = x + w / 2
-            cy = y + h / 2
-            centers.append((cx, cy))
-
-        # 将归一化坐标转为像素坐标
-        def to_pixel(pt):
-            return (pt[0] * 1920, pt[1] * 1080)
-
         def to_norm(px, py):
             return (px / 1920, py / 1080)
 
-        pixel_centers = [to_pixel(c) for c in centers]
+        path_pixels = build_reward_collect_path(reward_icon_pixel_centers(), REWARD_SWIPE_STEP_PX)
 
-        # 生成连续路径：根据距离动态确定插值点数
-        path_pixels = []
-        base_step_distance = 50  # 每50像素一个插值点
-
-        for i in range(len(pixel_centers) - 1):
-            x0, y0 = pixel_centers[i]
-            x1, y1 = pixel_centers[i + 1]
-            # 计算两点间的欧几里得距离
-            distance = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
-            # 根据距离动态计算插值点数，至少2个点
-            steps = max(2, int(distance / base_step_distance))
-            for t in np.linspace(0, 1, steps, endpoint=False):
-                px = x0 + t * (x1 - x0)
-                py = y0 + t * (y1 - y0)
-                path_pixels.append((px, py))
-        # 添加最后一个点
-        path_pixels.append(pixel_centers[-1])
-
-        # 转回归一化坐标，并构造“crop”区域
         def make_crop_box(norm_pt):
             return (norm_pt[0], norm_pt[1], 0.001, 0.001)
 
-        # 后台按短段收集，每段都释放，避免整条慢速轨迹超过鼠标保护的两秒时限。
-        batch_size = 8 if getattr(auto.input_handler, 'is_background', False) is True else len(path_pixels)
-        for offset in range(0, len(path_pixels), batch_size):
-            interrupted = False
-            try:
-                # 从空白处按下，避免装备过多时先拖起装备挡住奖励。
-                blank = (6.0 / 1920, 5.0 / 1080, 12.0 / 1920, 14.0 / 1080)
-                start = auto.find_element(blank, "crop")
-                if not start or auto.click_element_with_pos(start, action="down") is False:
-                    interrupted = True
-                else:
-                    for px, py in path_pixels[offset:offset+batch_size]:
-                        crop_box = make_crop_box(to_norm(px, py))
-                        auto._debug_clear()
-                        pos = auto.find_element(crop_box, "crop", take_screenshot=False)
-                        if not pos or auto.click_element_with_pos(pos, action="move") is False:
-                            interrupted = True
-                            break
-            finally:
-                # 释放不经过前台入口的暂停卡点，取消/异常时也不能留下按住状态。
-                if auto.input_handler.mouse_up() is False:
-                    interrupted = True
-            if interrupted:
-                log.warning("奖励收集手势未完成，已释放鼠标，稍后重新检查当前阶段")
-                return False
+        # 窗口消息不再占用系统光标，也没有两秒鼠标保护租约。
+        # 一次按住扫过全部图标中心，避免每 8 个点松开再等一轮。
+        interrupted = False
+        try:
+            # 从空白处按下，避免装备过多时先拖起装备挡住奖励。
+            blank = (6.0 / 1920, 5.0 / 1080, 12.0 / 1920, 14.0 / 1080)
+            start = auto.find_element(blank, "crop")
+            if not start or auto.click_element_with_pos(start, action="down") is False:
+                interrupted = True
+            else:
+                for px, py in path_pixels:
+                    crop_box = make_crop_box(to_norm(px, py))
+                    auto._debug_clear()
+                    pos = auto.find_element(crop_box, "crop", take_screenshot=False)
+                    if not pos or auto.click_element_with_pos(
+                        pos, action="move", move_pace=REWARD_SWIPE_PACE_SECONDS, move_step_px=REWARD_SWIPE_SAMPLE_PX
+                    ) is False:
+                        interrupted = True
+                        break
+                    time.sleep(REWARD_ICON_DWELL_SECONDS)
+        finally:
+            # 释放不经过前台入口的暂停卡点，取消/异常时也不能留下按住状态。
+            if auto.input_handler.mouse_up() is False:
+                interrupted = True
+        if interrupted:
+            log.warning("奖励收集手势未完成，已释放鼠标，稍后重新检查当前阶段")
+            return False
 
         # 检查是否弹出 “我来当策划”
         result = auto.get_single_line_text(crop=(972 / 1920, 57 / 1080, 151 / 1920, 44 / 1080))
@@ -2442,7 +2479,9 @@ class CurrencyWars:
 
         auto.click_element(pos, "crop")
         time.sleep(0.5)
+        name_started = time.monotonic()
         name = auto.get_single_line_text(crop=char_name_crop)
+        log.debug(f"角色名识别耗时 {(time.monotonic() - name_started) * 1000:.0f} ms")
 
         # 特殊处理：如果识别到的名字是 "M"，则可能是识别错误导致的乱码，暂时视为未识别到角色
         if name == "M":

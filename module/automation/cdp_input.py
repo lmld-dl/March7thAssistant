@@ -93,9 +93,9 @@ class CdpInput(InputBase):
             self.logger.error(f"获取焦点出错：{e}")
 
     # ---------------- Mouse ----------------
-    def mouse_move(self, x, y):
+    def mouse_move(self, x, y, pace=None, step_px=None):
         """
-        TODO 
+        TODO
         由于 pointer lock 原因，mouse_move 无法实现视角旋转
         这个问题可以之后通过注入脚本 + 发送伪造的移动数据来绕过
         当前小助手暂时还没有需要视角旋转的功能
@@ -108,6 +108,8 @@ class CdpInput(InputBase):
                 "pointerType": "mouse"
             })
             self.logger.debug(f"鼠标移动 ({x}, {y})")
+            if pace:
+                time.sleep(max(0.0, float(pace)))
         except Exception as e:
             self.logger.error(f"鼠标移动出错：{e}")
 

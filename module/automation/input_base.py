@@ -33,8 +33,11 @@ class InputBase(ABC):
         pass
 
     @abstractmethod
-    def mouse_move(self, x, y):
-        '''将鼠标光标移动到屏幕上的（x，y）位置'''
+    def mouse_move(self, x, y, pace=None, step_px=None):
+        '''将鼠标光标移动到屏幕上的（x，y）位置。
+
+        pace / step_px 只影响按住后的拖动采样；普通移动可以忽略。
+        '''
         pass
 
     @abstractmethod
