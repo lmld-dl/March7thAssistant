@@ -266,13 +266,18 @@ class Automation(metaclass=SingletonMeta):
                     self.img_cache[target] = {'mask': mask, 'template': template}
             # 历史转换：PIL 的 RGB 走 COLOR_BGR2RGB 后与 cv2.imread 的 BGR 模板对齐。
             screenshot = frame_for_match(self, cv2.COLOR_BGR2RGB)
+            match_started = time.monotonic()
             if mask is not None:
                 matchVal, matchLoc = ImageUtils.scale_and_match_template(screenshot, template, threshold, scale_range, mask)  # 执行缩放并匹配模板
             else:
                 matchVal, matchLoc = ImageUtils.scale_and_match_template(screenshot, template, threshold, scale_range)  # 执行缩放并匹配模板
+            match_ms = (time.monotonic() - match_started) * 1000
 
             # 这里的相似度文本说明有问题，对于无mask匹配相似度越高越好。有mask匹配则是越低越好
-            self.logger.debug(f"目标图片：{target.replace('./assets/images/', '')} 相似度：{matchVal:.2f} 匹配阈值：{threshold}")
+            self.logger.debug(
+                f"目标图片：{target.replace('./assets/images/', '')} 相似度：{matchVal:.2f} "
+                f"匹配阈值：{threshold} 耗时：{match_ms:.0f} ms"
+            )
 
             # # 获取模板图像的宽度和高度
             # template_width = template.shape[1]
@@ -886,7 +891,7 @@ class Automation(metaclass=SingletonMeta):
             self._debug_overlay.hide_overlay()
             self._debug_initialized = False
 
-    def click_element_with_pos(self, coordinates, offset=(0, 0), action="click", cnt=1, press_duration: float = 0.0):
+    def click_element_with_pos(self, coordinates, offset=(0, 0), action="click", cnt=1, press_duration: float = 0.0, move_pace=None, move_step_px=None):
         """
         在指定坐标上执行点击操作。
 
@@ -925,7 +930,12 @@ class Automation(metaclass=SingletonMeta):
                 if moved is False:
                     return False
             elif action == "move":
-                result = self.mouse_move(x, y)
+                kwargs = {}
+                if move_pace is not None:
+                    kwargs["pace"] = move_pace
+                if move_step_px is not None:
+                    kwargs["step_px"] = move_step_px
+                result = self.mouse_move(x, y, **kwargs) if kwargs else self.mouse_move(x, y)
             if result is False:
                 return False
 

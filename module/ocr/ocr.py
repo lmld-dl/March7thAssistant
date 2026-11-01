@@ -931,7 +931,8 @@ class OCR:
                     # 只是在此基础上继续处理，并不是主要的内存来源。
                     original_dict = self._read_ocr(img, use_det=use_det)
                     elapsed_time = time.monotonic() - start_time
-                    # self.logger.debug(f"OCR执行耗时: {elapsed_time:.2f} 秒")
+                    if self.logger:
+                        self.logger.debug(f"OCR执行耗时: {elapsed_time * 1000:.0f} ms")
                     self.ocr_time += elapsed_time
                     self.ocr_count += 1
 

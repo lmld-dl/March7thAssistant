@@ -35,10 +35,13 @@ class LocalInput(InputBase):
         except Exception as e:
             self.logger.error(f"鼠标释放出错：{e}")
 
-    def mouse_move(self, x, y):
-        '''将鼠标光标移动到屏幕上的（x，y）位置'''
+    def mouse_move(self, x, y, pace=None, step_px=None):
+        '''将鼠标光标移动到屏幕上的（x，y）位置。pace 是按住拖动时这一段的时长。'''
         try:
-            pyautogui.moveTo(x, y)
+            if pace:
+                pyautogui.moveTo(x, y, duration=max(0.0, float(pace)))
+            else:
+                pyautogui.moveTo(x, y)
             self.logger.debug(f"鼠标移动 ({x}, {y})")
         except Exception as e:
             self.logger.error(f"鼠标移动出错：{e}")

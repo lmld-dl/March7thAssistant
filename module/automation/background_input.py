@@ -81,9 +81,17 @@ def _wheel_param(direction):
     return (delta & 0xffff) << 16
 
 
-# 光标读回与写入位置的容差（像素）。实测游戏不回写光标，日志中的 1~4 像素偏差来自鼠标轻微抖动，
-# 不影响点击落点，不应视为冲突；超过容差才说明光标被移走。
-_CURSOR_TOLERANCE = 3
+# 光标读回与写入位置的容差（像素）。窗口消息不靠系统光标落点。
+# 过夜运行里 GetCursorPos 相对预期只漂了 4～6px（例如预期 (1281, 1156)、实际 (1277, 1150)）。
+# 旧容差 3px 会把这种抖动当成光标被移走并中断手势。手势不再读光标做失败判断；
+# 这里只用于「游戏是否把光标锁到窗口中央」以及归还时是否还停在写入点附近。
+_CURSOR_TOLERANCE = 8
+
+# 按住拖动的默认采样。整段约 0.1 秒、步长 16px、最多 6 步：
+# 前台 moveTo 也是这个停顿，长跳变不能排出数百个同步消息。
+HELD_DRAG_PACE_SECONDS = 0.1
+HELD_DRAG_STEP_PX = 16
+HELD_DRAG_MAX_STEPS = 6
 
 
 def _near(actual, expected):
@@ -536,7 +544,12 @@ class BackgroundInput(InputBase):
     def _move_screen(self, x, y):
         self._move_client(self.api.screen_to_client(self._session[0], (round(x), round(y))))
 
-    def mouse_move(self, x, y):
+    def mouse_move(self, x, y, pace=None, step_px=None):
+        pace = HELD_DRAG_PACE_SECONDS if pace is None else _duration(pace)
+        step_px = HELD_DRAG_STEP_PX if step_px is None else float(step_px)
+        if not math.isfinite(step_px) or step_px <= 0:
+            raise ValueError('拖动采样间距必须为正数')
+
         def move():
             if not self._mouse_down:
                 return self._move_screen(x, y)
@@ -546,13 +559,12 @@ class BackgroundInput(InputBase):
             if not (0 <= end[0] < width and 0 <= end[1] < height):
                 raise _WindowLost('输入位置超出游戏客户区')
             start = self._point
-            # move 的 .1 秒最多约六帧；长跳转不能排出数百个同步消息。
-            steps = max(1, min(6, math.ceil(math.dist(start, end) / 16)))
+            steps = max(1, min(HELD_DRAG_MAX_STEPS, math.ceil(math.dist(start, end) / step_px)))
             started = time.monotonic()
-            # 分开调用 down/move/up 的扫动同样需要持续时间。前台 moveTo 默认停顿 .1 秒。
+            # 分开调用 down/move/up 的扫动同样需要持续时间。前台 moveTo 默认停顿 HELD_DRAG_PACE_SECONDS。
             for step in range(1, steps + 1):
                 self._move_client(tuple(round(a+(b-a)*step/steps) for a,b in zip(start,end)))
-                self._wait(max(0, started + .1*step/steps - time.monotonic()))
+                self._wait(max(0, started + pace*step/steps - time.monotonic()))
         return self._perform(move, pointer=True)
 
     def _down(self):

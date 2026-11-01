@@ -9,8 +9,9 @@ from tests.test_tasks.test_currency_wars_settlement import load_currency_wars
 
 
 @pytest.fixture
-def reward():
+def reward(monkeypatch):
     module = load_currency_wars()
+    monkeypatch.setattr(module.time, "sleep", lambda _seconds: None)
     module.np = SimpleNamespace(sqrt=math.sqrt,
         linspace=lambda a,b,n,endpoint=False:[a+(b-a)*i/n for i in range(n)])
     auto = module.auto
@@ -32,10 +33,12 @@ def test_no_rewards_sends_no_mouse_input(reward):
     r.auto.input_handler.mouse_up.assert_not_called()
 
 
-def test_background_sweep_releases_between_short_batches(reward):
+def test_background_sweep_is_one_hold_across_icon_centers(reward, monkeypatch):
     r = reward
+    sleeps = []
+    monkeypatch.setattr(r.module.time, "sleep", lambda seconds: sleeps.append(seconds))
     batches, current = [], []
-    def click(_pos, action='click'):
+    def click(_pos, action='click', **_kwargs):
         current.append(action)
         return True
     def release():
@@ -44,9 +47,14 @@ def test_background_sweep_releases_between_short_batches(reward):
     r.auto.click_element_with_pos.side_effect = click
     r.auto.input_handler.mouse_up.side_effect = release
     assert r.war.collect_reward() is True
-    assert len(batches) > 1
-    assert all(batch[0] == 'down' and 1 <= batch.count('move') <= 8 for batch in batches)
-    assert all(batch.count('down') == 1 for batch in batches)
+    centers = r.module.reward_icon_pixel_centers()
+    assert len(batches) == 1
+    assert batches[0][0] == 'down' and batches[0].count('down') == 1
+    assert batches[0].count('move') == len(centers)
+    paces = [call.kwargs.get('move_pace') for call in r.auto.click_element_with_pos.call_args_list
+             if call.kwargs.get('action') == 'move']
+    assert paces == [r.module.REWARD_SWIPE_PACE_SECONDS] * len(centers)
+    assert sleeps == [r.module.REWARD_ICON_DWELL_SECONDS] * len(centers)
 
 
 def test_foreground_sweep_keeps_single_hold(reward):
@@ -62,7 +70,7 @@ def test_foreground_sweep_keeps_single_hold(reward):
 def test_interruption_stops_sweep_and_defers_followup_actions(reward, failure):
     r = reward
     calls = []
-    def click(_pos, action='click'):
+    def click(_pos, action='click', **_kwargs):
         calls.append(action)
         return action != failure
     r.auto.click_element_with_pos.side_effect = click
@@ -78,7 +86,7 @@ def test_interruption_stops_sweep_and_defers_followup_actions(reward, failure):
 
 def test_exception_during_movement_still_releases(reward):
     r = reward
-    def click(_pos, action='click'):
+    def click(_pos, action='click', **_kwargs):
         if action == 'move':raise RuntimeError('injected failure')
         return True
     r.auto.click_element_with_pos.side_effect = click
