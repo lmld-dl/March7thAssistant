@@ -39,6 +39,13 @@ POPUP_POLL_SECONDS = 0.35
 POPUP_AFTER_HANDLE_SECONDS = 2.0
 POPUP_HANDLE_LIMIT = 5
 
+# 关卡选择界面里「敌人难度」徽标（level_1.png）的匹配阈值。
+# 在 2560×1440 实机上，整帧先缩到 1920 基准图再匹配，正确徽标的相似度只有约 0.935；
+# 旧阈值 0.95 会把「难度已经是 1」判成没选中，于是继续点已经消失的下调箭头，
+# 直到 100 次循环后误报「选择敌人难度为1的关卡失败」。
+# 0.90 与项目其他图像点击阈值一致，仍明显高于其他难度数字的相似度（实机难度 61 时约 0.52）。
+CURRENCY_WARS_LEVEL_1_THRESHOLD = 0.90
+
 REWARD_ICON_BOXES = (
     (1564 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
     (1289 / 1920, 138 / 1080, 26 / 1920, 20 / 1080),
@@ -540,7 +547,7 @@ class CurrencyWars:
             # pos = auto.find_element("./assets/images/screen/currency_wars/level_down.png", "image", 100000)
             pos = auto.find_element((936 / 1920, 830 / 1080, 45 / 1920, 31 / 1080), "crop")
             for _ in range(100):
-                if auto.find_element(f"./assets/images/screen/currency_wars/level_1.png", "image", 0.95, crop=(440.0 / 1920, 892.0 / 1080, 385.0 / 1920, 137.0 / 1080)):
+                if auto.find_element(f"./assets/images/screen/currency_wars/level_1.png", "image", CURRENCY_WARS_LEVEL_1_THRESHOLD, crop=(440.0 / 1920, 892.0 / 1080, 385.0 / 1920, 137.0 / 1080)):
                     log.info(f"已选择敌人难度为1的关卡")
                     return True
                 if pos is None:
