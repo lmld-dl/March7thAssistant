@@ -9,6 +9,11 @@ from module.logger import log
 from .basechallenge import BaseChallenge
 
 
+APOCALYPTIC_MODE_CROP = (0.40, 0.65, 0.20, 0.08)
+APOCALYPTIC_LEVEL_CARD_CROP = (0.64, 0.87, 0.16, 0.06)
+APOCALYPTIC_FIRST_ENTRY_CROP = (0.35, 0.72, 0.30, 0.12)
+
+
 class StellarChallenge:
     def __init__(self, challenge, highest_level, team3=None, enabled=False):
         self.challenge = challenge
@@ -48,7 +53,8 @@ class StellarChallenge:
 
     def ensure_mode(self, stellar):
         target, other = ("星启模式", "常规模式") if stellar else ("常规模式", "星启模式")
-        crop = (0.55, 0.15, 0.4, 0.25)
+        apocalyptic = self.challenge.name == "末日幻影"
+        crop = APOCALYPTIC_MODE_CROP if apocalyptic else (0.55, 0.15, 0.4, 0.25)
         for attempt in range(5):
             target_visible = auto.find_element(target, "text", crop=crop, include=False)
             other_visible = auto.find_element(other, "text", crop=crop, include=False)
@@ -65,6 +71,11 @@ class StellarChallenge:
                 auto.click_element(other, "text", crop=crop, include=False)
                 time.sleep(2)
                 continue
+            elif apocalyptic and stellar and attempt < 2:
+                # 末日幻影只有选中难度 IV 才显示模式开关。
+                if auto.find_element("未解锁", "text", crop=APOCALYPTIC_LEVEL_CARD_CROP, include=True):
+                    raise RuntimeError("末日幻影难度 IV 未解锁，请先通关难度 III")
+                auto.click_element(f"{self.highest_level:02}", "text", crop=APOCALYPTIC_LEVEL_CARD_CROP, include=True)
             # 切换入口在解锁前不存在；常规模式仍能照常运行。
             if not stellar and attempt == 0 and not target_visible and not other_visible:
                 log.info("未发现模式切换入口，按常规模式执行")
@@ -95,6 +106,15 @@ class StellarChallenge:
         return result
 
     def _click_node_control(self, number, *, buff=False):
+        if self.challenge.name == "末日幻影":
+            # 末日幻影编队用数字标记节点，没有“节点一／二／三”文字。
+            if not self._apocalyptic_team_screen():
+                raise RuntimeError("未确认末日幻影星启角色列表，停止配置队伍")
+            x = 1826 / 1920 if buff else 1488 / 1920
+            if not self._click_ratio(x, (330 + (number - 1) * 216) / 1080):
+                raise RuntimeError(f"点击星启节点{number}的配置入口失败")
+            time.sleep(1)
+            return
         top_left, bottom_right = self._node(number)
         left, top, width, height = self._window_region()
         # 以节点文字为纵向锚点；偏移取自用户提供的 1920×1080 编队截图。
@@ -107,25 +127,125 @@ class StellarChallenge:
         time.sleep(1)
 
     def _open_highest_level(self):
-        if not self.challenge.find_level(self.highest_level):
+        '''打开最高关的三节点编队；最高关已满星时不打开，返回 False'''
+        if self.challenge.name == "末日幻影":
+            self._open_apocalyptic_teams()
+            return True
+        top_left = self.challenge.find_level(self.highest_level)
+        if not top_left:
             raise RuntimeError("未找到星启模式最高关")
+        # 星启模式没有指南页的满星检查，在关卡页判断最高关星数，避免每次刷新都重打三个节点。
+        stars = self.challenge.judge_stars(top_left)
+        log.info(f"星启模式第{self.highest_level}层星数{stars}")
+        if stars == self.challenge.max_star:
+            return False
         if not auto.click_element(f"{self.highest_level:02}", "text", max_retries=5,
                                   crop=(0.17, 0.08, 0.82, 0.82), include=False):
             raise RuntimeError("点击星启模式最高关失败")
         for _ in range(10):
+            if auto.find_element("快速通关", "text", crop=(0.30, 0.05, 0.40, 0.15), include=False):
+                if not auto.click_element("确认", "text", max_retries=3,
+                                          crop=(0.35, 0.85, 0.30, 0.15), include=False):
+                    raise RuntimeError("未能关闭快速通关奖励弹窗")
+                time.sleep(1)
+                continue
             if auto.find_element("编队", "text", crop=(0, 0, 0.32, 0.16), include=False):
                 if not auto.find_element("星启模式", "text", crop=(0.32, 0, 0.3, 0.2), include=False):
                     raise RuntimeError("当前编队界面未确认星启模式")
                 for number in (1, 2, 3):
                     self._node(number)
-                return
+                return True
             # 兼容关卡详情中的编队入口。
             auto.click_element(["更换编队", "前往编队", "下一步", "前往挑战"], "text", include=False)
             time.sleep(1)
         raise RuntimeError("未进入星启三节点编队界面")
 
+    def _apocalyptic_team_screen(self):
+        return (auto.find_element("角色列表", "text", crop=(0, 0.10, 0.30, 0.08), include=False)
+                and auto.find_element("星启模式", "text", crop=(0.32, 0.05, 0.20, 0.10), include=False))
 
+    def _open_apocalyptic_teams(self):
+        nodes = ["节点一", "节点—", "节点二", "节点三"]
+        node_crop = (0.20, 0.74, 0.60, 0.07)
+        for _ in range(5):
+            first_entry = auto.find_element("前往挑战", "text", crop=APOCALYPTIC_FIRST_ENTRY_CROP, include=False)
+            if first_entry:
+                self._open_first_apocalyptic_teams(first_entry)
+                return
+            if auto.find_element(nodes, "text", crop=node_crop, include=False):
+                break
+            time.sleep(1)
+        else:
+            raise RuntimeError("未确认末日幻影星启主页的节点入口")
+        if not auto.click_element(f"{self.highest_level:02}", "text", max_retries=5,
+                                  crop=(0.20, 0.87, 0.60, 0.06), include=True):
+            raise RuntimeError("点击末日幻影星启最高关失败")
+        time.sleep(1)
+        for _ in range(10):
+            if self._apocalyptic_team_screen():
+                return
+            # 无论进入哪个节点详情，下一步都是更换编队，不再依赖节点标题 OCR。
+            if not auto.click_element("更换编队", "text", crop=(0.81, 0.76, 0.15, 0.08), include=False):
+                auto.click_element(nodes, "text", crop=node_crop, include=False)
+            time.sleep(1)
+        raise RuntimeError("未进入末日幻影星启三节点编队界面")
 
+    def _open_first_apocalyptic_teams(self, first_entry):
+        # 首次挑战可能依次展示三个首领，也可能直接进入编队。
+        deadline = time.monotonic() + 20
+        next_input_at = 0
+        attempts = {}
+        title_crop = (0.04, 0.025, 0.14, 0.08)
+        stellar_crop = (0.32, 0.05, 0.20, 0.10)
+        while time.monotonic() < deadline:
+            if self._apocalyptic_team_screen():
+                return
+            if time.monotonic() < next_input_at:
+                time.sleep(0.5)
+                continue
+            page, button = None, None
+            if first_entry:
+                page, button = "挑战入口", first_entry
+                first_entry = None
+            elif (auto.find_element("首领信息", "text", crop=title_crop, include=False)
+                  and auto.find_element("星启模式", "text", crop=stellar_crop, include=False)):
+                if auto.find_element(["节点一", "节点—", "节点二", "节点三"], "text",
+                                     crop=(0.45, 0.10, 0.46, 0.07), include=True):
+                    page = auto.matched_text.replace("—", "一")
+                    button = auto.find_element(["下一步", "前往编队"], "text",
+                                               crop=(0.74, 0.87, 0.24, 0.10), include=False)
+            elif (auto.find_element("编队", "text", crop=title_crop, include=False)
+                  and auto.find_element("星启模式", "text", crop=stellar_crop, include=False)):
+                page = "编队"
+            elif auto.find_element("星启模式", "text", crop=APOCALYPTIC_MODE_CROP, include=False):
+                page = "挑战入口"
+                button = auto.find_element("前往挑战", "text", crop=APOCALYPTIC_FIRST_ENTRY_CROP, include=False)
+            if (button or page == "编队") and attempts.get(page, 0) < 2 and time.monotonic() < deadline:
+                if button:
+                    auto.click_element_with_pos(button)
+                else:
+                    self._click_ratio(1488 / 1920, 330 / 1080)
+                attempts[page] = attempts.get(page, 0) + 1
+                next_input_at = time.monotonic() + 2
+            time.sleep(0.5)
+        raise RuntimeError("未进入末日幻影星启三节点编队界面")
+
+    def _confirm_apocalyptic_teams(self):
+        if not self._apocalyptic_team_screen():
+            raise RuntimeError("未确认末日幻影星启角色列表，无法确认编队")
+        button = auto.find_element(["确认", "前往挑战"], "text", max_retries=5,
+                                   crop=(0.77, 0.87, 0.22, 0.08), include=False)
+        if not button:
+            raise RuntimeError("确认末日幻影星启编队失败")
+        if auto.matched_text == "前往挑战":
+            return
+        if not auto.click_element_with_pos(button):
+            raise RuntimeError("确认末日幻影星启编队失败")
+        for _ in range(10):
+            if auto.find_element("当前队伍", "text", crop=(0.36, 0.70, 0.15, 0.07), include=False):
+                return
+            time.sleep(1)
+        raise RuntimeError("确认编队后未返回末日幻影节点详情页")
 
     def _prepare_teams(self):
         if not auto.click_element("./assets/images/forgottenhall/reset.png", "image", 0.8,
@@ -142,7 +262,7 @@ class StellarChallenge:
                 raise RuntimeError(f"节点{number}未打开角色列表")
             if not BaseChallenge.select_characters(self.challenge, team, None, switch_team=False):
                 raise RuntimeError(f"星启节点{number}选人失败")
-        if self.challenge.name == "虚构叙事":
+        if self.challenge.name in ("虚构叙事", "末日幻影"):
             for number in (1, 2, 3):
                 log.info(f"配置星启节点{number}增益")
                 self._click_node_control(number, buff=True)
@@ -158,6 +278,13 @@ class StellarChallenge:
         clicks = 0
         while time.monotonic() < deadline:
             if self._ready():
+                if self.challenge.name == "混沌回忆":
+                    # 准备画面标识可能在节点说明弹窗后方，先点击底部空白再执行秘技。
+                    time.sleep(1)
+                    for _ in range(3):
+                        if not self._click_ratio(0.5, 0.97):
+                            raise RuntimeError(f"关闭星启节点{number}说明弹窗失败")
+                        time.sleep(0.5)
                 log.info(f"已进入星启节点{number}准备画面")
                 return
             if auto.find_element("空白", "text", include=True, crop=(0, 0.65, 1, 0.35)):
@@ -181,44 +308,37 @@ class StellarChallenge:
         return True
 
     def _wait_node_end(self, number):
-        if number == 3 and self.challenge.name == "虚构叙事" and callable(getattr(self.challenge, 'return_to_stage_list', None)):
-            # 虚构叙事最后一节点直接复用原生图片判定及返回流程。
+        if number == 3:
+            # 最后一个节点统一复用各挑战的结算判定。
             return self._finish_settlement(self.challenge.check_fight(30 * 60, final=True))
         deadline = time.monotonic() + 30 * 60
-        next_button = ("前往节点二", "前往节点三")[number - 1] if number < 3 else None
+        next_button = ("前往节点二", "前往节点三")[number - 1]
         unknown_settlement = 0
         while time.monotonic() < deadline:
             if self._return_after_failure():
                 return False
-            if next_button and auto.find_element(next_button, "text", include=False):
+            if auto.find_element(next_button, "text", include=False):
                 # 由准备画面确认函数执行点击及有限重试，不把“挑战结束”当作整关结束。
                 self._wait_ready(number + 1, next_button)
                 return
             if auto.find_element(["挑战结束", "挑战成功", "挑战失败"], "text",
                                  crop=(0.3, 0.15, 0.4, 0.3), include=False):
-                if number == 3:
-                    return self._finish_settlement(auto.matched_text == "挑战成功")
                 unknown_settlement += 1
                 if unknown_settlement >= 10:
                     raise RuntimeError(f"星启节点{number}结算后未找到{next_button}，已保留画面")
             if self.challenge.auto_battle_detect_enable and auto.find_element(
                     "./assets/images/share/base/not_auto.png", "image", 0.9,
                     crop=(0, 903 / 1080, 144 / 1920, 120 / 1080)):
-                auto.press_key(cfg.get_value("hotkey_auto_battle", "v"))
+                auto.press_key(cfg.get_game_hotkey("hotkey_auto_battle", "v"))
             time.sleep(2)
         raise RuntimeError(f"星启节点{number}战斗超时，已保留画面")
 
     def _finish_settlement(self, succeeded):
-        return_to_list = getattr(self.challenge, 'return_to_stage_list', None)
-        if not callable(return_to_list):
-            # 尚未确认最终返回按钮的挑战保留调试画面。
-            log.warning(f"{self.challenge.name}星启节点三结算返回流程尚待截图确认，已保留画面。")
-            raise SystemExit(0)
+        self.challenge.return_to_stage_list()
         if succeeded:
-            log.info(f"{self.challenge.name}星启模式挑战成功")
+            log.info(f"{self.challenge.name}星启模式挑战完成")
         else:
             log.warning(f"{self.challenge.name}星启模式挑战失败")
-        return_to_list()
         self.result = succeeded
         # 仅成功时接通原生的通关记录及奖励收尾，失败不能被当作通关。
         if succeeded:
@@ -256,9 +376,16 @@ class StellarChallenge:
         self.result = None
         self.challenge.max_level = 0
         self.ensure_mode(True)
-        self._open_highest_level()
+        if not self._open_highest_level():
+            # 与指南页满星时相同，只记录运行时间，不记为本次通关。
+            log.info(f"{self.challenge.name}星启模式最高关已满星，跳过挑战")
+            self.challenge.save_timestamp_into_config()
+            return None
         self._prepare_teams()
-        start_buttons = ["进入故事", "开始挑战", "前往挑战"]
+        if self.challenge.name == "末日幻影":
+            self._confirm_apocalyptic_teams()
+        start_buttons = (["「混沌回忆」", "混沌回忆"] if self.challenge.name == "混沌回忆"
+                         else ["进入故事", "开始挑战", "前往挑战"])
         if not auto.click_element(start_buttons, "text", max_retries=5,
                                   crop=(0.75, 0.85, 0.25, 0.15), include=False):
             raise RuntimeError("开始星启挑战失败")

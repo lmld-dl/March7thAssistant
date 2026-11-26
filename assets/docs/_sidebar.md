@@ -1,10 +1,12 @@
 - **新手入门**
   - [使用教程](/assets/docs/Tutorial.md)
+  - [安卓版教程](/assets/docs/Android.md)
   - [常见问题](/assets/docs/FAQ.md)
   - [更新日志](/assets/docs/Changelog.md)
 - **进阶使用**
   - [AI 助手](/assets/docs/Agent.md)
   - [后台运行](/assets/docs/Background.md)
+  - [桌面分身](/assets/docs/DesktopTwin.md)
   - [Termux 安卓部署](/assets/docs/Termux.md)
 - **参与项目**
   - [项目 README](/README.md)

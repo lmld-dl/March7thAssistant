@@ -4,6 +4,9 @@ from module.automation import auto
 from module.logger import log
 from module.notification.notification import NotificationLevel
 from tasks.base.base import Base
+from tasks.base.list_drag import drag_list
+from tasks.power.policy import normalize
+import re
 import time
 
 
@@ -29,6 +32,8 @@ class Synthesis:
                                 auto.click_element("./assets/images/share/synthesis/nuclear.png", "image", 0.85, max_retries=10)
                                 time.sleep(2)
                                 if auto.find_element("./assets/images/share/synthesis/nuclear_selected.png", "image", 0.85, max_retries=10):
+                                    if not Synthesis._verify_training_recipe():
+                                        return False
                                     if auto.click_element("./assets/images/zh_CN/synthesis/synthesis_button.png", "image", 0.9, max_retries=10):
                                         time.sleep(2)
                                         if auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9, max_retries=10):
@@ -42,6 +47,21 @@ class Synthesis:
             except Exception as e:
                 log.error(f"合成材料失败: {e}")
         return False
+
+    @staticmethod
+    def _verify_training_recipe():
+        auto.take_screenshot(crop=(0.51, 0.63, 0.41, 0.23))
+        auto.perform_ocr()
+        text = "\n".join(normalize(value) for _, (value, _) in auto.ocr_result)
+        amount = re.search(r"^合成数量:?\s*(\d+)$", text, re.MULTILINE)
+        materials = re.search(r"^(\d+)/3$", text, re.MULTILINE)
+        if not amount or int(amount[1]) != 1 or not materials:
+            log.error("未确认合成数量为 1 且只消耗 3 个熄灭原核")
+            return False
+        if int(materials[1]) < 3:
+            log.info("熄灭原核库存不足，跳过实训合成")
+            return False
+        return True
 
     @staticmethod
     def self_molding_resin():
@@ -64,6 +84,10 @@ class Synthesis:
                                     log.info("自塑尘脂已达上限，无需合成")
                                     cfg.save_timestamp("asset_self_molding_resin_timestamp")
                                     return True
+                                if auto.find_element("合成所需材料不足", "text",
+                                                     crop=(0.45, 0.72, 0.40, 0.16), include=True):
+                                    log.warning("自塑尘脂合成材料不足，保留本月任务，下次运行重试")
+                                    return None
                                 if auto.click_element("./assets/images/share/synthesis/plus.png", "image", 0.9, crop=(1520 / 1920, 832 / 1080, 86 / 1920, 69 / 1080)):
                                     time.sleep(2)
                                 if auto.click_element("./assets/images/zh_CN/synthesis/synthesis_button.png", "image", 0.9, max_retries=10):
@@ -149,6 +173,9 @@ class Synthesis:
 
     @staticmethod
     def lc3star_superimpose():
+        log.info("3星光锥自动叠加缺乏维护，已禁用，跳过执行")
+        return
+
         try:
             log.hr("准备3星光锥自动叠加", 2)
             screen.change_to("bag_lc")
@@ -165,11 +192,13 @@ class Synthesis:
                     "./assets/images/zh_CN/lc/rarity.png", "image", 0.9
                 ):
                     log.info("升序排序光锥")
-                    auto.click_element(
+                    descending = auto.find_element(
                         "./assets/images/share/synthesis/descend.png",
                         "image",
                         0.9,
                     )
+                    if descending and not auto.click_element_with_pos(descending):
+                        raise RuntimeError("无法切换光锥排序顺序")
                     log.hr("开始叠加3星光锥")
                     not_find_times = 0
                     while not_find_times < 5:
@@ -184,7 +213,8 @@ class Synthesis:
                             t = None
                             for tgt in targets:
                                 log.info(f"检测到光锥位置: {tgt}")
-                                auto.click_element_with_pos(tgt)
+                                if not auto.click_element_with_pos(tgt):
+                                    raise RuntimeError("无法选中检测到的光锥")
                                 ((left, top), (right, bottom)) = tgt
                                 left_new = left
                                 top_new = bottom + 30
@@ -225,63 +255,57 @@ class Synthesis:
                             if t is not None:
                                 find_target = True
                                 log.info(f"找到3星光锥位置: {t}")
-                                auto.click_element_with_pos(t)
-                                if auto.click_element(
-                                    "./assets/images/zh_CN/lc/detail.png",
-                                    "image",
-                                    0.9,
-                                ):
-                                    time.sleep(3)
-                                    if auto.click_element(
-                                        "./assets/images/share/lc/superimpose.png",
-                                        "image",
-                                        0.9,
-                                    ):
-                                        time.sleep(2)
-                                        if auto.click_element(
-                                            "./assets/images/zh_CN/lc/auto_superimpose.png",
-                                            "image",
-                                            0.9,
-                                        ):
-                                            time.sleep(2)
-                                            if auto.click_element(
-                                                "./assets/images/zh_CN/lc/superimpose.png",
-                                                "image",
-                                                0.9,
-                                            ):
-                                                time.sleep(2)
-                                                is_superimposed = auto.click_element(
-                                                    "./assets/images/zh_CN/lc/close.png",
-                                                    "image",
-                                                    0.9,
-                                                )
-                                                time.sleep(2)
-                                                auto.press_key("esc", wait_time=3)
-                                                if not is_superimposed:
-                                                    log.info("没有进行叠加")
-                                                    auto.click_element_with_pos(t)
-                                                    auto.mouse_scroll(
-                                                        5, direction=-1, pause=True
-                                                    )
-                                                log.info("3星光锥叠加完成，继续查找")
-                                                break
-                                        else:
-                                            time.sleep(2)
-                                            auto.press_key("esc", wait_time=3)
-                                            auto.click_element_with_pos(t)
-                                            auto.mouse_scroll(
-                                                5, direction=-1, pause=True
-                                            )
+                                if Synthesis._superimpose_selected_light_cone():
+                                    log.info("3星光锥叠加完成，继续查找")
+                                    break
+                                log.info("本光锥未出现叠加结果，继续查找")
+                                if not drag_list(auto, (1280 / 1920, 810 / 1080), (1280 / 1920, 650 / 1080),
+                                                 crop=(140 / 1920, 150 / 1080, 1110 / 1920, 760 / 1080), duration=1.0):
+                                    return False
 
                         if not find_target:
-                            auto.mouse_scroll(25, direction=-1, pause=True)
+                            if not drag_list(auto, (1280 / 1920, 810 / 1080), (1280 / 1920, 410 / 1080),
+                                             crop=(140 / 1920, 150 / 1080, 1110 / 1920, 760 / 1080), duration=1.0):
+                                return False
                             not_find_times += 1
                         else:
                             not_find_times = 0
 
+                    return True
         except Exception as e:
             log.error(f"3星光锥自动叠加失败: {e}")
         return False
+
+    @staticmethod
+    def _superimpose_selected_light_cone():
+        if not auto.click_element("./assets/images/zh_CN/lc/detail.png", "image", 0.9):
+            raise RuntimeError("无法打开三星光锥详情")
+        time.sleep(3)
+        if not auto.click_element("./assets/images/share/lc/superimpose.png", "image", 0.9):
+            raise RuntimeError("无法打开三星光锥叠影页")
+        time.sleep(2)
+
+        result = False
+        auto_place = auto.find_element("./assets/images/zh_CN/lc/auto_superimpose.png", "image", 0.9)
+        if auto_place:
+            if not auto.click_element_with_pos(auto_place):
+                raise RuntimeError("无法点击自动置入")
+            time.sleep(2)
+            apply = auto.find_element("./assets/images/zh_CN/lc/superimpose.png", "image", 0.9)
+            if apply:
+                if not auto.click_element_with_pos(apply):
+                    raise RuntimeError("无法点击叠影")
+                time.sleep(2)
+                receipt = auto.find_element("./assets/images/zh_CN/lc/close.png", "image", 0.9)
+                if receipt:
+                    if not auto.click_element_with_pos(receipt):
+                        raise RuntimeError("三星光锥叠加完成后无法关闭结果")
+                    result = True
+
+        time.sleep(2)
+        if auto.press_key("esc", wait_time=3) is False:
+            raise RuntimeError("无法返回光锥列表")
+        return result
 
     # @staticmethod
     # def asset_special_pass_exchange():

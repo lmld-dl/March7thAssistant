@@ -1,10 +1,13 @@
+import json
+from pathlib import Path
+
+import pytest
+
 from module.ocr.ocr import (
     OCR,
-    OCR_DET_LIMIT_SIDE_LEN,
-    OCR_DET_LIMIT_TYPE,
     OCR_MODE_CPU,
-    OCR_PERIODIC_FULL_GC_INTERVAL,
-    OCR_SINGLE_LINE_MAX_HEIGHT,
+    OCR_MODE_ONNX_CPU,
+    OCR_MODE_OPENVINO_CPU,
     OCR_SLOW_CONSECUTIVE_LIMIT,
     OCR_SLOW_THRESHOLD,
     OCR_WARMUP_HARD_LIMIT,
@@ -82,6 +85,51 @@ class TestOCRConvertFormat:
         assert converted[1][1] == ("world", 0.95)
 
 
+class TestRecognitionOnly:
+    def test_known_line_bypasses_detection_and_preserves_engine_settings(self):
+        import numpy as np
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock
+
+        pixels = np.zeros((34, 94, 3), dtype=np.uint8)
+        engine = SimpleNamespace(
+            use_det=True, text_score=0.8,
+            load_img=MagicMock(return_value=pixels),
+            recognize_txt=MagicMock(return_value=SimpleNamespace(
+                txts=(" 6 ", "", "bad"), scores=(0.99, 0.99, 0.4))),
+        )
+        ocr = OCR.__new__(OCR)
+        ocr.ocr = engine
+        assert ocr._infer(pixels, True) == [{
+            "box": [[0, 0], [94, 0], [94, 34], [0, 34]], "txt": "6", "score": 0.99,
+        }]
+        assert engine.use_det is True
+        assert engine.recognize_txt.call_args.args[0][0] is pixels
+
+    def test_normal_inference_still_uses_detection(self):
+        from unittest.mock import MagicMock
+        ocr = OCR.__new__(OCR)
+        ocr.ocr = MagicMock()
+        ocr.ocr.return_value.to_json.return_value = [{"txt": "正常文字"}]
+        assert ocr._infer("image") == [{"txt": "正常文字"}]
+        ocr.ocr.assert_called_once_with("image")
+        ocr.ocr.recognize_txt.assert_not_called()
+
+    def test_recognition_only_keeps_existing_cpu_fallback(self):
+        from unittest.mock import MagicMock
+
+        class ONNXRuntimeError(RuntimeError):
+            pass
+
+        ocr = TestRunSlowDegradeStateMachine()._create_running_ocr()
+        expected = [{"box": [[0, 0], [10, 0], [10, 10], [0, 10]], "txt": "6", "score": 0.99}]
+        ocr._infer = MagicMock(side_effect=[ONNXRuntimeError("failed"), expected])
+        assert ocr.run(ocr.img, recognition_only=True) == expected
+        assert ocr._infer.call_count == 2
+        assert all(call.args[1] is True for call in ocr._infer.call_args_list)
+        assert ocr._use_dml is False
+
+
 class TestOCRReplaceStrings:
     def _create_ocr_with_mock_logger(self):
         from unittest.mock import MagicMock
@@ -109,6 +157,42 @@ class TestOCRReplaceStrings:
         results = [{"txt": "hello", "score": 0.99}]
         replaced = ocr.replace_strings(results)
         assert replaced[0]["txt"] == "world"
+
+    def test_currency_wars_name_replacement_is_stable_with_a_shop_price(self):
+        ocr = self._create_ocr_with_mock_logger()
+        config = Path(__file__).resolve().parents[2] / "assets/config/ocr_replacements.json"
+        ocr.replacements = json.loads(config.read_text(encoding="utf-8"))
+        rows = [{"txt": name} for name in ("刻律德拉1", "刻律德1", "刻律德菈1", "刻律德拉", "刻律德菈")]
+        expected = ["刻律德菈1", "刻律德菈1", "刻律德菈1", "刻律德菈", "刻律德菈"]
+        assert [row["txt"] for row in ocr.replace_strings(rows)] == expected
+        assert [row["txt"] for row in ocr.replace_strings(rows)] == expected
+
+    def test_replacements_preserve_all_configured_instance_names(self):
+        ocr = self._create_ocr_with_mock_logger()
+        config = Path(__file__).resolve().parents[2] / "assets/config"
+        ocr.replacements = json.loads((config / "ocr_replacements.json").read_text(encoding="utf-8"))
+        instances = json.loads((config / "instance_names.json").read_text(encoding="utf-8"))
+        names = [name for group in instances.values() for name in group if name != "无"]
+        rows = [{"txt": name} for name in names]
+        assert [row["txt"] for row in ocr.replace_strings(rows)] == names
+
+    def test_calyx_name_corrections_restore_missing_quotes_once(self):
+        ocr = self._create_ocr_with_mock_logger()
+        config = Path(__file__).resolve().parents[2] / "assets/config/ocr_replacements.json"
+        ocr.replacements = json.loads(config.read_text(encoding="utf-8"))
+        for location, suffix in (("世界尽头", "酒馆"), ("葬忆彼岸", "时光归墟"), ("辉痕圣林", "神悟树庭")):
+            aliases = (location, f"{location}{suffix}", f"{location}」{suffix}", f"「{location}{suffix}")
+            rows = [{"txt": alias} for alias in aliases]
+            expected = [f"「{location}」{suffix}"] * len(rows)
+            assert [row["txt"] for row in ocr.replace_strings(rows)] == expected
+            assert [row["txt"] for row in ocr.replace_strings(rows)] == expected
+
+    def test_calyx_venue_restores_partial_trademark(self):
+        ocr = self._create_ocr_with_mock_logger()
+        config = Path(__file__).resolve().parents[2] / "assets/config/ocr_replacements.json"
+        ocr.replacements = json.loads(config.read_text(encoding="utf-8"))
+        rows = [{"txt": "苏乐达T热砂海选会场"}]
+        assert ocr.replace_strings(rows)[0]["txt"] == "苏乐达™热砂海选会场"
 
 
 class TestDisableOpenVINOTelemetry:
@@ -147,6 +231,32 @@ class TestDisableOpenVINOTelemetry:
                 delattr(OptInChecker, "_march7th_telemetry_disabled")
 
 
+@pytest.fixture
+def isolated_ort_session(monkeypatch):
+    from rapidocr.inference_engine import onnxruntime
+
+    class IsolatedSession(onnxruntime.OrtInferSession):
+        pass
+
+    monkeypatch.setattr(onnxruntime, "OrtInferSession", IsolatedSession)
+    return IsolatedSession
+
+
+def test_kleidiai_workaround_preserves_rapidocr_session_options(isolated_ort_session):
+    from omegaconf import OmegaConf
+    from rapidocr import EngineType
+    from rapidocr.inference_engine.base import get_engine
+
+    OCR._disable_kleidiai_for_rapidocr()
+    factory = get_engine(EngineType.ONNXRUNTIME)._init_sess_opts
+    OCR._disable_kleidiai_for_rapidocr()
+    assert isolated_ort_session._init_sess_opts is factory
+    options = factory(OmegaConf.create({"enable_cpu_mem_arena": False, "inter_op_num_threads": 1}))
+    assert options.get_session_config_entry("mlas.disable_kleidiai") == "1"
+    assert options.enable_cpu_mem_arena is False
+    assert options.inter_op_num_threads == 1
+
+
 class _FakeConfig:
     """最小配置桩：仅实现 OCR 用到的 get_value / set_value。"""
 
@@ -169,6 +279,64 @@ def _create_ocr_for_internal_tests(config_values=None):
     ocr._slow_threshold = OCR_SLOW_THRESHOLD
     ocr._slow_count = 0
     return ocr
+
+
+@pytest.mark.parametrize(
+    ("platform_name", "machine", "mode", "disable_kleidiai"),
+    [
+        ("darwin", "arm64", OCR_MODE_ONNX_CPU, True),
+        ("darwin", "aarch64", OCR_MODE_OPENVINO_CPU, True),
+        ("darwin", "x86_64", OCR_MODE_ONNX_CPU, False),
+        ("linux", "aarch64", OCR_MODE_ONNX_CPU, False),
+        ("win32", "ARM64", OCR_MODE_ONNX_CPU, False),
+    ],
+)
+def test_instance_ocr_configures_kleidiai_by_platform(
+    monkeypatch, isolated_ort_session, platform_name, machine, mode, disable_kleidiai,
+):
+    from importlib import import_module
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    import rapidocr
+    from omegaconf import OmegaConf
+    from rapidocr.inference_engine.base import get_engine
+
+    ocr_module = import_module("module.ocr.ocr")
+    monkeypatch.setattr(ocr_module, "sys", SimpleNamespace(platform=platform_name))
+    monkeypatch.setattr(ocr_module, "platform", SimpleNamespace(machine=lambda: machine))
+    monkeypatch.setattr(ocr_module, "atexit", SimpleNamespace(register=Mock()))
+
+    ocr = _create_ocr_for_internal_tests()
+    ocr.ocr = None
+    ocr._cfg.ocr_gpu_acceleration = mode
+    monkeypatch.setattr(ocr, "_can_use_openvino_fallback", Mock(return_value=(True, "")))
+    monkeypatch.setattr(ocr, "_disable_openvino_telemetry", Mock())
+    monkeypatch.setattr(ocr, "_disable_openvino_runtime_cache", Mock())
+    monkeypatch.setattr(ocr, "_maybe_fallback_openvino_due_to_memory", Mock())
+
+    def create_rapidocr(*, params):
+        engine = get_engine(params["Det.engine_type"])
+        assert engine is isolated_ort_session
+        options = engine._init_sess_opts(OmegaConf.create({"enable_cpu_mem_arena": False}))
+        return SimpleNamespace(options=options)
+
+    rapidocr_factory = Mock(side_effect=create_rapidocr)
+    monkeypatch.setattr(rapidocr, "RapidOCR", rapidocr_factory)
+
+    ocr.instance_ocr()
+
+    rapidocr_factory.assert_called_once()
+    params = rapidocr_factory.call_args.kwargs["params"]
+    expected_rec_engine = (
+        rapidocr.EngineType.OPENVINO if mode == OCR_MODE_OPENVINO_CPU else rapidocr.EngineType.ONNXRUNTIME
+    )
+    assert params["Rec.engine_type"] == expected_rec_engine
+    if disable_kleidiai:
+        assert ocr.ocr.options.get_session_config_entry("mlas.disable_kleidiai") == "1"
+    else:
+        with pytest.raises(RuntimeError, match=r"mlas\.disable_kleidiai"):
+            ocr.ocr.options.get_session_config_entry("mlas.disable_kleidiai")
 
 
 class TestLoadThresholds:
@@ -375,109 +543,3 @@ class TestWarmupDmlFallback:
         assert ocr._use_dml is True
         assert ocr._dml_fallback is False
         assert ocr._cfg.values.get("ocr_gpu_acceleration") == "auto"
-
-
-class TestDetInputLimit:
-    def test_full_gc_interval_is_sparser_than_the_old_hot_path(self):
-        assert OCR_PERIODIC_FULL_GC_INTERVAL == 80
-
-    def test_preprocess_caps_1080p_and_does_not_upscale_short_crops(self):
-        import numpy as np
-        from types import SimpleNamespace
-
-        ocr = _create_ocr_for_internal_tests()
-        detector = SimpleNamespace(
-            mean=[0.5, 0.5, 0.5],
-            std=[0.5, 0.5, 0.5],
-            get_preprocess=lambda max_wh: None,
-        )
-        ocr._apply_det_input_limit(SimpleNamespace(text_det=detector))
-
-        preprocess = detector.get_preprocess(1920)
-        assert preprocess.limit_side_len == OCR_DET_LIMIT_SIDE_LEN == 1280
-        assert preprocess.limit_type == OCR_DET_LIMIT_TYPE == "max"
-
-        full = preprocess(np.zeros((1080, 1920, 3), dtype=np.uint8))
-        assert full.shape[2:] == (704, 1280)
-
-        short = preprocess(np.zeros((86, 288, 3), dtype=np.uint8))
-        assert short.shape[2] < 150
-        assert short.shape[3] < 400
-
-
-class TestSingleLineSkipsDetection:
-    def _running(self, engine):
-        ocr = _create_ocr_for_internal_tests()
-        ocr._use_dml = False
-        ocr._dml_fallback = False
-        ocr._using_openvino = False
-        ocr._openvino_fallback = False
-        ocr._periodic_gc_interval = 0
-        ocr.ocr_time = 0.0
-        ocr.ocr_count = 0
-        ocr.ocr = engine
-        ocr.instance_ocr = lambda *args, **kwargs: None
-        return ocr
-
-    def test_short_crop_skips_det_and_returns_text(self):
-        import numpy as np
-
-        calls = []
-
-        class Engine:
-            text_score = 0.5
-            use_det = True
-
-            def __call__(self, img, use_det=None):
-                calls.append(use_det)
-                if use_det is not None:
-                    self.use_det = use_det
-                return type("Rec", (), {"txts": ("第3阶",), "scores": (0.91,), "imgs": None})()
-
-        engine = Engine()
-        ocr = self._running(engine)
-        text, score = ocr.recognize_single_line(np.zeros((53, 219, 3), dtype=np.uint8))
-        assert calls == [False]
-        assert text == "第3阶"
-        assert score == 0.91
-        assert engine.use_det is True
-        assert 53 <= OCR_SINGLE_LINE_MAX_HEIGHT
-
-    def test_tall_image_still_runs_detection(self):
-        import numpy as np
-
-        calls = []
-
-        class Engine:
-            text_score = 0.5
-
-            def __call__(self, img, use_det=None):
-                calls.append(use_det)
-
-                class Rec:
-                    txts = ("确认",)
-                    scores = (0.99,)
-                    boxes = [[[0, 0], [10, 0], [10, 10], [0, 10]]]
-
-                    def to_json(self):
-                        return [{"box": [[0, 0], [10, 0], [10, 10], [0, 10]], "txt": "确认", "score": 0.99}]
-
-                return Rec()
-
-        ocr = self._running(Engine())
-        text, score = ocr.recognize_single_line(np.zeros((200, 320, 3), dtype=np.uint8))
-        assert calls == [None]
-        assert text == "确认"
-        assert score == 0.99
-
-    def test_low_score_single_line_is_dropped(self):
-        import numpy as np
-
-        class Engine:
-            text_score = 0.5
-
-            def __call__(self, img, use_det=None):
-                return type("Rec", (), {"txts": ("噪声",), "scores": (0.1,), "imgs": None})()
-
-        ocr = self._running(Engine())
-        assert ocr.recognize_single_line(np.zeros((40, 120, 3), dtype=np.uint8)) is None

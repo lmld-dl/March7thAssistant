@@ -29,6 +29,8 @@
 
 快速上手，請訪問：[使用教程](https://m7a.top/docs/#/assets/docs/Tutorial_zh_TW)
 
+安卓手機使用者，請看：[安卓版使用教程](https://m7a.top/docs/#/assets/docs/Android_zh_TW)
+
 遇到問題，請先查看：[FAQ](https://m7a.top/docs/#/assets/docs/FAQ_zh_TW)
 
 </div>
@@ -37,10 +39,10 @@
 
 - **日常**：清體力、每日實訓、領取獎勵、委託
 - **周常**：歷戰餘響、差分宇宙、貨幣戰爭、混沌回憶、虛構敘事、末日幻影
+- **本機與安卓**：Windows 本機客戶端（含背景視窗訊息操作）和安卓裝置；安卓版說明見 [安卓版使用教程](https://m7a.top/docs/#/assets/docs/Android_zh_TW)
 - **抽卡記錄導出**：支援 [UIGF](https://uigf.org/zh/standards/uigf.html) / [SRGF](https://uigf.org/zh/standards/srgf.html) 標準
 - **工具箱**：自動對話、解鎖幀率、兌換碼、觸控模式
-- 本地遊戲啟停、透過啟動器更新遊戲、開機自啟與定時任務
-- 每日實訓等任務的完成情況支援 **Windows 原生通知**
+- 任務結果支援 **Windows 本機通知**
 - 任務刷新或體力恢復到指定值後支援 **自動啟動**
 - 任務完成後支援 **聲音提示、自動關閉遊戲或關機等**
 
@@ -59,11 +61,13 @@
 
 前往 [Releases](https://github.com/moesnow/March7thAssistant/releases/latest) 下載後解壓，雙擊三月七圖示的 `March7th Launcher.exe` 打開圖形介面。
 
+安卓手機請在同一頁面下載 `March7thAssistant_full_android.apk` 安裝，打開後依照 App 內的權限引導完成 Shizuku 或 Root 授權，詳見 [安卓版使用教程](https://m7a.top/docs/#/assets/docs/Android_zh_TW)。
+
 ## 原始碼執行
 
 如果你是完全不懂的小白，請直接使用上面的方式下載安裝，可以不用往下看。
 
-需要 Python 3.12 或更高版本。
+需要 Python 3.12 至 3.14。
 
 Windows 下如果透過終端啟動，建議使用系統管理員模式開啟 PowerShell、Windows Terminal 或 CMD；Windows 11 24H2 及以上也可以依照 [Sudo for Windows](https://learn.microsoft.com/zh-cn/windows/advanced-settings/sudo/) 的方式執行。
 
@@ -72,6 +76,7 @@ Windows 下如果透過終端啟動，建議使用系統管理員模式開啟 Po
 git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 pip install -r requirements.txt
+python -m tools.i18n compile
 
 # 啟動圖形介面
 python app.py
@@ -82,6 +87,8 @@ python main.py
 # 更新
 git pull
 git submodule update --init --recursive
+pip install -r requirements.txt
+python -m tools.i18n compile
 ```
 
 如果使用 `uv`，建議直接使用專案內建的 `pyproject.toml` 工作流：
@@ -91,6 +98,7 @@ git submodule update --init --recursive
 git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 uv sync
+uv run python -m tools.i18n compile
 
 # 啟動圖形介面
 uv run python app.py

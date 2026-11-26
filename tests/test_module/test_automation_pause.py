@@ -1,14 +1,16 @@
 # coding:utf-8
 """module/automation 卡点插桩测试：暂停期间停止发出输入、读取入口停在卡点。"""
+import sys
 import threading
 import time
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
 from module.automation.automation import Automation
 from utils import pause as pause_mod
-from utils.pause import PauseController
+from utils.pause import PauseController, RunStopRequested
 
 
 class _Boom(Exception):
@@ -47,7 +49,7 @@ def automation(monkeypatch, blocking_controller):
     handler = SimpleNamespace(**{
         name: record(name)
         for name in (
-            "mouse_click", "mouse_down", "mouse_up", "mouse_move", "mouse_drag",
+            "mouse_click", "mouse_down", "mouse_up", "mouse_move", "mouse_park", "mouse_drag",
             "mouse_scroll", "press_key", "press_key_down", "press_key_up",
             "secretly_press_key", "press_mouse", "secretly_write",
         )
@@ -83,6 +85,25 @@ def test_input_blocked_while_paused_and_resumes(automation, blocking_controller)
     assert events == [("press_key", "x")]
 
 
+@pytest.mark.parametrize(("backend", "profile"), [("invalid", "pc_1080"), ("local", "invalid")])
+def test_invalid_connection_allows_initialization_but_not_input(automation, monkeypatch, backend, profile):
+    from module.config.platform import InvalidGameConnection
+
+    _, events = automation
+    config = SimpleNamespace(control_backend=backend, ui_profile=profile)
+    monkeypatch.setattr("module.automation.automation.cfg", config)
+    auto = object.__new__(Automation)
+    auto.__init__("test")
+    assert auto.input_handler is None
+    with pytest.raises(InvalidGameConnection):
+        auto.mouse_click(1, 2)
+    assert not events
+
+    config.control_backend, config.ui_profile = "local", "pc_1080"
+    auto.mouse_click(1, 2)
+    assert events == [("mouse_click", 1, 2)]
+
+
 def test_all_input_aliases_go_through_checkpoint(automation, blocking_controller):
     auto, events = automation
     blocking_controller.resume.clear()
@@ -99,6 +120,161 @@ def test_all_input_aliases_go_through_checkpoint(automation, blocking_controller
     t.join(timeout=5)
     assert events == [("mouse_click", 1, 2), ("mouse_drag", 0, 0, 5, 5, 0.1)]
     assert blocking_controller.checkpoint_calls >= 2
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="本地输入后端仅在 Windows 使用")
+def test_local_secret_typing_releases_the_current_key_and_stops_before_the_next(monkeypatch):
+    from module.automation import local_input
+
+    controller = PauseController()
+    controller._enabled = True
+    controller._resume_event.set()
+    monkeypatch.setattr(local_input, "pause_ctl", controller)
+    events = []
+
+    def down(key):
+        events.append(("down", key))
+        controller.request_stop()
+
+    def up(key):
+        events.append(("up", key))
+
+    platform = local_input.pyautogui.platformModule
+    monkeypatch.setattr(platform, "_keyDown", down)
+    monkeypatch.setattr(platform, "_keyUp", up)
+    backend = local_input.LocalInput(Mock())
+
+    with pytest.raises(RunStopRequested):
+        backend.secretly_write("abcdef", interval=0)
+
+    assert events == [("down", "a"), ("up", "a")]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="本地输入后端仅在 Windows 使用")
+def test_local_key_press_reports_dispatch_failure(monkeypatch):
+    from module.automation import local_input
+
+    down, up = Mock(), Mock()
+    monkeypatch.setattr(local_input.pyautogui, "keyDown", down)
+    monkeypatch.setattr(local_input.pyautogui, "keyUp", up)
+    backend = local_input.LocalInput(Mock())
+
+    assert backend.press_key("esc", wait_time=0) is True
+    up.assert_called_once_with("esc")
+    down.side_effect = RuntimeError("输入不可用")
+    assert backend.press_key("esc", wait_time=0) is False
+    up.assert_called_once_with("esc")
+
+
+def test_cdp_key_press_reports_dispatch_failure(monkeypatch):
+    from module.automation.cdp_input import CdpInput
+
+    backend = CdpInput(Mock(), Mock())
+    dispatched = Mock(return_value=True)
+    monkeypatch.setattr(backend, "_dispatch_key_event", dispatched)
+
+    assert backend.press_key("esc", wait_time=0) is True
+    assert [call.args for call in dispatched.call_args_list] == [("esc", "keyDown"), ("esc", "keyUp")]
+    dispatched.reset_mock()
+    dispatched.side_effect = RuntimeError("浏览器连接中断")
+    assert backend.press_key("esc", wait_time=0) is False
+    dispatched.assert_called_once_with("esc", "keyDown")
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="本地输入后端仅在 Windows 使用")
+@pytest.mark.parametrize("expired", [True, False])
+def test_currency_wars_local_recovery_input_marks_actual_dispatch(monkeypatch, expired):
+    from module.automation import local_input
+    from module.automation.background_input import input_wait_limit
+    from tasks.weekly import currency_wars
+
+    now = [2.0 if expired else 0.0]
+    pressed = Mock(side_effect=TimeoutError("输入回执超时"))
+    clicked = Mock(side_effect=TimeoutError("输入回执超时"))
+
+    def move(*_):
+        if expired:
+            now[0] = 2.0
+
+    moved = Mock(side_effect=move)
+    released = Mock()
+    monkeypatch.setattr(local_input.pyautogui, "keyDown", pressed)
+    monkeypatch.setattr(local_input.pyautogui, "mouseDown", clicked)
+    monkeypatch.setattr(local_input.pyautogui, "moveTo", moved)
+    monkeypatch.setattr(local_input.pyautogui, "mouseUp", released)
+    monkeypatch.setattr(local_input, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    backend = local_input.LocalInput(Mock())
+    monkeypatch.setattr(currency_wars, "auto", SimpleNamespace(input_handler=backend))
+    war = currency_wars.CurrencyWars()
+    mark_sent, mark_operation = Mock(), Mock()
+
+    with input_wait_limit(1, deadline=1.0):
+        assert war._dispatch_input(backend.press_key, "esc", mark_sent=mark_sent,
+                                   before_input=mark_operation) is False
+        assert war._dispatch_input(backend.mouse_down, 770, 743, mark_sent=mark_sent,
+                                   before_input=mark_operation) is False
+    assert pressed.call_count == clicked.call_count == (0 if expired else 1)
+    assert mark_sent.call_count == mark_operation.call_count == (0 if expired else 2)
+
+    now[0] = 0.0
+    mark_sent.reset_mock()
+    mark_operation.reset_mock()
+    with input_wait_limit(1, deadline=1.0):
+        if expired:
+            assert war._dispatch_input(backend.mouse_drag, 10, 20, 30, 40, mark_sent=mark_sent,
+                                       before_input=mark_operation) is False
+        else:
+            with pytest.raises(TimeoutError, match="输入回执超时"):
+                war._dispatch_input(backend.mouse_drag, 10, 20, 30, 40, mark_sent=mark_sent,
+                                    before_input=mark_operation)
+    moved.assert_called_once_with(10, 20)
+    assert clicked.call_count == (0 if expired else 2)
+    assert released.call_count == mark_sent.call_count == mark_operation.call_count == (0 if expired else 1)
+
+
+@pytest.mark.parametrize("expired", [True, False])
+def test_currency_wars_cdp_recovery_input_marks_actual_dispatch_after_focus(monkeypatch, expired):
+    from module.automation import cdp_input
+    from module.automation.background_input import input_wait_limit
+    from tasks.weekly import currency_wars
+
+    now = [0.0]
+    events = []
+
+    def dispatch(_, payload):
+        events.append(payload["type"])
+        if payload["type"] == "mouseMoved" and expired:
+            now[0] = 2.0
+        if payload["type"] in {"keyDown", "mousePressed"}:
+            raise TimeoutError("输入回执超时")
+
+    monkeypatch.setattr(cdp_input, "time", SimpleNamespace(monotonic=lambda: now[0], sleep=lambda _: None))
+    backend = cdp_input.CdpInput(SimpleNamespace(execute_cdp_cmd=dispatch), Mock())
+    monkeypatch.setattr(currency_wars, "auto", SimpleNamespace(input_handler=backend))
+    war = currency_wars.CurrencyWars()
+    mark_sent, mark_operation = Mock(), Mock()
+    with input_wait_limit(1, deadline=1.0):
+        assert war._dispatch_input(backend.press_key, "esc", wait_time=0, mark_sent=mark_sent,
+                                   before_input=mark_operation) is False
+        assert war._dispatch_input(backend.mouse_down, 770, 743, mark_sent=mark_sent,
+                                   before_input=mark_operation) is False
+    assert events == (["mouseMoved"] if expired else ["mouseMoved", "keyDown", "mousePressed", "mouseReleased"])
+    assert mark_sent.call_count == mark_operation.call_count == (0 if expired else 2)
+
+    now[0] = 0.0
+    events.clear()
+    mark_sent.reset_mock()
+    mark_operation.reset_mock()
+    with input_wait_limit(1, deadline=1.0):
+        if expired:
+            assert war._dispatch_input(backend.mouse_drag, 10, 20, 30, 40, mark_sent=mark_sent,
+                                       before_input=mark_operation) is False
+        else:
+            with pytest.raises(TimeoutError, match="输入回执超时"):
+                war._dispatch_input(backend.mouse_drag, 10, 20, 30, 40, mark_sent=mark_sent,
+                                    before_input=mark_operation)
+    assert events == (["mouseMoved"] if expired else ["mouseMoved", "mousePressed", "mouseReleased"])
+    assert mark_sent.call_count == mark_operation.call_count == (0 if expired else 1)
 
 
 GUARDED_METHODS = [

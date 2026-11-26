@@ -1,10 +1,13 @@
 import pyautogui
 import time
+from math import ceil
 
-from module.automation.input_base import InputBase
+from module.automation.input_base import InputBase, begin_input_dispatch, input_deadline_reached
+from utils.pause import pause_ctl
 
 
 class LocalInput(InputBase):
+    reports_dispatch = True
     # 禁用pyautogui的失败安全特性，防止意外中断
     pyautogui.FAILSAFE = False
 
@@ -13,6 +16,9 @@ class LocalInput(InputBase):
 
     def mouse_click(self, x, y):
         '''在屏幕上的（x，y）位置执行鼠标点击操作'''
+        pause_ctl.check_stop()
+        if not begin_input_dispatch(time.monotonic()):
+            return False
         try:
             pyautogui.click(x, y)
             self.logger.debug(f"鼠标点击 ({x}, {y})")
@@ -21,11 +27,15 @@ class LocalInput(InputBase):
 
     def mouse_down(self, x, y):
         '''在屏幕上的（x，y）位置按下鼠标按钮'''
+        pause_ctl.check_stop()
+        if not begin_input_dispatch(time.monotonic()):
+            return False
         try:
             pyautogui.mouseDown(x, y)
             self.logger.debug(f"鼠标按下 ({x}, {y})")
         except Exception as e:
             self.logger.error(f"鼠标按下出错：{e}")
+            return False
 
     def mouse_up(self):
         '''释放鼠标按钮'''
@@ -34,6 +44,7 @@ class LocalInput(InputBase):
             self.logger.debug("鼠标释放")
         except Exception as e:
             self.logger.error(f"鼠标释放出错：{e}")
+            return False
 
     def mouse_move(self, x, y, pace=None, step_px=None):
         '''将鼠标光标移动到屏幕上的（x，y）位置。pace 是按住拖动时这一段的时长。'''
@@ -46,15 +57,45 @@ class LocalInput(InputBase):
         except Exception as e:
             self.logger.error(f"鼠标移动出错：{e}")
 
-    def mouse_drag(self, start_x, start_y, end_x, end_y, duration=0.5):
+    def mouse_drag(self, start_x, start_y, end_x, end_y, duration=0.5, end_pause=0.0, repeats=1):
         '''按住鼠标左键从起点拖动到终点'''
+        duration = max(0.0, float(duration or 0.0))
+        steps = max(1, ceil(duration * 60))
         try:
-            pyautogui.moveTo(start_x, start_y)
-            try:
-                pyautogui.mouseDown()
-                pyautogui.moveTo(end_x, end_y, duration=max(0.0, float(duration or 0.0)))
-            finally:
-                pyautogui.mouseUp()
+            for index in range(repeats):
+                pause_ctl.check_stop()
+                if input_deadline_reached(time.monotonic()):
+                    return False
+                pyautogui.moveTo(start_x, start_y)
+                pause_ctl.check_stop()
+                if not begin_input_dispatch(time.monotonic()):
+                    return False
+                try:
+                    pyautogui.mouseDown()
+                    started = time.monotonic()
+                    for step in range(1, steps + 1):
+                        pause_ctl.check_stop()
+                        progress = step / steps
+                        remaining = started + duration * progress - time.monotonic()
+                        if remaining > 0:
+                            time.sleep(remaining)
+                        pause_ctl.check_stop()
+                        x = round(start_x + (end_x - start_x) * progress)
+                        y = round(start_y + (end_y - start_y) * progress)
+                        pyautogui.moveTo(x, y, _pause=False)
+                    if end_pause and index == repeats - 1:
+                        release_at = time.monotonic() + end_pause
+                        while (remaining := release_at - time.monotonic()) > 0:
+                            pause_ctl.check_stop()
+                            time.sleep(min(1 / 60, remaining))
+                finally:
+                    try:
+                        pyautogui.mouseUp()
+                    except Exception as error:
+                        self.logger.error(f"鼠标拖动结束时释放失败：{error}")
+                        pause_ctl.check_stop()
+                        raise
+                pause_ctl.check_stop()
             self.logger.debug(f"鼠标拖动 ({start_x}, {start_y}) -> ({end_x}, {end_y})")
             return True
         except Exception as e:
@@ -69,13 +110,18 @@ class LocalInput(InputBase):
 
     def press_key(self, key, wait_time=0.2):
         '''模拟键盘按键，可以指定按下的时间'''
+        pause_ctl.check_stop()
+        if not begin_input_dispatch(time.monotonic()):
+            return False
         try:
             pyautogui.keyDown(key)
             time.sleep(wait_time)  # 等待指定的时间
             pyautogui.keyUp(key)
             self.logger.debug(f"键盘按下 {key}")
+            return True
         except Exception as e:
             self.logger.error(f"键盘按下 {key} 出错：{e}")
+            return False
 
     def press_key_down(self, key):
         '''模拟键盘按下指定按键'''
@@ -117,7 +163,10 @@ class LocalInput(InputBase):
     def secretly_write(self, text, interval=0.1):
         '''模拟键盘输入字符串，可以指定字符输入间隔'''
         try:
-            pyautogui.write(text, interval=interval)
+            for character in text:
+                pause_ctl.check_stop()
+                pyautogui.write(character, interval=interval, _pause=False)
+            pause_ctl.check_stop()
             self.logger.debug("键盘输入 ***")
         except Exception as e:
             self.logger.error(f"键盘输入 *** 出错：{e}")

@@ -1,10 +1,43 @@
 import os
 import copy
+import sys
+from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 import pytest
 
 from module.config.config import _get_env_override, _ENV_OVERRIDE_MAP, _CONFIG_KEY_TO_ENV
+
+
+@pytest.mark.parametrize(("system", "settings", "detected", "expected", "reads_registry"), [
+    ("win32", {}, {"hotkey_map": "space"}, "space", True),
+    ("win32", {}, {}, "n", True),
+    ("win32", {"auto_detect_game_hotkeys_enable": False}, {"hotkey_map": "space"}, "n", False),
+    ("win32", {"control_backend": "cloud"}, {"hotkey_map": "space"}, "n", False),
+    ("win32", {"cloud_game_enable": True}, {"hotkey_map": "space"}, "space", True),
+    ("win32", {"control_backend": "adb"}, {"hotkey_map": "space"}, "n", False),
+    ("win32", {"ui_profile": "touch_720"}, {"hotkey_map": "space"}, "n", False),
+    ("linux", {}, {"hotkey_map": "space"}, "n", False),
+])
+def test_effective_game_hotkey_keeps_manual_config(
+    monkeypatch, system, settings, detected, expected, reads_registry,
+):
+    from module.config import game_hotkeys
+    from module.config.config import Config
+
+    config = Config.__new__(Config)
+    config.config = {"game_path": "StarRail.exe", "hotkey_map": "n", **settings}
+    monkeypatch.delenv("MARCH7TH_CLOUD_GAME_ENABLE", raising=False)
+    monkeypatch.setattr(game_hotkeys, "sys", SimpleNamespace(platform=system))
+    reader = MagicMock(return_value=detected)
+    monkeypatch.setitem(sys.modules, "utils.registry.star_rail_setting", SimpleNamespace(read_game_hotkeys=reader))
+
+    assert config.get_game_hotkey("hotkey_map", "m") == expected
+    assert config.get_value("hotkey_map") == "n"
+    if reads_registry:
+        reader.assert_called_once_with("StarRail.exe", ("hotkey_map",))
+    else:
+        reader.assert_not_called()
 
 
 class TestGetEnvOverride:
@@ -30,6 +63,15 @@ class TestGetEnvOverride:
         has_override, value = _get_env_override("after_finish")
         assert has_override is True
         assert value == "Shutdown"
+
+    @pytest.mark.parametrize("env_value, expected", [("true", True), ("1", True), ("false", False), ("0", False)])
+    def test_no_run_immediately(self, monkeypatch, env_value, expected):
+        monkeypatch.setenv("MARCH7TH_NO_RUN_IMMEDIATELY", env_value)
+        assert _get_env_override("no_run_immediately") == (True, expected)
+
+    def test_no_run_immediately_unset(self, monkeypatch):
+        monkeypatch.delenv("MARCH7TH_NO_RUN_IMMEDIATELY", raising=False)
+        assert _get_env_override("no_run_immediately") == (False, None)
 
 
 class TestEnvOverrideMap:
@@ -533,6 +575,7 @@ class TestDiagLogRotation:
         """轮转文件必须以 .log 结尾，才能被 utils.logger 的 30 天保留清理机制回收"""
         import module.config.config as config_module
         monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(config_module, '_DIAG_FILE', str(tmp_path / 'logs/config_diag.log'))
         monkeypatch.setattr(config_module, "_DIAG_FILE_MAX_BYTES", 0)  # 每次写入都触发轮转
 
         config_module._diag("debug", "first")
@@ -551,3 +594,88 @@ class TestDiagLogRotation:
         from module.config.config import _diag_rotated_path
         assert _diag_rotated_path().endswith(".1.log")
         assert _diag_rotated_path().endswith(".log")
+
+
+class TestPowerLoopMigration:
+    @pytest.mark.parametrize("mode, scheduled_time", [
+        ("power", "7:35"), ("power", None), ("scheduled", "9:10"),
+    ])
+    def test_load_migrates_and_preserves_settings(self, tmp_path, monkeypatch, mode, scheduled_time):
+        from pathlib import Path
+        from module.config.config import Config
+
+        monkeypatch.delenv("MARCH7TH_CONFIG_READONLY", raising=False)
+        root = Path(__file__).resolve().parents[2]
+        path = tmp_path / "config.yaml"
+        text = f"loop_mode: {mode}\npower_limit: 160\npower_enable: false\nrefresh_hour: 5\nafter_finish: Loop\n"
+        text += "power_plan: []\nscheduled_tasks: []\n"
+        if scheduled_time is not None:
+            text += f"scheduled_time: '{scheduled_time}'\n"
+        path.write_text(text, encoding="utf-8")
+        # 绕过单例缓存，但执行真实初始化、模板合并和安全落盘。
+        config = Config.__new__(Config)
+        config.__init__(str(root / "assets/config/version.txt"),
+                        str(root / "assets/config/config.example.yaml"), str(path))
+        assert config.loop_mode == "scheduled"
+        assert config.scheduled_time == (scheduled_time or "4:00")
+        assert config.after_finish == "Loop"
+        assert config.power_enable is False
+        assert config.power_plan == []
+        assert config.scheduled_tasks == []
+        assert config.refresh_hour == 5
+        saved = config.yaml.load(path.read_text(encoding="utf-8"))
+        assert saved == config.config
+        assert "power_limit" not in saved
+        original = path.read_bytes()
+        with patch("module.config.config._diag") as diag:
+            config._load_config()
+        assert path.read_bytes() == original
+        assert not config.is_config_changed()
+        assert not any("体力循环模式已移除" in str(call) for call in diag.call_args_list)
+
+    def test_readonly_migrates_in_memory_without_writing(self, tmp_path, monkeypatch):
+        from pathlib import Path
+        from module.config.config import Config
+
+        monkeypatch.setenv("MARCH7TH_CONFIG_READONLY", "1")
+        monkeypatch.setattr(Config, "_readonly", False)
+        root = Path(__file__).resolve().parents[2]
+        path = tmp_path / "config.yaml"
+        original = "loop_mode: power\nscheduled_time: '8:00'\n"
+        path.write_text(original, encoding="utf-8")
+        config = Config.__new__(Config)
+        config.__init__(str(root / "assets/config/version.txt"),
+                        str(root / "assets/config/config.example.yaml"), str(path))
+        assert config.loop_mode == "scheduled"
+        assert config.scheduled_time == "8:00"
+        assert path.read_text(encoding="utf-8") == original
+
+
+class TestMessageHotkeyConfig:
+    @pytest.mark.parametrize("saved_key, expected", [(None, "p"), ("k", "k"), ("f6", "f6")])
+    def test_load_preserves_custom_key_and_fills_old_config(
+        self, tmp_path, monkeypatch, saved_key, expected
+    ):
+        from pathlib import Path
+        from module.config.config import Config
+
+        root = Path(__file__).resolve().parents[2]
+        path = tmp_path / "config.yaml"
+        text = "hotkey_map: n\nreward_message_enable: true\n"
+        if saved_key is not None:
+            text += f"hotkey_message: {saved_key}\n"
+        path.write_text(text, encoding="utf-8")
+        monkeypatch.delenv("MARCH7TH_CONFIG_READONLY", raising=False)
+        monkeypatch.setattr(Config, "_readonly", False)
+        config = Config.__new__(Config)
+        config.__init__(str(root / "assets/config/version.txt"),
+                        str(root / "assets/config/config.example.yaml"), str(path))
+
+        assert config.get_value("hotkey_message") == expected
+        assert config.get_value("hotkey_map") == "n"
+        assert config.get_value("auto_detect_game_hotkeys_enable") is True
+        assert config.get_value("reward_message_enable") is True
+        saved = config.yaml.load(path.read_text(encoding="utf-8"))
+        assert saved["hotkey_message"] == expected
+        config._load_config()
+        assert config.get_value("hotkey_message") == expected

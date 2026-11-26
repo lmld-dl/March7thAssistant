@@ -3,7 +3,8 @@ name = "march7thassistant"
 version = "0.1.0"
 description = "March7thAssistant automation app"
 readme = "README.md"
-requires-python = ">=3.12"
+# 当前锁定的 ONNX Runtime 依赖尚未提供 CPython 3.15 的 wheel。
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "ruamel.yaml==0.19.1",
     "playsound3==3.3.1",
@@ -19,9 +20,10 @@ dependencies = [
     "opencv-python==4.13.0.92",
     "winotify==1.1.0; sys_platform == 'win32'",
     "Markdown==3.10.2",
-    "PySide6-Fluent-Widgets==1.11.2",
+    "PySide6-Fluent-Widgets==1.11.3",
     "PySideSix-Frameless-Window==0.8.1",
-    "PySide6==6.11.1",
+    # Qt 6.11.3 会将带样式且隐藏原生按钮的 SpinBox 文本区域压缩至 1px。
+    "PySide6==6.11.2",
     "pylnk3==0.4.3",
     "qrcode==8.2",
     "PySocks==1.7.1",
@@ -35,15 +37,18 @@ dependencies = [
 ]
 
 [dependency-groups]
+i18n = ["polib==1.2.0"]
+
 build = [
+    { include-group = "i18n" },
     "pyinstaller==6.22.3",
 ]
 
 dev = [
+    { include-group = "i18n" },
     "pytest>=8.0",
     "pytest-cov>=6.0",
     "pytest-qt>=4.4",
-    "polib==1.2.0",
 ]
 
 [tool.uv]

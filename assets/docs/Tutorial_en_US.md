@@ -12,11 +12,11 @@
 | Docker | ❌ | ✅ |
 | Android (Termux) | ❌ | ✅ |
 
-Local game mode supports Windows only. You must use the PC client and run the game in a 16:9 window. 1920×1080 and 2560×1440 are supported, as are other 16:9 sizes at least 1920×1080. If windowed mode is unavailable, use fullscreen instead. UI coordinates use 1920×1080 as the base and scale with width (4/3 at 2560×1440).
+Local game mode supports Windows only. You must use the PC client and run the game in a 1920×1080 window. If windowed mode is unavailable, use fullscreen instead.
 
 The in-game language must be set to Simplified Chinese. You should also disable FPS monitoring HUDs, MSI Afterburner, GamePP, HDR, NVIDIA Freestyle filters, and similar tools that may overlay or alter the captured image.
 
-Cloud game mode supports Windows, macOS, Linux, and Android. macOS and Linux users can run it from source, or use [Docker Deployment](/assets/docs/Docker.md); Android users can refer to [Termux Android Deployment](/assets/docs/Termux.md).
+Cloud game mode supports Windows, macOS, Linux, and Android. macOS and Linux users can run it from source, or use Docker Deployment; Android users can refer to [Termux Android Deployment](/assets/docs/Termux.md).
 
 > After enabling `Cloud Honkai: Star Rail`, tasks such as spending Trailblaze Power, Daily Training, and Divergent Universe no longer require a fixed window.
 >
@@ -109,7 +109,7 @@ If you disable `Enable Spend Power` in Power Settings, both `Full Run` and `Dail
 
 ### Currency Wars
 
-The current version supports `Currency Wars: Zero-Sum Game`. The home-page entry offers both `Run Once` and `Loop Run`.
+The current version supports `Currency Wars: Voyage Into the Canvas`. The home-page entry offers `Run Once`, `Loop Run`, and `Currency War Mid-takeover`. Use the Simplified Chinese PC client.
 
 If you enabled `Currency Wars score rewards` in settings, the full workflow checks weekly score rewards automatically.
 
@@ -185,9 +185,13 @@ Usually the default `Brief` level is enough. If you encounter issues, switch to 
 
 #### Game Path / Launcher Path
 
+In Settings → Game connection, set Game location to Local game to configure the game and launcher paths.
+
 If you start the game before launching the assistant, the `Game Path` is usually detected automatically. If you set it manually,
 
 do not accidentally choose the launcher `miHoYo Launcher\launcher.exe`. The actual game executable is `Star Rail Game\StarRail.exe`.
+
+For the Epic edition, select its `StarRail.exe`, expand `Game Path`, and set `Game launch method` to `Launch via Epic`. Before an unattended run, start the Epic Games Launcher as administrator and sign in to avoid a UAC prompt when HoYoPlay opens. If Epic is already running, exit it from the system tray first, then right-click its shortcut and select `Run as administrator`.
 
 If you want to update the game or pre-download through the HoYoverse launcher, you also need to configure the `HoYoverse Launcher Path`.
 
@@ -243,11 +247,12 @@ If you only want to automatically claim all weekly Currency Wars score rewards, 
 Common options include:
 
 - `Category`: Standard Match / Overclock Match
-- `Quick Preset`
+- `Quick Preset` offers `Weekly Score`, `Promotion Points`, and `Rank Climb`. The Promotion Points preset uses Overclock Match at A4-6 or the highest unlocked rank if A4-6 is locked.
 - `Rank Difficulty`
-- `Currency Wars Strategy`
-- `Restart when certain modifiers appear`
+- `Currency Wars Strategy` offers `Default`, `Anaxa Combo (S2)`, and `Anaxa Combo (High Difficulty)`. The default strategy is for earning weekly points at the lowest rank. It deploys higher-cost characters first, breaks ties by star level, skips character purchases, and prioritizes uncollected investments.
 - `Enable Speedrun Mode`
+
+The defaults are Overclock Match and the lowest rank. Unlock Overclock Match in the game first. You can change old Aglaea or Seele settings manually. Starting Currency Wars with either old strategy automatically migrates it to `Anaxa Combo (High Difficulty)`.
 
 ### Divergent Universe / Simulated Universe Settings
 
@@ -296,7 +301,7 @@ It is recommended to configure your teams first, then let the full workflow hand
 
 ### Cloud Honkai: Star Rail
 
-After enabling `Use Cloud Honkai: Star Rail`, the assistant will control the cloud game in a browser to run tasks such as spending Trailblaze Power.
+In Settings → Game connection, set Game location to Cloud Honkai: Star Rail. The assistant will control the cloud game in a browser to run tasks such as spending Trailblaze Power.
 
 Common options include:
 
@@ -315,8 +320,8 @@ Headless mode does not support Simulated Universe (not including Divergent Unive
 
 The `Miscellaneous` page mainly contains helper switches that improve stability and automation. Common ones include:
 
-- `Enable auto battle and 2x speed detection`: Try to enable auto battle and 2x speed before the game starts, and keep them active during built-in combat scenes such as Trailblaze Power farming and Currency Wars.
-- `Enable automatic resolution change and disable Auto HDR`: When launching the game through the assistant, automatically switch to 1920×1080 and disable Auto HDR. You can leave this off when the game is already running at a supported 16:9 size such as 1920×1080 or 2560×1440.
+- `Enable auto battle and 2x speed detection`: Try to enable auto battle and 2x speed before the game starts, and keep them active during built-in combat scenes such as Trailblaze Power farming.
+- `Enable automatic resolution change and disable Auto HDR`: When launching the game through the assistant, automatically switch to 1920×1080 and disable Auto HDR. Recommended for local mode users.
 - `Enable automatic game-path configuration`: Try to detect the path automatically from shortcuts, the official launcher, or a running game process.
 - `Prefer background screenshots`: Recommended by default. It can reduce interference from overlays and floating windows.
 - `Launch when user signs in`: Start through Windows Task Scheduler at sign-in. For truly unattended use, you usually also need to configure system auto-login yourself.

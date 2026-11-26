@@ -8,9 +8,16 @@ on:
       - main
     paths:
       - "**/*.py"
+      - "assets/locales/**"
       - "requirements.txt"
       - "pyproject.toml"
       - "uv.lock"
+      - "Android/device-service/**"
+      - "Android/gradle/wrapper/**"
+      - "Android/gradle.properties"
+      - "Android/gradlew.bat"
+      - "Android/settings.gradle"
+      - ".github/scripts/stage-adb-service.ps1"
 
 jobs:
   build:
@@ -53,8 +60,8 @@ jobs:
         if: steps.check_version.outputs.should_build == 'true'
         uses: astral-sh/setup-uv@v8.1.0
         with:
-          version: "0.11.15"
-          python-version: "3.14.5"
+          version: "0.13.0"
+          python-version: "3.14.8"
           enable-cache: true
           cache-python: true
           prune-cache: false
@@ -62,9 +69,15 @@ jobs:
       # 安装依赖
       - name: Install dependencies
         if: steps.check_version.outputs.should_build == 'true'
-        run: |
-          uv sync --group build
-          uv run python build.py --task ocr
+        run: uv sync --group build
+
+      - name: Compile translation catalogs
+        if: steps.check_version.outputs.should_build == 'true'
+        run: uv run --no-sync python -m tools.i18n compile
+
+      - name: Prepare OCR resources
+        if: steps.check_version.outputs.should_build == 'true'
+        run: uv run python build.py --task ocr
 
       # 并行生成程序
       - name: Generate program
@@ -88,6 +101,11 @@ jobs:
           Copy-Item -Path ".\README.md" -Destination ".\dist\March7thAssistant\" -Force
           # 根目录的 AGENTS.md：在安装目录中打开的 AI Agent 会自动读取，指向随包发布的使用说明（Skill）
           Copy-Item -Path ".\assets\agent\AGENTS.md" -Destination ".\dist\March7thAssistant\" -Force
+
+      - name: Build and stage ADB device service
+        if: steps.check_version.outputs.should_build == 'true'
+        shell: pwsh
+        run: ./.github/scripts/stage-adb-service.ps1 -PackageRoot ./dist/March7thAssistant
 
       # 缓存 7-Zip ZS，避免每次构建重复下载二进制。
       # 注意 GitHub 缓存按 ref 隔离：PR 运行只能读 main 作用域的缓存、不能写入，

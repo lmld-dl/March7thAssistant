@@ -1,5 +1,6 @@
 from typing import Literal
 from module.config import cfg
+from module.config.platform import get_control_backend
 from .screenshot import ScreenshotApp
 from .autoplot import AutoPlot
 from module.game import get_game_controller
@@ -48,7 +49,7 @@ class ToolManager:
         try:
             self.screenshot_error_message = ""
             log.info("开始捕获图像...")
-            if not cfg.use_background_screenshot:
+            if get_control_backend(cfg) == 'local' and not cfg.use_background_screenshot:
                 game = get_game_controller()
                 if not game.switch_to_game():
                     log.error("游戏尚未启动")
@@ -219,3 +220,21 @@ def start_screenshot_from_file(file_path: str):
     load_thread = threading.Thread(target=load_and_show, daemon=True)
     load_thread.start()
 
+
+def start_workflow_capture(kind: Literal["template", "ocr"], workflow_name: str | None = None):
+    """启动带流程素材保存能力的截图工具。"""
+
+    def capture_and_show():
+        _tool_manager.screenshot_window_options = {
+            "workflow_capture_kind": kind,
+            "workflow_name": workflow_name,
+        }
+        if _tool_manager.run_screenshot():
+            _tool_manager.show_screenshot_window()
+        else:
+            _tool_manager.show_error_dialog(
+                _tool_manager.screenshot_error_message or "截图失败，请稍后重试。"
+            )
+
+    capture_thread = threading.Thread(target=capture_and_show, daemon=True)
+    capture_thread.start()

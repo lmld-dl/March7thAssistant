@@ -1,23 +1,37 @@
+import sys
+
 from PIL import Image
+from .background_input import GameWindowLost
+from .windows_input import WindowsInputApi
 from module.config import cfg
-from module.game.resolution import scale_to_base, scaled_capture_size
+from module.config.platform import get_control_backend, get_ui_profile
 
 
 class Screenshot:
     @staticmethod
     def is_application_fullscreen(window):
+        if get_control_backend(cfg) != "local":
+            return True
         import pyautogui
         screen_width, screen_height = pyautogui.size()
         return (window.width, window.height) == (screen_width, screen_height)
 
     @staticmethod
     def get_window_real_resolution(window):
+        backend = get_control_backend(cfg)
+        if backend == "cloud":
+            return 1920, 1080
+        if backend != "local":
+            from module.game import get_game_controller
+            return get_game_controller(backend).get_resolution()
         import win32gui  # 延迟导入，避免非 Windows 平台报错
         left, top, right, bottom = win32gui.GetClientRect(window._hWnd)
         return right - left, bottom - top
 
     @staticmethod
     def get_window_region(window):
+        if get_control_backend(cfg) != "local":
+            return (0, 0, *Screenshot.get_window_real_resolution(window))
         if Screenshot.is_application_fullscreen(window):
             return (window.left, window.top, window.width, window.height)
         else:
@@ -28,6 +42,8 @@ class Screenshot:
 
     @staticmethod
     def get_window(title):
+        if get_control_backend(cfg) != "local":
+            return False
         import pyautogui
         windows = pyautogui.getWindowsWithTitle(title)
         if windows:
@@ -113,6 +129,11 @@ class Screenshot:
 
     @staticmethod
     def take_screenshot(title, crop=(0, 0, 1, 1), use_background_screenshot=None, prefer_frame_screenshot=True, require_background=None):
+        backend = get_control_backend(cfg)
+        if backend != "local":
+            from module.game import get_game_controller
+            return get_game_controller(backend).capture_frame(crop=crop, prefer_frame=prefer_frame_screenshot)
+
         window = Screenshot.get_window(title)
         if window:
             from .input_base import background_enabled
@@ -171,21 +192,30 @@ class Screenshot:
                     return False
 
             real_width, _ = Screenshot.get_window_real_resolution(window)
-            # 1920×1080 保持原图。更宽的 16:9（例如 2560×1440，缩放 3/4）
-            # 先缩到 1920 宽的基准图上做模板匹配和 OCR，点击时再乘回去。
-            screenshot_scale_factor = scale_to_base(real_width)
-            if screenshot_scale_factor != 1:
-                screenshot = screenshot.resize(
-                    scaled_capture_size(screenshot.width, screenshot.height, real_width)
-                )
+            if real_width > 1920 and (title != cfg.game_title_name or get_ui_profile(cfg).name == "pc_1080"):
+                screenshot_scale_factor = 1920 / real_width
+                screenshot = screenshot.resize((int(1920 * crop[2]), int(1080 * crop[3])))
+            else:
+                screenshot_scale_factor = 1
 
             screenshot_pos = (
                 int(left + width * crop[0]),
                 int(top + height * crop[1]),
-                screenshot.width,
-                screenshot.height,
+                int(width * crop[2] * screenshot_scale_factor),
+                int(height * crop[3] * screenshot_scale_factor)
             )
 
             return screenshot, screenshot_pos, screenshot_scale_factor
 
+        if sys.platform == "win32" and not require_background and title == getattr(cfg, "game_title_name", None):
+            process_name = getattr(cfg, "game_process_name", None)
+            if process_name:
+                from utils.windows_session import process_session_id
+
+                try:
+                    running = WindowsInputApi().process_running(process_name, session_id=process_session_id())
+                except Exception:
+                    return False
+                if running is False:
+                    raise GameWindowLost("游戏进程已退出，游戏窗口已关闭")
         return False

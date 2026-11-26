@@ -2,6 +2,8 @@
 
 本教程介绍如何在安卓设备上通过 Termux + proot-distro 运行 March7th Assistant（云崩铁模式）。
 
+> **只是想在手机上用小助手？** 推荐直接安装 [安卓版](/assets/docs/Android.md)：不需要命令行，按 App 里的引导授权后就能在后台完成日常、每日实训和清体力。
+
 > **注意**：
 > - 本教程**仅支持云游戏模式**，不支持本地游戏客户端。
 > - 本方式**不是很推荐**日常使用，仅适合有兴趣折腾的用户尝试。
@@ -61,10 +63,12 @@ termux-wake-lock
 
 ### 3. 创建项目目录并下载配置文件
 
+以下命令用于新安装。配置只在 `~/march7thassistant/config.yaml` 的旧安装可以继续用原挂载；要切换到 `userdata`，先在 Termux 中停止小助手并备份 `~/march7thassistant`。在这个宿主目录内，把原配置复制为 `userdata/config.yaml`，再把 `logs/` 和 `3rdparty/WebBrowser/UserProfile/` 里的内容分别复制到 `userdata/logs/` 和 `userdata/browser/`。如果原来有抽卡记录，还要把 `logs/gacha/` 里的 `<UID>.json` 和 `.bak` 备份复制到 `userdata/gacha/`。复制完成后运行新版 `start-m7a.sh`，它会挂载准备好的 `userdata`。
+
 ```bash
-mkdir -p march7thassistant/logs march7thassistant/3rdparty/WebBrowser/UserProfile
+mkdir -p march7thassistant/userdata
 cd march7thassistant
-curl -o config.yaml https://m7a.top/assets/config/config.example.yaml
+curl -o userdata/config.yaml https://m7a.top/assets/config/config.example.yaml
 ```
 
 ### 4. 下载启动脚本
@@ -96,7 +100,7 @@ proot-distro install ghcr.io/moesnow/march7thassistant:latest
 
 首次运行时，程序会自动进入**二维码登录**模式。
 
-二维码图片会保存在 `logs/qrcode_login.png`，使用手机**米游社 APP** 扫描完成登录。
+二维码图片会保存在 `userdata/logs/qrcode_login.png`（旧挂载为 `logs/qrcode_login.png`），使用手机**米游社 APP** 扫描完成登录。
 
 也可以查看终端输出中的二维码内容，使用在线工具（如 [草料二维码](https://cli.im/)）将网址生成二维码后扫码登录。
 
@@ -131,7 +135,7 @@ proot-distro reset march7thassistant
 | `power` | 仅执行清体力 |
 | `currencywars` | 仅执行货币战争 |
 | `divergent` | 仅执行差分宇宙 |
-| `game` | 启动游戏 |
+| `notify` | 测试消息推送 |
 | `-l` | 查看完整任务列表 |
 
 ---
@@ -223,7 +227,8 @@ pipx ensurepath
 ```bash
 git clone https://github.com/moesnow/March7thAssistant --depth 1
 cd March7thAssistant
-uv sync
+uv sync --only-group docker
+uv run --only-group docker python -m tools.i18n compile
 ```
 
 > **注意**：克隆仓库需要访问 GitHub，如果遇到网络问题，可以尝试通过代理下载，或使用 GitHub 镜像站。
@@ -259,12 +264,12 @@ export MARCH7TH_DRIVER_PATH=/usr/bin/chromedriver
 ### 8. 运行
 
 ```bash
-uv run main.py
+uv run --only-group docker main.py
 ```
 
 首次运行时，程序会自动进入**二维码登录**模式。
 
-二维码图片会保存在 `logs/qrcode_login.png`，使用手机**米游社 APP** 扫描完成登录。
+二维码图片会保存在 `userdata/logs/qrcode_login.png`（旧挂载为 `logs/qrcode_login.png`），使用手机**米游社 APP** 扫描完成登录。
 
 也可以查看终端输出中的二维码内容，使用在线工具（如 [草料二维码](https://cli.im/)）将网址生成二维码后扫码登录。
 
@@ -275,7 +280,8 @@ uv run main.py
 ```bash
 cd ~/March7thAssistant
 git pull
-uv sync
+uv sync --only-group docker
+uv run --only-group docker python -m tools.i18n compile
 ```
 
 ### 启动非完整运行任务
@@ -283,19 +289,19 @@ uv sync
 默认情况下运行的是**完整运行**，如果只想执行某个子任务，可以在命令后指定任务名称：
 
 ```bash
-uv run main.py daily
+uv run --only-group docker main.py daily
 ```
 
 常见示例：
 
 | 命令 | 说明 |
 |------|------|
-| `uv run main.py daily` | 仅执行每日实训 |
-| `uv run main.py power` | 仅执行清体力 |
-| `uv run main.py currencywars` | 仅执行货币战争 |
-| `uv run main.py divergent` | 仅执行差分宇宙 |
-| `uv run main.py game` | 启动游戏 |
-| `uv run main.py -l` | 查看完整任务列表 |
+| `uv run --only-group docker main.py daily` | 仅执行每日实训 |
+| `uv run --only-group docker main.py power` | 仅执行清体力 |
+| `uv run --only-group docker main.py currencywars` | 仅执行货币战争 |
+| `uv run --only-group docker main.py divergent` | 仅执行差分宇宙 |
+| `uv run --only-group docker main.py notify` | 测试消息推送 |
+| `uv run --only-group docker main.py -l` | 查看完整任务列表 |
 
 ### 附录：传统方式快速启动脚本
 
@@ -314,7 +320,7 @@ proot-distro login debian -- bash -c '
   export MARCH7TH_BROWSER_PATH=/usr/bin/chromium
   export MARCH7TH_DRIVER_PATH=/usr/bin/chromedriver
   cd ~/March7thAssistant
-  uv run main.py
+  uv run --only-group docker main.py
 '
 EOF
 chmod +x ~/start-m7a.sh
@@ -330,11 +336,10 @@ chmod +x ~/start-m7a.sh
 
 ## 修改配置文件
 
-配置文件位于项目目录下的 `config.yaml`，首次运行后会自动生成。使用文本编辑器修改：
+新版配置文件位于项目目录的 `userdata/config.yaml`（旧挂载仍使用 `config.yaml`），首次运行后会自动生成。镜像方式在 Termux 里进入 `~/march7thassistant`，源码方式在 Debian 里进入 `~/March7thAssistant`，然后用文本编辑器修改：
 
 ```bash
-cd ~/March7thAssistant
-vim config.yaml
+vim userdata/config.yaml
 ```
 
 常用配置项示例：
@@ -352,7 +357,7 @@ run_daily_time: "04:00"
 如果不熟悉 vim，也可以使用 nano：
 
 ```bash
-nano config.yaml
+nano userdata/config.yaml
 ```
 
 修改完成后按 `Ctrl+O` 保存，`Ctrl+X` 退出 nano。
