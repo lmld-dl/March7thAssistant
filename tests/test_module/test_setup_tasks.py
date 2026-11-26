@@ -37,8 +37,8 @@ assert not {"PySide6", "qfluentwidgets", "module.config"} & sys.modules.keys()
 
 
 def test_visible_tasks_and_presets():
-    rows = tasks.tasks(lambda key: key != "fight")
-    assert tuple(row.id for row in rows) == tasks.TASK_IDS[:-1]
+    rows = tasks.tasks(lambda key: True)
+    assert tuple(row.id for row in rows) == tasks.TASK_IDS
     assert {row.id for row in rows if row.weekly} == tasks.WEEKLY
     assert rows[5].name == "货币战争积分"
     available = {"power", "daily", "reward", "echo"}
@@ -80,7 +80,6 @@ def test_instance_uses_raw_names_and_changes_only_selected_type():
 @pytest.mark.parametrize("selected,expected,weekly", [
     ((), "还没有选择任何任务", False), (("echo",), "每天大约 5 分钟，周常每周另外 5–10 分钟", True),
     (("power", "daily", "reward", "activity"), "每天大约 15–35 分钟", False),
-    (("fight",), "1.1–2.1 小时", False),
     (("currencywars",), "30–90 分钟", True),
     (("echo", "currencywars"), "35 分钟–1.7 小时", True),
     (("echo", "currencywars", "universe", "challenge"), "1.4–3.7 小时", True),

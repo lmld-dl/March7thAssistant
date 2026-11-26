@@ -178,10 +178,12 @@ def test_keyboard_tasks_drafts_schedule_and_done(panel, qtbot):
     click(qtbot, dialog.nextButton)
     assert model.calls[-1][0] == "game"
     step = dialog.currentStep()
-    tile = step.tiles["fight"]
-    qtbot.mouseClick(tile, LEFT, pos=QPoint(60, 20))
-    assert tile.isChecked() and not any(chip.isChecked() for chip in step.chips.values())
-    click(qtbot, getattr(tile.switch, "indicator", tile.switch))
+    tile = step.tiles["challenge"]
+    chips_before = [chip.isChecked() for chip in step.chips.values()]
+    tile.setChecked(True)
+    assert tile.isChecked()
+    assert [chip.isChecked() for chip in step.chips.values()] == chips_before
+    tile.setChecked(False)
     assert not tile.isChecked()
     for _ in range(2):
         click(qtbot, step.chips["daily"])
@@ -259,16 +261,9 @@ def test_search_skip_epic_error_and_reopen(panel, qtbot):
     with qtbot.waitSignal(dialog.closed) as closed:
         click(qtbot, dialog.closeButton)
     assert closed.args == [False] and model.calls[-1] == "dismiss"
-    model, dialog = panel("cloud", first=False, windows=False)
+    model, dialog = panel("adb", first=False, windows=False)
     assert dialog.rail.titleLabel.text() == tr("首次配置向导")
     assert all(row.state() == "done" for row in dialog.rail.rows[1:])
-    assert not dialog.currentStep().cards["local"].option.available
-    click(qtbot, dialog.nextButton)
-    cloud = dialog.currentStep().page()
-    cloud.browserCombo.setCurrentIndex(cloud.browserCombo.findData("edge"))
-    cloud.headlessSwitch.setChecked(True)
-    click(qtbot, dialog.nextButton)
-    assert model.calls[-1] == ("cloud", "edge", True)
     click(qtbot, dialog.rail.rows[3])
     assert "login" not in dialog.currentStep().cards
     click(qtbot, dialog.currentStep().cards["daily"])

@@ -207,8 +207,7 @@ def test_time_conflict_checks_disk_before_stopping_active_task(schedule_runtime,
 
 
 @pytest.mark.parametrize('file_contents, overrides', [
-    ('ui_profile: touch_720\n', {'MARCH7TH_CLOUD_GAME_ENABLE': 'true'}),
-    ('control_backend: adb\n', {'MARCH7TH_DESKTOP_TWIN': '1', 'MARCH7TH_CLOUD_GAME_ENABLE': 'true'}),
+    ('control_backend: adb\n', {'MARCH7TH_DESKTOP_TWIN': '1'}),
 ])
 def test_time_conflict_disk_snapshot_honors_environment(schedule_runtime, schedule_clock, monkeypatch,
                                                          file_contents, overrides):
@@ -328,7 +327,7 @@ def test_delayed_replacement_rechecks_backend_before_dispatch(schedule_runtime, 
     assert any('当前后端不支持，未执行' in line for line in schedule_runtime.logs)
 
 
-@pytest.mark.parametrize('program', ['self', 'workflow'])
+@pytest.mark.parametrize('program', ['self'])
 @pytest.mark.parametrize('reason, status', [
     ('unsupported_backend', 'blocked'),
     ('invalid_game_connection', 'blocked'),
@@ -526,17 +525,6 @@ def test_scheduler_waits_until_next_minute(schedule_runtime, schedule_clock):
     schedule_runtime.startTask.assert_not_called()
 
 
-@pytest.mark.parametrize('restart_time', ['04:00:20', '04:00:00', '04:00:59'])
-def test_restart_after_update_does_not_repeat_startup_minute(schedule_runtime, schedule_clock, restart_time):
-    schedule_clock.now = QDateTime.fromString(f'2026-10-17T{restart_time}', 'yyyy-MM-ddTHH:mm:ss')
-    schedule_runtime.settings['scheduled_tasks'] = [scheduled_task(args='app_update')]
-    schedule_runtime._startScheduleTimer()
-    schedule_clock.now = QDateTime.fromString('2026-10-17T04:01:00', 'yyyy-MM-ddTHH:mm:ss')
-    schedule_runtime._onScheduleTimerTimeout()
-    schedule_runtime.startTask.assert_not_called()
-    schedule_clock.now = schedule_clock.now.addDays(1).addSecs(-60)
-    schedule_runtime._onScheduleTimerTimeout()
-    schedule_runtime.startTask.assert_called_once()
 
 
 def test_running_before_deadline_triggers_once_on_minute_change(schedule_runtime, schedule_clock):

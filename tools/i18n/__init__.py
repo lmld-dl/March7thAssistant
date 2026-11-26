@@ -259,8 +259,6 @@ TABLE_SOURCES = [
     ("module/overview/cards.py", (("STATUS_TEXT", None), ("SUMMARY_TEXT", None), ("OPTIONS", None))),
     ("module/overview/snapshot.py", (("PHASE_NAMES", None),)),
     ("utils/data_migration.py", (("REASONS", None),)),
-    ("module/workflow/__init__.py", (("STEP_TYPE_LABELS", None), ("CONDITION_TYPE_LABELS", None))),
-    ("module/update/version_check.py", (("_CDK_ERROR_MESSAGES", None),)),
     # 任务名常量存中文原文（msgid），显示时才 tr()
     ("utils/tasks.py", (("AVAILABLE_TASKS", None), ("CLI_ONLY_TASKS", None), ("UNSUPPORTED_TASK", None))),
     ("tasks/weekly/currency_wars_strategy.py", (("STRATEGY_NAMES", None),)),

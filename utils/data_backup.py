@@ -333,7 +333,10 @@ def diagnostics(destination):
     if known:
         clean = _scrub_values(clean, known)
     labels = "|".join(map(re.escape, sorted(_SECRET)))
-    sensitive_line = re.compile(rf"(?i)(?:{labels}|token|password|passwd|secret|cookie|key|webhook|authorization|bearer|密钥|密码|令牌)")
+    named = f"{labels}|" if labels else ""
+    sensitive_line = re.compile(
+        rf"(?i)(?:{named}token|password|passwd|secret|cookie|key|webhook|authorization|bearer|密钥|密码|令牌)"
+    )
     with tempfile.TemporaryDirectory(dir=current.storage if current.storage.is_dir() else None) as temp:
         stage = Path(temp)
         output = io.StringIO()

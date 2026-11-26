@@ -563,15 +563,6 @@ def test_redemption_keeps_confirmed_success_when_mail_fails(monkeypatch):
     cfg.set_value.assert_called_once_with("already_used_codes", ["TEST_REDEMPTION"])
 
 
-def test_headless_desktop_extra_is_skipped_in_full_run(monkeypatch):
-    # 平台判断在完整运行计划里（module.overview.plan），这里固定为 Windows。
-    monkeypatch.setattr(pc_daily.plan, "sys", SimpleNamespace(platform="win32"))
-    monkeypatch.setattr(pc_daily, "cfg", SimpleNamespace(control_backend="cloud"))
-    monkeypatch.setattr(pc_daily, "cloud_game", Mock(is_headless=Mock(return_value=True)))
-    action = Mock()
-
-    assert task_steps.run_steps((("锄大地", lambda: pc_daily._run_desktop_extra("锄大地", action)),))
-    action.assert_not_called()
 
 
 @pytest.mark.parametrize("touch", [False, True])

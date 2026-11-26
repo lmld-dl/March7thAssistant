@@ -32,16 +32,21 @@ def test_plain_card_and_expiring_outline(host, qtbot, tmp_path):
     from app.main_window import MainWindow
 
     page = host.settingInterface
-    key = 'local_control_mode' if sys.platform == 'win32' else 'browser_type'
-    mode = page.pages["run_mode"]
-    card = mode.host.localControlModeCard if sys.platform == "win32" else mode.host.browserTypeCard
+    if sys.platform == "win32":
+        key, category = "local_control_mode", "run_mode"
+        mode = page.pages["run_mode"]
+        card = mode.host.localControlModeCard
+    else:
+        key, category = "after_finish", "after_run"
+        mode = page.pages["after_run"]
+        card = mode.host.afterFinishCard
     original_style = card.card.styleSheet()
     assert MainWindow.navigate(host, 'setting:play_audio')
     assert page.currentCategory() == "after_run"
     qtbot.waitUntil(lambda: page.pages["after_run"].host.playAudioCard.findChild(_CardHighlight) is not None)
     assert navigate(host, 'setting:' + key)
     assert host.stackedWidget.currentWidget() is page
-    assert page.stack.currentWidget() is mode and page.currentCategory() == "run_mode"
+    assert page.stack.currentWidget() is mode and page.currentCategory() == category
     qtbot.waitUntil(lambda: card.card.findChild(_CardHighlight) is not None)
     highlight = card.card.findChild(_CardHighlight)
     assert highlight and highlight.isVisible()
@@ -104,7 +109,7 @@ def test_missing_and_reserved_links_do_not_switch_pages(host, monkeypatch):
 
     from app.content.backend import current
     backend = current().control_backend
-    hidden_key = 'local_control_mode' if backend == 'cloud' else 'browser_type'
+    hidden_key = 'browser_type' if backend == 'local' else 'local_control_mode'
     assert not navigate(host, f'setting:{hidden_key}')
     assert current().control_backend == backend
 

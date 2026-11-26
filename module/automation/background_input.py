@@ -287,7 +287,7 @@ class BackgroundInput(InputBase):
                 return
             time.sleep(min(.02, remaining))
 
-    def _begin(self, target=None):
+    def _begin(self, target=None, *, activate=True):
         self._check()
         if self._session:
             return
@@ -297,7 +297,7 @@ class BackgroundInput(InputBase):
         self._adopt_target(target)
         foreground, cursor = self.api.foreground(), self.api.cursor()
         self._foreground_identity = self.api.identity(foreground)
-        activated = foreground != target.hwnd
+        activated = activate and foreground != target.hwnd
         self._session = (target, foreground, cursor, activated, self._geometry(target))
         self._user_cursor = cursor
         if activated:
@@ -544,7 +544,7 @@ class BackgroundInput(InputBase):
             if self._banner is not None:
                 self._banner.close()
 
-    def _perform(self, operation, *, pointer=False):
+    def _perform(self, operation, *, pointer=False, activate=True):
         # 不持锁等待恢复，否则暂停线程无法完成清理回执。
         self._pause.checkpoint()
         done, outcome = False, None
@@ -560,7 +560,7 @@ class BackgroundInput(InputBase):
                             if pointer:
                                 self._prepare_mouse(context, failures)
                                 self._check_mouse_context(context)
-                            self._begin(context[0] if context else None)
+                            self._begin(context[0] if context else None, activate=activate)
                             # 重试前已释放所有输入，恢复显式按住的键（例如 Alt + 点击）。
                             for vk in held_keys:
                                 if vk not in self._keys:
@@ -917,7 +917,7 @@ class BackgroundInput(InputBase):
         self._pause.checkpoint()
         with self._lock:
             self._end()  # 滚轮是独立手势：先松开仍按住的键鼠，保留虚拟指针。
-        return self._perform(scroll)
+        return self._perform(scroll, activate=False)
 
     def _scroll_foreground(self, remaining, direction, pause, context):
         self._check_mouse_context(context)

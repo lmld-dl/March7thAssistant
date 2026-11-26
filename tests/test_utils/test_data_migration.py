@@ -218,7 +218,7 @@ def test_observer_respects_layout_and_leaves_pending_restore_alone(install, monk
 
 
 @pytest.mark.parametrize("args", [
-    ("--status",), ("--list", "--json"), ("--list-workflows", "--json"), ("--version",),
+    ("--status",), ("--list", "--json"), ("--version",),
 ])
 def test_cli_observer_reads_legacy_install_without_writing(install, args):
     shutil.copy2(ROOT / "main.py", install / "main.py")
@@ -244,9 +244,6 @@ def test_cli_observer_reads_legacy_install_without_writing(install, args):
         status = json.loads(query.stdout)
         assert status["data_layout"] == "legacy" and Path(status["config_file"]) == install / paths.CONFIG
         assert status["config_writable"] is True
-    elif args[0] == "--list-workflows":
-        names = json.loads(query.stdout)["workflows"]
-        assert len({name for name in names if name.startswith("legacy")}) == 2
     assert snapshot() == before
 
 

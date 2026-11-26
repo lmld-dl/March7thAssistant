@@ -51,7 +51,6 @@ def exit_window(qtbot, monkeypatch, tmp_path, request):
             ("HelpInterface", "helpInterface"),
             ("WarpInterface", "warpInterface"),
             ("ToolsInterface", "toolsInterface"),
-            ("WorkflowInterface", "workflowInterface"),
             ("SettingInterface", "settingInterface"),
         ):
             monkeypatch.setattr(module, name, partial(_auxiliary_page, object_name))

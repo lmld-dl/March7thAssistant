@@ -154,7 +154,7 @@ def test_support_avatar_scales_1080p_box_to_1440p(monkeypatch):
     click = Mock()
     monkeypatch.setattr(character.auto, "find_element", find_element)
     monkeypatch.setattr(character.auto, "click_element_with_pos", click)
-    monkeypatch.setattr(character.auto, "screenshot_scale_factor", 1920 / 2560)
+    monkeypatch.setattr(character.auto, "screenshot_scale_factor", 1920 / 2560, raising=False)
     monkeypatch.setattr(character.time, "sleep", lambda _: None)
 
     assert character.Character.find_character_and_click("Cyrene", "", 10, 20, 2560, 1440)

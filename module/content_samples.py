@@ -59,18 +59,14 @@ def sample_state(scenario="desktop"):
         "power_enable": True, "echo_of_war_enable": True, "reward_enable": True, "reward_quest_enable": False,
         "daily_enable": True, "last_run_timestamp": now.timestamp(), "currencywars_enable": True,
         "currencywars_timestamp": now.timestamp(), "fight_enable": False, "notification_added_channels": [],
-        "notify_winotify_enable": False, "overview_power": None if scenario == "empty" else
+        "notify_winotify_enable": scenario != "empty", "overview_power": None if scenario == "empty" else
         {"value": 186, "timestamp": now.timestamp()},
     })
     config.instance_names[config.instance_type] = "收容舱段"
     config.instance_names_challenge_count[config.instance_type] = 6
     history = {}
     if scenario != "empty":
-        config.set_values({"notify_telegram_enable": True, "notify_telegram_userid": "sample",
-                           "notify_telegram_token": "example", "notify_wechatworkbot_enable": True,
-                           "notify_wechatworkbot_key": "example"})
-        history = {"telegram": Delivery(now.isoformat(), True),
-                   "wechatworkbot": Delivery(now.isoformat(), False, "auth")}
+        history = {"winotify": Delivery(now.isoformat(), True)}
     rows = preview(config, now, touch=touch, backend=config.control_backend)
     states = {t.id: status(t, rows, config, supported=not touch or t.touch) for t in TASKS}
     index = SearchIndex(config)

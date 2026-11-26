@@ -14,7 +14,7 @@ from module.config.config import _get_env_override, _ENV_OVERRIDE_MAP, _CONFIG_K
     ("win32", {}, {}, "n", True),
     ("win32", {"auto_detect_game_hotkeys_enable": False}, {"hotkey_map": "space"}, "n", False),
     ("win32", {"control_backend": "cloud"}, {"hotkey_map": "space"}, "n", False),
-    ("win32", {"cloud_game_enable": True}, {"hotkey_map": "space"}, "n", False),
+    ("win32", {"cloud_game_enable": True}, {"hotkey_map": "space"}, "space", True),
     ("win32", {"control_backend": "adb"}, {"hotkey_map": "space"}, "n", False),
     ("win32", {"ui_profile": "touch_720"}, {"hotkey_map": "space"}, "n", False),
     ("linux", {}, {"hotkey_map": "space"}, "n", False),

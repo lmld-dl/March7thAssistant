@@ -455,10 +455,10 @@ class TestReadOnlyCommands:
         assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
         assert result.stdout == b""
 
-    def test_list_workflows_json(self):
+    def test_list_workflows_is_removed(self):
         result = _run_main("--list-workflows", "--json")
-        assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
-        assert isinstance(json.loads(result.stdout)["workflows"], list)
+        assert result.returncode != 0
+        assert "精简版不包含流程编排" in result.stderr.decode("utf-8", "replace")
 
     @pytest.mark.parametrize("backend", ["local", "cloud", "adb"])
     def test_saved_accounts_in_readonly_queries(self, backend):

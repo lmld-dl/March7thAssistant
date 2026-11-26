@@ -440,15 +440,16 @@ def nudge(api, dx, dy):
     api.point = (api.point[0] + dx, api.point[1] + dy)
 
 
-def test_user_mouse_motion_retries_before_click_and_carries_motion_back(backend):
+def test_click_does_not_move_the_system_cursor(backend):
+    """后台点击只发窗口消息，不调用 SetCursorPos，因此也不会把用户的移动叠回去。"""
     b=backend
     def moved(_point):
-        b.api.on_move=None
-        nudge(b.api, 40, 25)  # 光标刚被放到点击处，用户继续移动
+        nudge(b.api, 40, 25)
     b.api.on_move=moved
-    assert b.input.mouse_click(300,400)
+    assert b.input.mouse_click(300,400) is True
     assert len(posts(b.api,0x201))==1
-    assert b.api.cursor()==(47,34)  # 原位置 (7,9) 加上用户的位移，而不是留在点击处
+    assert not [event for event in b.api.events if event[0]=='move']
+    assert b.api.cursor()==(7,9)
     assert not b.api.protections
 
 
@@ -470,10 +471,14 @@ def test_currency_wars_records_only_gameplay_input_attempted_by_background_backe
     with module.input_wait_limit(3, deadline=b.clock.now + 3):
         result = war._dispatch_input(b.input.mouse_click, 300, 400,
                                      mark_sent=mark_sent, before_input=mark_operation)
-    assert result is False
-    assert not posts(b.api, 0x201)
-    mark_sent.assert_not_called()
-    mark_operation.assert_not_called()
+    assert result is True
+    assert len(posts(b.api, 0x201)) == 1
+    assert not [event for event in b.api.events if event[0] == 'move']
+    mark_sent.assert_called_once()
+    mark_operation.assert_called_once_with()
+    mark_sent.reset_mock()
+    mark_operation.reset_mock()
+    b.api.events.clear()
 
     send_mouse = b.api.send_mouse
 
@@ -578,18 +583,17 @@ def test_cancel_mid_drag_releases_mouse(backend):
     assert b.api.cursor()==(7,9)
 
 
-def test_scroll_shows_banner_before_focus_uses_normal_wheel_and_restores(backend):
+def test_scroll_posts_wheel_without_stealing_cursor_or_focus(backend):
     b=backend
     b.input.mouse_move(400,500)
     b.api.events.clear()
-    b.banner.show.side_effect=lambda _window:b.api.events.append(('banner',))
-    assert b.input.mouse_scroll(3,-1,False)
-    assert b.api.events[0]==('banner',)
-    scrolls=[e for e in b.api.events if e[0]=='scroll']
-    assert scrolls==[('scroll',-1,False,10,(400,500))]*3
-    assert [e for e in b.api.events if e[0]=='focus']==[('focus',10,20),('focus',20,10)]
+    assert b.input.mouse_scroll(3,-1,False) is True
+    wheels = posts(b.api, 0x020A)
+    assert len(wheels) == 3
+    assert all(event[3] == module._wheel_param(-1) and event[4] == (400 | (500 << 16)) for event in wheels)
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
     assert b.api.foreground()==20 and b.api.cursor()==(7,9)
-    b.banner.hide.assert_called_once_with(immediate=False)
+    b.banner.show.assert_not_called()
 
 
 def test_foreground_scroll_needs_no_banner_or_switch(backend):
@@ -600,76 +604,64 @@ def test_foreground_scroll_needs_no_banner_or_switch(backend):
     assert not [e for e in b.api.events if e[0]=='focus']
 
 
-@pytest.mark.parametrize('failure',['raise','pause','cancel','focus','roundtrip'])
-def test_scroll_failure_cleanup_respects_user_focus(backend,failure):
+@pytest.mark.parametrize('failure',['raise','pause','cancel','focus'])
+def test_scroll_failure_does_not_steal_focus_or_cursor(backend,failure):
     b=backend
-    def interrupt():
+    def interrupt(message, *_):
+        if message != 0x020A:
+            return
         if failure=='raise': raise OSError('wheel failed')
         if failure=='pause': b.ctl.paused=True
         if failure=='cancel': b.ctl.cancelled=True
         if failure=='focus': b.api.change_focus(30)
-        if failure=='roundtrip':
-            b.api.change_focus(30)
-            b.api.change_focus(10)
-        if failure=='cursor': b.api.point=(900,800)
-    b.api.on_scroll=interrupt
-    if failure in ('pause','focus','roundtrip'):
+    b.api.on_post=interrupt
+    if failure in ('pause','focus'):
         assert b.input.mouse_scroll(3) is False
     else:
-        expected=RunStopRequested if failure=='cancel' else (OSError if failure=='raise' else InputInterrupted)
+        expected=RunStopRequested if failure=='cancel' else OSError
         with pytest.raises(expected): b.input.mouse_scroll(3)
-    assert len([e for e in b.api.events if e[0]=='scroll'])==1
-    if failure in ('focus','roundtrip'):
-        assert ('focus',20,10) not in b.api.events
+    assert len(posts(b.api, 0x020A)) == 1
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
+    if failure == 'focus':
+        assert b.api.foreground()==30
     else:
         assert b.api.foreground()==20
-    if failure=='cursor': assert b.api.cursor()==(900,800)
-    assert b.banner.hide.called
-    assert all(call.kwargs=={'immediate':True} for call in b.banner.hide.call_args_list)
-    assert not b.api.watchers
+    assert b.api.cursor()==(7,9)
+    b.banner.show.assert_not_called()
 
 
-def test_failed_focus_acquisition_does_not_scroll_or_restore(backend):
+def test_scroll_does_not_require_focus_or_banner(backend):
     b=backend
     b.api.focus_denied.add(10)
-    with pytest.raises(InputInterrupted): b.input.mouse_scroll(1)
-    assert not [e for e in b.api.events if e[0]=='scroll']
-    assert b.api.foreground()==20
-    assert ('focus',20,10) not in b.api.events
-
-
-def test_exception_after_acquiring_foreground_still_restores(backend):
-    b=backend
-    def fail(window):
-        if window.hwnd==10: raise OSError('focus acknowledgement failed')
-    b.api.on_focus=fail
-    with pytest.raises(OSError): b.input.mouse_scroll(1)
-    assert b.api.foreground()==20
-
-
-def test_closed_original_window_is_not_activated(backend):
-    b=backend
-    b.api.on_scroll=lambda:b.api.windows.pop(20,None)
-    b.input.mouse_scroll(1)
-    assert ('focus',20,10) not in b.api.events
-
-
-def test_banner_failure_does_not_take_foreground(backend):
-    b=backend
     b.banner.show.side_effect=RuntimeError('banner unavailable')
-    with pytest.raises(RuntimeError): b.input.mouse_scroll(1)
-    assert not [e for e in b.api.events if e[0] in ('focus','scroll')]
-    b.banner.hide.assert_called_once_with(immediate=True)
+    assert b.input.mouse_scroll(1) is True
+    assert len(posts(b.api, 0x020A)) == 1
+    assert not [e for e in b.api.events if e[0] in ('focus','scroll','move')]
+    assert b.api.foreground()==20 and b.api.cursor()==(7,9)
+    b.banner.show.assert_not_called()
 
 
-def test_scroll_after_user_switch_during_cursor_cleanup_does_not_reclaim(backend):
+def test_scroll_leaves_a_closed_original_window_alone(backend):
     b=backend
-    def switch(point):
-        if point==(7,9): b.api.change_focus(30)
-    b.api.on_move=switch
-    b.input.mouse_scroll(1)
+    def drop(message, *_):
+        if message == 0x020A:
+            b.api.windows.pop(20, None)
+    b.api.on_post = drop
+    assert b.input.mouse_scroll(1) is True
+    assert ('focus',20,10) not in b.api.events
+    assert not [e for e in b.api.events if e[0] == 'move']
+
+
+def test_scroll_does_not_reclaim_focus_if_the_user_switches(backend):
+    b=backend
+    def switch(message, *_):
+        if message == 0x020A:
+            b.api.change_focus(30)
+    b.api.on_post=switch
+    assert b.input.mouse_scroll(1) is True
     assert b.api.foreground()==30
     assert ('focus',20,10) not in b.api.events
+    assert not [e for e in b.api.events if e[0] == 'move']
 
 
 def test_scroll_sync_observes_deferred_user_focus_change(backend):
@@ -683,12 +675,13 @@ def test_scroll_sync_observes_deferred_user_focus_change(backend):
     assert ('focus',20,10) not in b.api.events
 
 
-def test_adjacent_scroll_calls_defer_banner_hide(backend):
+def test_adjacent_scroll_calls_do_not_show_a_banner(backend):
     b=backend
-    b.input.mouse_scroll(2)
-    b.input.mouse_scroll(2)
-    assert b.banner.hide.call_count==2
-    assert all(call.kwargs=={'immediate':False} for call in b.banner.hide.call_args_list)
+    assert b.input.mouse_scroll(2) is True
+    assert b.input.mouse_scroll(2) is True
+    assert len(posts(b.api, 0x020A)) == 4
+    b.banner.show.assert_not_called()
+    assert not [e for e in b.api.events if e[0] == 'move']
 
 
 def test_close_releases_held_key_and_rejects_new_input(backend):
@@ -723,19 +716,23 @@ def test_recreated_target_drops_previous_mouse_position(backend):
     b.input.mouse_move(400,500)
     b.api.game=WindowIdentity(10,999,9)
     b.api.windows[10]=b.api.game
-    b.input.mouse_scroll(1)
-    assert [event for event in b.api.events if event[0]=='scroll'][-1][-1] == (1060,740)
+    assert b.input.mouse_scroll(1) is True
+    assert posts(b.api, 0x020A)[-1][4] == (1060 | (740 << 16))
+    assert not [e for e in b.api.events if e[0] == 'move']
 
 
 def test_cancel_and_user_focus_change_never_restores_old_window(backend):
     b=backend
-    def stop():
-        b.api.change_focus(30)
-        b.ctl.cancelled=True
-    b.api.on_scroll=stop
+    def stop(message, *_):
+        if message == 0x020A:
+            b.api.change_focus(30)
+            b.ctl.cancelled=True
+    b.api.on_post=stop
     with pytest.raises(RunStopRequested):b.input.mouse_scroll(3)
+    assert len(posts(b.api, 0x020A)) == 1
     assert b.api.foreground()==30
     assert ('focus',20,10) not in b.api.events
+    assert not [e for e in b.api.events if e[0] == 'move']
 
 
 @pytest.mark.parametrize('split_release', [False, True])
@@ -782,19 +779,18 @@ def test_pure_key_ignores_mouse_motion_and_carries_user_cursor_back(backend):
     assert not b.api.protections
 
 
-def test_mouse_retry_restores_held_alt_before_click(backend):
+def test_click_while_alt_is_held_does_not_move_the_cursor(backend):
     b = backend
     b.input.press_key_down('alt')
-    def move(_point):
-        b.api.on_move = None
-        b.api.point = (800, 900)
-    b.api.on_move = move
-    assert b.input.mouse_click(300, 400)
-    assert len(posts(b.api, 0x104)) == 2
-    assert len(posts(b.api, 0x105)) == 1
+    b.api.point = (800, 900)
+    assert b.input.mouse_click(300, 400) is True
+    assert len(posts(b.api, 0x104)) == 1
+    assert not posts(b.api, 0x105)
+    assert not [event for event in b.api.events if event[0] == 'move']
+    assert b.api.cursor() == (800, 900)
     assert b.input._keys == [18]
     b.input.press_key_up('alt')
-    assert len(posts(b.api, 0x105)) == 2
+    assert len(posts(b.api, 0x105)) == 1
 
 
 @pytest.mark.parametrize('gesture', ['click', 'drag', 'text'])
@@ -812,10 +808,12 @@ def test_mouse_conflict_after_down_releases_without_replaying(backend, gesture):
     elif gesture == 'drag':
         result = b.input.mouse_drag(300, 400, 500, 600)
     else:
-        result = b.input.secretly_write('不可重复输入')
-    assert result is False
+        result = b.input.secretly_write('可以输入')
+    assert result is True
     assert len(posts(b.api, 0x201)) == len(posts(b.api, 0x202)) == 1
-    assert not posts(b.api, 0x102)
+    if gesture == 'text':
+        assert posts(b.api, 0x102)
+    assert not [event for event in b.api.events if event[0] == 'move']
     assert b.api.cursor() == (47, 39)
     assert not b.input._mouse_down and b.input._session is None
 
@@ -907,18 +905,17 @@ def test_expired_protection_releases_split_mouse_hold(backend, monkeypatch):
     assert b.input.mouse_up() is False
 
 
-def test_conflicts_after_click_accumulate_until_existing_ui_retry_gets_protection(backend):
+def test_system_cursor_drift_does_not_request_mouse_protection(backend):
     b = backend
     b.input.protect_mouse = True
     def move(message, *_):
-        if message == 0x201 and not any(g.active for g in b.api.protections):
+        if message == 0x201:
             b.api.point = (800, 900)
     b.api.on_post = move
-    for _ in range(3):
-        assert b.input.mouse_click(300, 400) is False
+    for _ in range(4):
+        assert b.input.mouse_click(300, 400) is True
     assert not b.api.protections
-    assert b.input.mouse_click(300, 400)
-    assert len(b.api.protections) == 1
+    assert not [event for event in b.api.events if event[0] == 'move']
     assert b.input._mouse_failures == 0
 
 
@@ -974,29 +971,28 @@ def test_user_focus_change_during_idle_wait_never_clicks(backend, monkeypatch):
     assert not posts(b.api, 0x201) and b.api.foreground() == 30
 
 
-def test_scroll_mouse_conflict_only_retries_unsent_ticks(backend):
+def test_scroll_ignores_system_cursor_motion(backend):
     b = backend
-    def move():
-        b.api.on_scroll = None
-        nudge(b.api, 40, 30)
-    b.api.on_scroll = move
-    assert b.input.mouse_scroll(3)
-    assert len([e for e in b.api.events if e[0] == 'scroll']) == 3
-    assert b.api.cursor() == (47, 39) and b.api.foreground() == 20
+    def move(message, *_):
+        if message == 0x020A:
+            nudge(b.api, 40, 30)
+    b.api.on_post = move
+    assert b.input.mouse_scroll(3) is True
+    assert len(posts(b.api, 0x020A)) == 3
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
+    assert b.api.cursor() == (127, 99) and b.api.foreground() == 20
 
 
-def test_cursor_restore_failure_still_unlocks(backend, monkeypatch):
-    """恢复光标只是善后：失败时记录日志，已完成的点击和输入释放不受影响。"""
+def test_click_does_not_restore_the_cursor_with_setcursorpos(backend, monkeypatch):
+    """后台点击不调用 SetCursorPos，因此也不存在“归还光标失败”这条善后路径。"""
     b = backend
     b.input.protect_mouse = True
     monkeypatch.setattr(b.input, '_wait_mouse_idle', Mock(return_value=False))
-    def fail_restore(point):
-        if point == (7, 9): raise OSError('restore failed')
-    b.api.on_move = fail_restore
+    b.api.move = Mock(side_effect=OSError('restore failed'))
     assert b.input.mouse_click(300, 400) is True
+    b.api.move.assert_not_called()
     assert not b.api.protections[0].active
     assert b.input._session is None and not b.input._mouse_down
-    assert any('恢复光标' in call.args[0] for call in b.input.logger.warning.call_args_list)
 
 
 @pytest.mark.parametrize('operation', ['click', 'scroll'])
@@ -1010,57 +1006,52 @@ def test_user_switch_during_protection_setup_never_adopts_new_foreground(backend
         b.api.change_focus(30)
         return guard
     monkeypatch.setattr(b.api, 'protect_mouse', switched)
-    if operation == 'click': assert b.input.mouse_click(300, 400) is False
-    else: assert b.input.mouse_scroll(3) is False
-    assert b.api.foreground() == 30
-    assert not b.api.protections[0].active
+    if operation == 'click':
+        assert b.input.mouse_click(300, 400) is False
+        assert b.api.foreground() == 30
+        assert not b.api.protections[0].active
+        assert not posts(b.api, 0x201)
+    else:
+        assert b.input.mouse_scroll(3) is True
+        assert len(posts(b.api, 0x020A)) == 3
+        assert b.api.foreground() == 20
+        assert not [e for e in b.api.events if e[0] == 'move']
     assert not [e for e in b.api.events if e[0] in ('scroll', 'focus')]
-    assert not posts(b.api, 0x201)
 
 
-def test_foreground_scroll_reactivates_game_before_ticks_and_waits_before_restoring(backend):
+def test_scroll_after_background_hover_does_not_activate_or_move_the_cursor(backend):
     b = backend
-    b.input.mouse_move(300, 400)  # 模拟任务先后台悬停“等级”，该会话会发送 WA_INACTIVE。
+    b.input.mouse_move(300, 400)  # 后台悬停会给游戏发 WA_INACTIVE，滚轮不能因此把窗口拉到前台。
     b.api.events.clear()
-    times = {}
-    def post(message, wp, _lp):
-        if message == 0x6 and wp == 1:
-            times['active'] = b.clock.now
-    def tick():
-        assert b.api.foreground() == 10
-        assert b.clock.now - times['active'] >= .08 - 1e-6
-        times['last_tick'] = b.clock.now
-    def focus(window):
-        if window == b.api.original:
-            assert b.clock.now - times['last_tick'] >= .2 - 1e-6
-    b.api.on_post, b.api.on_scroll, b.api.on_focus = post, tick, focus
-    assert b.input.mouse_scroll(19, -1, False)
-    assert len([e for e in b.api.events if e[0] == 'scroll']) == 19
+    assert b.input.mouse_scroll(19, -1, False) is True
+    assert len(posts(b.api, 0x020A)) == 19
+    assert not posts(b.api, 0x6)
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
     assert b.api.foreground() == 20 and b.api.cursor() == (7,9)
 
 
 @pytest.mark.parametrize('interrupt', ['cancel', 'pause', 'switch'])
-def test_wheel_processing_wait_remains_cancellable_and_does_not_replay(backend, monkeypatch, interrupt):
+def test_wheel_gap_remains_cancellable_and_does_not_replay(backend, interrupt):
     b = backend
     sent = []
-    b.api.on_scroll = lambda:sent.append(b.clock.now)
-    original_sleep = module.time.sleep
-    def sleep(duration):
-        original_sleep(duration)
-        if len(sent) == 3:
+    def interrupt_after_first(message, *_):
+        if message != 0x020A:
+            return
+        sent.append(b.clock.now)
+        if len(sent) == 1:
             if interrupt == 'cancel': b.ctl.cancelled = True
             if interrupt == 'pause': b.ctl.paused = True
             if interrupt == 'switch': b.api.change_focus(30)
-    monkeypatch.setattr(module.time, 'sleep', sleep)
+    b.api.on_post = interrupt_after_first
     if interrupt in ('pause','switch'):
         assert b.input.mouse_scroll(3) is False
     else:
-        with pytest.raises(RunStopRequested if interrupt == 'cancel' else InputInterrupted):
+        with pytest.raises(RunStopRequested):
             b.input.mouse_scroll(3)
-    assert len(sent) == 3
+    assert len(posts(b.api, 0x020A)) == 1
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
     if interrupt == 'switch':
         assert b.api.foreground() == 30
-        assert ('focus',20,10) not in b.api.events
     else:
         assert b.api.foreground() == 20
 
@@ -1144,16 +1135,17 @@ def test_mouse_message_timeout_always_queues_release(backend, monkeypatch):
     assert any('未及时处理' in call.args[0] for call in b.input.logger.warning.call_args_list)
 
 
-def test_cursor_mismatch_log_records_positions_without_claiming_user_moved(backend):
+def test_system_cursor_motion_during_click_is_not_a_conflict(backend):
     b = backend
     def moved(message, *_):
         if message == 0x201:
             b.api.point = (800,900)
     b.api.on_post = moved
-    assert b.input.mouse_click(300, 400) is False
-    message = b.input.logger.warning.call_args.args[0]
-    assert '预期' in message and '实际 (800, 900)' in message
-    assert '用户' not in message and '受到干扰' not in message
+    assert b.input.mouse_click(300, 400) is True
+    assert len(posts(b.api, 0x201)) == len(posts(b.api, 0x202)) == 1
+    assert not [event for event in b.api.events if event[0] == 'move']
+    assert b.api.cursor() == (800, 900)
+    b.input.logger.warning.assert_not_called()
 
 
 def test_long_split_move_caps_messages_and_does_not_add_wait_after_delivery_time(backend, monkeypatch):
@@ -1237,14 +1229,14 @@ def test_same_wait_banner_is_not_repeated_within_operation(backend):
     b.input.logger.warning.assert_called_once()
 
 
-def test_persistent_unreachable_pointer_is_bounded_without_issuing_click(backend):
+def test_click_does_not_chase_a_moving_system_cursor(backend):
     b = backend
     b.api.on_move = lambda _point:setattr(b.api,'point',(800,900))
-    assert b.input.mouse_click(300,400) is False
-    assert not posts(b.api, 0x201)
-    assert len([p for p in posts(b.api,0x6) if p[3] == 1]) == 4
-    assert b.clock.now < 3
-    b.banner.show.assert_called_once()
+    assert b.input.mouse_click(300,400) is True
+    assert len(posts(b.api, 0x201)) == 1
+    assert not [event for event in b.api.events if event[0] == 'move']
+    assert b.api.cursor() == (7, 9)
+    b.banner.show.assert_not_called()
     assert b.input._session is None
 
 
@@ -1307,18 +1299,16 @@ def test_switch_while_processing_release_is_recoverable(backend, kind):
     b.input.logger.error.assert_not_called()
 
 
-def test_switch_before_wheel_acquisition_is_recoverable_and_sends_no_wheel(backend):
+def test_scroll_does_not_show_a_banner_or_change_focus(backend):
     b = backend
     def switch(_target): b.api.change_focus(10)
     b.banner.show.side_effect = switch
-    assert b.input.mouse_scroll(4) is False
-    assert not [e for e in b.api.events if e[0] == 'scroll']
-    assert b.api.foreground() == 10
+    assert b.input.mouse_scroll(4) is True
+    assert len(posts(b.api, 0x020A)) == 4
+    assert b.api.foreground() == 20
+    b.banner.show.assert_not_called()
     b.input.logger.error.assert_not_called()
-    b.banner.show.side_effect = None
-    assert b.input.mouse_scroll(2)
-    assert len([e for e in b.api.events if e[0] == 'scroll']) == 2
-    assert b.api.foreground() == 10
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
 
 
 def test_stopping_during_focus_handoff_keeps_cancellation_priority(backend):
@@ -1518,9 +1508,9 @@ def test_completed_key_is_not_reported_as_failed_when_interrupted_while_settling
     assert b.input._session is None
 
 
-@pytest.mark.parametrize('offset', [(1, 0), (-3, 2)])
-def test_small_cursor_jitter_is_not_a_conflict_and_cursor_is_restored(backend, offset):
-    """实测游戏不回写光标；日志里 1~4 像素的偏差来自鼠标抖动，不应中止点击。"""
+@pytest.mark.parametrize('offset', [(1, 0), (8, -6)])
+def test_system_cursor_jitter_does_not_abort_or_restore(backend, offset):
+    """窗口消息不读系统光标。抖动或大幅移动都不应中止点击，也不调用 SetCursorPos 归还。"""
     b = backend
     def jitter(message, *_):
         if message == 0x201:
@@ -1528,16 +1518,8 @@ def test_small_cursor_jitter_is_not_a_conflict_and_cursor_is_restored(backend, o
     b.api.on_post = jitter
     assert b.input.mouse_click(300, 400) is True
     assert len(posts(b.api, 0x201)) == len(posts(b.api, 0x202)) == 1
-    assert b.api.cursor() == (7, 9)
-
-
-def test_cursor_moved_beyond_tolerance_is_still_a_conflict(backend):
-    b = backend
-    def moved(message, *_):
-        if message == 0x201:
-            b.api.point = (b.api.point[0] + 4, b.api.point[1])
-    b.api.on_post = moved
-    assert b.input.mouse_click(300, 400) is False
+    assert not [event for event in b.api.events if event[0] == 'move']
+    assert b.api.cursor() == (7 + offset[0], 9 + offset[1])
 
 
 def test_gui_thread_idle_limit_gives_up_quickly_without_clicking(backend, monkeypatch):
@@ -1649,21 +1631,18 @@ def test_motion_while_activating_counts_towards_restore(backend, protect):
     assert b.api.cursor() == (1527, 908)
 
 
-def test_scroll_carries_motion_during_focus_switch_and_wheel(backend):
+def test_scroll_leaves_user_cursor_motion_untouched(backend):
     b = backend
     b.api.point = (1500, 900)
-    def switching(window):
-        if window == b.api.game:
-            b.api.on_focus = None
-            nudge(b.api, 10, 0)  # 切换前台期间用户仍在移动
-    b.api.on_focus = switching
-    def wheel():
-        b.api.on_scroll = None
-        nudge(b.api, 5, 6)  # 滚动途中继续移动：本轮中断，只重试未发出的滚轮
-    b.api.on_scroll = wheel
-    assert b.input.mouse_scroll(2)
-    assert len([e for e in b.api.events if e[0] == 'scroll']) == 2
-    assert b.api.cursor() == (1515, 906)
+    def wheel(message, *_):
+        if message == 0x020A:
+            nudge(b.api, 5, 6)
+    b.api.on_post = wheel
+    assert b.input.mouse_scroll(2) is True
+    assert len(posts(b.api, 0x020A)) == 2
+    assert not [e for e in b.api.events if e[0] in ('move', 'scroll', 'focus')]
+    assert b.api.cursor() == (1510, 912)
+    assert b.api.foreground() == 20
 
 
 def test_absolute_pointer_back_in_users_area_is_left_alone(backend):
@@ -1685,35 +1664,30 @@ def test_carried_cursor_rules():
     assert module._carried_cursor((1500, 900), (300, 400), (1490, 905)) is None
 
 
-def test_park_keeps_the_cursor_that_rested_inside_the_game_area(backend):
-    """用户光标落在游戏画面范围内时（即使游戏被浏览器等窗口盖住），归还会让游戏重新按那里显示悬停（卡面抬起）。
-    停放后光标留在停放点，之后的操作也归还到这里。"""
+def test_park_posts_a_move_without_setcursorpos(backend):
+    """停放只把客户区坐标放进 WM_MOUSEMOVE，不调用 SetCursorPos。"""
     b = backend
     b.api.point = (900, 600)
     assert b.input.mouse_park(112, 212) is not False
-    assert b.api.cursor() == (112, 212)
+    assert b.api.cursor() == (900, 600)
     assert [event[4] for event in posts(b.api, 0x200)] == [12 | (12 << 16)]
+    assert not [event for event in b.api.events if event[0] == 'move']
     assert [event[3] for event in posts(b.api, 0x6)] == [1, 0]
     assert b.input._session is None
     assert b.input.mouse_click(350, 450) is True
-    assert b.api.cursor() == (112, 212)
+    assert b.api.cursor() == (900, 600)
 
 
-@pytest.mark.parametrize('case', ['outside', 'moved', 'clicked'])
-def test_park_returns_the_cursor_in_other_cases(backend, case):
-    """光标在游戏画面外（例如另一块屏幕）、停放途中用户移动了鼠标，或同一会话停放后又点了别处时，照常归还。"""
+@pytest.mark.parametrize('case', ['outside', 'clicked'])
+def test_park_never_calls_setcursorpos(backend, case):
     b = backend
     b.api.point = (7, 9) if case == 'outside' else (900, 600)
-    if case == 'moved':
-        def moved(_point):
-            b.api.on_move = None
-            nudge(b.api, 40, 25)
-        b.api.on_move = moved
     if case == 'clicked':
         b.input.press_key_down('alt')
     assert b.input.mouse_park(112, 212) is not False
     if case == 'clicked':
         assert b.input.mouse_click(350, 450) is True
         b.input.press_key_up('alt')
-    expected = {'outside': (7, 9), 'moved': (940, 625), 'clicked': (900, 600)}[case]
+    expected = (7, 9) if case == 'outside' else (900, 600)
     assert b.api.cursor() == expected and b.input._session is None
+    assert not [event for event in b.api.events if event[0] == 'move']

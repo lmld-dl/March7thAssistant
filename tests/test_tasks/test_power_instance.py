@@ -764,12 +764,10 @@ def test_pc_ornament_mixed_repeat_and_defeat_reuse_the_initial_budget(monkeypatc
     power.save_reading.assert_called_once_with(config, "overview_power", 14)
 
 
-@pytest.mark.parametrize("entry", ["divergent", "universe"])
-def test_universe_bonus_delegates_to_immersifier_only_power_task(monkeypatch, entry):
+def test_universe_bonus_delegates_to_immersifier_only_power_task(monkeypatch):
     from tasks.weekly import divergent_universe as divergent
-    from tasks.weekly import universe
 
-    module = divergent if entry == "divergent" else universe
+    module = divergent
     config = SimpleNamespace(
         weekly_divergent_timestamp=1, refresh_hour=4, weekly_divergent_bonus_enable=True,
         universe_bonus_enable=True, instance_names={ORNAMENT: "浴火钢心"}, build_target_enable=False,
@@ -787,16 +785,11 @@ def test_universe_bonus_delegates_to_immersifier_only_power_task(monkeypatch, en
     monkeypatch.setattr(module, "auto", auto)
     monkeypatch.setattr(power.Power, "process", Mock(return_value=1))
 
-    if entry == "divergent":
-        task = divergent.DivergentUniverse()
-        monkeypatch.setattr(task, "run", Mock(return_value=True))
-        monkeypatch.setattr(task, "get_reward", Mock(return_value=True))
-        monkeypatch.setattr(divergent.Date, "is_next_mon_x_am", Mock(return_value=False))
-        assert task.start()
-    else:
-        monkeypatch.setattr(universe, "claim_weekly_reward", Mock(return_value=True))
-        monkeypatch.setattr(universe, "time", SimpleNamespace(sleep=Mock()))
-        universe.Universe.get_reward("divergent")
+    task = divergent.DivergentUniverse()
+    monkeypatch.setattr(task, "run", Mock(return_value=True))
+    monkeypatch.setattr(task, "get_reward", Mock(return_value=True))
+    monkeypatch.setattr(divergent.Date, "is_next_mon_x_am", Mock(return_value=False))
+    assert task.start()
 
     power.Power.process.assert_called_once_with(ORNAMENT, "浴火钢心", immersifier_only=True)
     auto.get_single_line_text.assert_not_called()

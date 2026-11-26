@@ -55,9 +55,7 @@ def test_grid_packs_all_visibility_combinations(toolbox):
 
 @pytest.mark.parametrize("backend,profile,error,visible", [
     ("local", "pc_1080", None, "11111111"),
-    ("cloud", "pc_1080", None, "11111111"),
     ("adb", "touch_720", None, "00011001"),
-    ("cloud", "touch_720", None, "11110001"),
     ("local", "pc_1080", "invalid", "01111111"),
 ])
 def test_backend_cards_and_groups(toolbox, backend, profile, error, visible):

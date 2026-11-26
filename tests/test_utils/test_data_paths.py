@@ -25,40 +25,6 @@ def test_paths_remain_fixed_after_chdir(tmp_path, monkeypatch):
     assert not current.root.exists()
 
 
-def test_browser_resolves_the_profile_when_preparing_a_session(tmp_path, monkeypatch):
-    from module.game.cloud import CloudGameController
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(paths, "_layout", paths.select(tmp_path))
-    # Explicit binaries take the existing fast path without starting a browser or a download.
-    monkeypatch.setenv('MARCH7TH_BROWSER_PATH', 'browser')
-    monkeypatch.setenv('MARCH7TH_DRIVER_PATH', 'driver')
-    controller = SimpleNamespace(BROWSER_INSTALL_PATH=CloudGameController.BROWSER_INSTALL_PATH,
-                                 cfg=SimpleNamespace(browser_type='chrome'), log_debug=lambda _: None)
-    assert CloudGameController._prepare_browser_and_driver(controller, 'chrome', False) == ('browser', 'driver')
-    assert Path(controller.user_profile_path) == tmp_path / 'userdata/browser/Chrome'
-
-
-def test_docker_mounts_match_the_runtime_paths():
-    from ruamel.yaml import YAML
-    compose = YAML(typ='safe').load(ROOT / 'docker-compose.yml')
-    volumes = compose['services']['march7thassistant']['volumes']
-    assert volumes == ['./userdata:/m7a/userdata']
-
-
-def test_workflow_metadata_stays_absolute_after_chdir(tmp_path, monkeypatch):
-    from module import workflow
-    monkeypatch.chdir(tmp_path)
-    root = tmp_path / 'userdata' / 'workflows'
-    monkeypatch.setattr(workflow, 'WORKFLOW_USER_ROOT', str(root))
-    monkeypatch.setattr(workflow, 'WORKFLOW_CURRENT_FILE', str(root / '.current'))
-    name = 'working-directory-test'
-    workflow.save_workflows([{'name': name}])
-    saved = next(item for item in workflow.load_workflows() if item['name'] == name)
-    directory = root / saved['_workflow_dir_name']
-    assert saved['_workflow_base_dir'] == str(directory)
-    assert (directory / 'workflow.yaml').is_file()
-
-
 def test_updater_keeps_archive_marker_spelling():
     # 精简版不再打包更新器。数据目录标记仍由路径模块表达。
     from utils import paths

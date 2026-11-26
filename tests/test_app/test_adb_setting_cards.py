@@ -38,8 +38,8 @@ def test_chooser_updates_from_existing_cloud_config(settings_page):
     interface, config, path = settings_page
     config.set_values({"cloud_game_enable": True})
     chooser = interface.pages["run_mode"].chooser
-    assert list(chooser.cards) == ["local", "cloud", "adb"]
-    assert chooser.cards["cloud"].isSelected()
+    assert list(chooser.cards) == ["local", "adb"]
+    assert chooser.cards["local"].isSelected()
     before = path.read_bytes()
     chooser.refresh()
     assert path.read_bytes() == before
@@ -464,7 +464,7 @@ def test_settings_page_has_single_connection_tab(settings_page):
     interface, config, path = settings_page
     page = interface.pages["run_mode"]
     assert interface.categoryList.items["run_mode"].text() == "运行方式"
-    assert set(page.chooser.cards) == {"adb", "cloud", "local"}
+    assert set(page.chooser.cards) == {"adb", "local"}
     assert page.chooser.cards["local"].isSelected()
     assert page.views["adb"].isAncestorOf(page.host.adbDeviceCard)
     assert not page.host.adbAdvancedCard.isExpand
@@ -480,7 +480,7 @@ def test_settings_page_walks_through_adb_setup(settings_page, qtbot, adb):
     interface.pages["run_mode"].chooser.cards["adb"].clicked.emit("adb")
     assert (saved(path)["control_backend"], saved(path)["ui_profile"]) == ("adb", "touch_720")
     assert not interface.pages["run_mode"].host.adbDeviceCard.isHidden()
-    assert all(interface.pages["run_mode"].views[key].isHidden() for key in ("local", "cloud"))
+    assert interface.pages["run_mode"].views["local"].isHidden()
 
     devices = interface.pages["run_mode"].host.adbDeviceCard
     # 切换后先排队启动扫描，不能把启动前的空闲当成扫描结束。

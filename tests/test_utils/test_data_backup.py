@@ -191,7 +191,7 @@ def test_active_or_idle_task_refuses_both_operations(current, tmp_path, holder):
 def test_diagnostics_redacts_registered_and_nested_secrets(current, tmp_path):
     keys = [k for s in SETTINGS for k in s.keys if s.key_scope(k) == Scope.SECRET]
     config = {key: "private-" + str(i) + "-value" for i, key in enumerate(keys)}
-    config["description"] = "copy: " + config[keys[0]]
+    config["description"] = "copy: " + (config[keys[0]] if keys else "nothing")
     config["nested"] = [{"userPassword": "nested-private", "webhook": ["web-private"], "theme": "light"}]
     secrets = [config[k] for k in keys] + ["nested-private", "web-private"]
     with current.path(paths.CONFIG).open("w", encoding="utf8") as f:

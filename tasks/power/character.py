@@ -174,7 +174,10 @@ class Character:
                 scale_range=0.9, crop=crop, relative=True,
                 mask_top_right_ratio=mask_ratio,
             ) or []
+            scale = getattr(auto, "screenshot_scale_factor", 1) or 1
             for match in matches:
+                if isinstance(scale, (int, float)) and scale not in (0, 1):
+                    match = tuple(tuple(value / scale for value in point) for point in match)
                 top_right = (match[1][0] + width * crop[0], match[0][1] + height * crop[1])
                 crop_new = (top_right[0] / width, top_right[1] / height, 402.0 / 1920, 43.0 / 1080)
                 if value == "":

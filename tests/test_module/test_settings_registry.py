@@ -29,8 +29,6 @@ def test_keys_locations_and_scopes_are_consistent():
         assert set(setting.state_keys + setting.secret_keys) <= set(setting.keys)
         assert all(find_setting(key) is setting for key in setting.keys)
     assert find_setting('currencywars_timestamp').key_scope('currencywars_timestamp') == Scope.STATE
-    assert find_setting('notify_telegram_token').scope == Scope.SECRET
-    assert find_setting('github_token').key_scope('github_token') == Scope.SECRET
 
 
 def test_about_links_keep_their_ids_and_share_the_header():

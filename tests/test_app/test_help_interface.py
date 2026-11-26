@@ -48,8 +48,8 @@ def test_list_internal_link_and_back(reader, qtbot):
     assert page.doc.id == reader.docList.current() == "Background"
     assert not reader.showDocument("missing-manual")
     assert reader.stack.currentWidget() is page
-    assert reader.showDocument("Background", "云星穹铁道")
-    qtbot.waitUntil(lambda: reader.toc.current() == "云星穹铁道")
+    assert reader.showDocument("Background", "窗口状态变化")
+    qtbot.waitUntil(lambda: reader.toc.current() == "窗口状态变化")
     text, link = inline_target(page, lambda target: target.target == "doc:Termux")
     text.linkActivated.emit(link)
     assert reader.currentPage().doc.id == "Termux"
@@ -58,7 +58,7 @@ def test_list_internal_link_and_back(reader, qtbot):
     assert back.isVisible()
     qtbot.mouseClick(back, Qt.MouseButton.LeftButton)
     assert reader.stack.currentWidget() is page and reader.docList.current() == "Background"
-    qtbot.waitUntil(lambda: page.currentAnchor() == "云星穹铁道")
+    qtbot.waitUntil(lambda: page.currentAnchor() == "窗口状态变化")
     assert not page.meta.backButton.isVisible()
 
 

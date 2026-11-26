@@ -40,7 +40,7 @@ def test_confirmations_fit_in_five_languages(qtbot, monkeypatch, content_window,
     parent.resize(1280, 640)
     parent.show()
     hosts = {}
-    for page in ("run_mode", "game", "update"):
+    for page in ("run_mode", "game"):
         hosts[page] = PageHost(parent, QWidget(parent))
         build_page(page, hosts[page])
     seen = []
@@ -63,9 +63,8 @@ def test_confirmations_fit_in_five_languages(qtbot, monkeypatch, content_window,
             assert UacFreeSettingCard.confirmEnable(parent)
             assert hosts["run_mode"].localControlModeCard._confirm("background")
             assert hosts["game"].autoLowerGraphicsCard._confirm(True)
-            hosts["update"].checkUpdateCard.switchButton.checkedChanged.emit(False)
             assert confirm_external_enable(parent)
-            assert len(set(seen)) == 5
+            assert len(set(seen)) == 4
             close = MessageBoxCloseWindow(parent)
             tr = localization.tr
             support = MessageBoxSupport(tr("支持作者🥰"), tr("此程序为免费开源项目，如果你付了钱请立刻退款\n"
@@ -108,27 +107,3 @@ def test_long_failure_keeps_all_details_and_buttons(qtbot):
     assert scroll.verticalScrollBar().maximum() > 0
     assert scroll.isAncestorOf(box.contentLabel) and box.contentLabel.text().endswith("file-99")
     assert box.rect().contains(box.widget.geometry()) and box.buttonGroup.isVisible()
-
-
-def test_workflow_delete_and_transfer_errors(qtbot, monkeypatch, tmp_path):
-    from app import workflow_interface as workflow
-    page = QWidget()
-    page.resize(1280, 640)
-    qtbot.addWidget(page)
-    page.workflows = [{"name": "first"}, {"name": "second"}]
-    page._current_workflow = lambda: page.workflows[0]
-    page._current_workflow_is_read_only = lambda: False
-    dialogs = []
-    monkeypatch.setattr(MessageBox, "exec", lambda box: dialogs.append(box) or False)
-    workflow.WorkflowInterface._delete_workflow(page)
-    assert len(page.workflows) == 2
-    assert_pose(dialogs.pop().mascotLabel.pixmap(), Mascot.BOX)
-    for action in ("export", "import"):
-        dialog = "getSaveFileName" if action == "export" else "getOpenFileName"
-        monkeypatch.setattr(workflow.QFileDialog, dialog, lambda *_: (str(tmp_path / "sample.zip"), ""))
-        function = "export_workflow_to_zip" if action == "export" else "import_workflow_from_zip"
-        monkeypatch.setattr(workflow, function, Mock(side_effect=OSError("fixture error")))
-        getattr(workflow.WorkflowInterface, f"_{action}_workflow")(page)
-        box = dialogs.pop()
-        assert box.cancelButton.isHidden() and box.content == "fixture error"
-        assert_pose(box.mascotLabel.pixmap(), Mascot.STARTLED)

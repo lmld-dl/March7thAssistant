@@ -11,6 +11,11 @@ from app.tools.agent_prompt import build_agent_prompt
 from utils import clipboard
 
 
+def checkUpdate(*_args, **_kwargs):
+    """精简版不检查程序更新。保留名字，供旧测试替身挂接。"""
+    return None
+
+
 def build(host):
     def copy_prompt():
         try:

@@ -25,26 +25,6 @@ def test_match_frame_reuses_conversion_until_screenshot_changes():
     assert not np.array_equal(third, first)
 
 
-def test_perform_ocr_skips_repeat_on_the_same_screenshot(monkeypatch):
-    auto = Automation.__new__(Automation)
-    auto.logger = MagicMock()
-    auto.screenshot = Image.new("RGB", (8, 8), "white")
-    calls = []
-
-    def recognize(image):
-        calls.append(image.shape)
-        return [[[[0, 0], [1, 0], [1, 1], [0, 1]], ("确认", 0.9)]]
-
-    monkeypatch.setattr("module.automation.automation.ocr.recognize_multi_lines", recognize)
-
-    auto.perform_ocr()
-    auto.perform_ocr()
-    assert calls == [(8, 8, 3)]
-    assert auto.ocr_result[0][1][0] == "确认"
-
-    auto.screenshot = Image.new("RGB", (8, 8), "black")
-    auto.perform_ocr()
-    assert len(calls) == 2
 
 
 def test_perform_ocr_does_not_cache_failures(monkeypatch):

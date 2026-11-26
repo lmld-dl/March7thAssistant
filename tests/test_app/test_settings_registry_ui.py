@@ -62,12 +62,12 @@ def test_every_registered_widget_and_every_built_card(pages):
     assert not card_for("power_enable", hosts["power"])
     instances = next(s for s in hosts["power"].sections if s.id == "instances")
     assert hosts["power"].powerPlanCard in instances.cards
-    host = hosts["universe"]
-    host.universeEnableCard.setExpand(True)
+    host = hosts["game"]
+    host.updateViaLauncherEnableCard.setExpand(True)
     state = host.capture_card_state()
-    host.universeEnableCard.setExpand(False)
+    host.updateViaLauncherEnableCard.setExpand(False)
     host.restore_card_state(state)
-    assert host.universeEnableCard.isExpand
+    assert host.updateViaLauncherEnableCard.isExpand
 
 
 def test_backend_visibility_and_running_guard(pages, monkeypatch):

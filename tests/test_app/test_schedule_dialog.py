@@ -61,14 +61,11 @@ def test_missing_workflow_cannot_be_saved_without_a_new_selection(schedule_edito
     assert editor.result() != QDialog.DialogCode.Accepted
 
 
-def test_builtin_editor_loads_workflows_only_when_needed(schedule_editor):
+def test_builtin_editor_does_not_load_workflows(schedule_editor):
     editor = schedule_editor()
+    for index in range(editor.program_type_combo.count()):
+        editor.program_type_combo.setCurrentIndex(index)
     schedule_editor.workflows.assert_not_called()
-    editor.program_type_combo.setCurrentIndex(1)
-    schedule_editor.workflows.assert_called_once()
-    editor.program_type_combo.setCurrentIndex(0)
-    editor.program_type_combo.setCurrentIndex(1)
-    schedule_editor.workflows.assert_called_once()
 
 
 def test_weekday_editor_has_seven_checkboxes_without_shortcut_buttons(schedule_editor):

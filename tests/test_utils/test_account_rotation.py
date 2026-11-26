@@ -538,6 +538,11 @@ finally:
         encoding="utf-8",
         env={**os.environ, "M7A_DATA_DIR": str(root), "M7A_SESSION_LAYOUT": ""},
     )
+    if task == "workflow":
+        assert result.returncode != 0
+        assert "精简版不包含流程编排" in result.stderr
+        assert not list((root / "accounts").glob("*/state.yaml"))
+        return
     assert result.returncode == (1 if expected_reason == "account_mismatch" else 2), result.stderr
     record = json.loads(result.stdout.splitlines()[-1])
     assert record["reason"] == expected_reason and record["error"]

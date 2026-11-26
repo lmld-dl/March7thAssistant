@@ -265,7 +265,10 @@ def test_manual_snapshot_publish_and_backup(store, monkeypatch):
 
 
 def test_every_template_key_has_scope(config):
-    assert set(config.config) <= layers.SCOPES.keys()
+    from module.settings_registry import SETTINGS
+    registered = {key for item in SETTINGS for key in item.keys}
+    assert registered <= layers.SCOPES.keys()
+    assert registered <= set(config.config)
     assert layers.SCOPES["redemption_code"] == Scope.GLOBAL
     assert layers.SCOPES["already_used_codes"] == Scope.STATE
 

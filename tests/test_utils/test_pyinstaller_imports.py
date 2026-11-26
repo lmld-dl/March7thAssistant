@@ -15,7 +15,7 @@ def _tree(path):
 
 
 def test_packaged_code_names_modules_in_import_statements():
-    sources = [ROOT / name for name in ("app.py", "main.py", "updater.py")]
+    sources = [ROOT / name for name in ("app.py", "main.py")]
     for package in ("app", "module", "tasks", "utils"):
         sources += sorted((ROOT / package).rglob("*.py"))
 

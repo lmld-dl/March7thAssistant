@@ -29,13 +29,13 @@ def test_search_shortcut_sidebar_keyboard_filters_and_empty_state(window, qtbot)
     qtbot.keyClick(window, Qt.Key.Key_K, Qt.KeyboardModifier.ControlModifier)
     qtbot.waitUntil(lambda: window._search_popup is not None and window._search_popup.isVisible())
     popup = window._search_popup
-    popup.input.setText("下载代理")
+    popup.input.setText("声音提示")
     qtbot.waitUntil(lambda: bool(popup.rows))
     from app.search_popup import result_group
     groups = list(dict.fromkeys(map(result_group, popup.results)))
     assert [r.result for r in popup.rows] == sorted(popup.results, key=lambda r: groups.index(result_group(r)))
     assert len({row.result.kind for row in popup.rows}) >= 1
-    assert popup.rows[0].result.link == "setting:update_download_proxy"
+    assert popup.rows[0].result.link == "setting:play_audio"
     qtbot.keyClick(popup.input, Qt.Key.Key_Down)
     assert popup.selected == 1
     qtbot.keyClick(popup.input, Qt.Key.Key_Up)
@@ -69,7 +69,7 @@ def test_external_yaml_refreshes_task_cards_notifications_and_open_search(window
     assert window.navigate("category:notify")
     assert window.taskInterface.showTask("reward")
     window.openSearch()
-    window._search_popup.input.setText("代理")
+    window._search_popup.input.setText("声音提示")
     qtbot.waitUntil(lambda: bool(window._search_popup.rows))
     old_page = window.settingInterface
     old_entries = window.searchIndex._entries
@@ -79,8 +79,8 @@ def test_external_yaml_refreshes_task_cards_notifications_and_open_search(window
     path = Path(cfg.config_path)
     with path.open(encoding="utf-8") as f:
         data = cfg.yaml.load(f)
-    data.update(reward_mail_enable=changed, notification_added_channels=["telegram"],
-                notify_telegram_enable=False, update_download_proxy="http://example.invalid:8080")
+    data.update(reward_mail_enable=changed, notification_added_channels=["winotify"],
+                notify_winotify_enable=True, play_audio=False)
     with path.open("w", encoding="utf-8") as f:
         cfg.yaml.dump(data, f)
     window._on_config_file_changed()
@@ -88,10 +88,10 @@ def test_external_yaml_refreshes_task_cards_notifications_and_open_search(window
     assert window.settingInterface.currentCategory() == "notify"
     assert window.taskInterface.currentTask() == "reward"
     assert window.taskInterface.pages["reward"].checks.boxes["reward_mail_enable"].isChecked() == changed
-    assert "telegram" in window.settingInterface.pages["notify"].channels.rows
+    if sys.platform == "win32":
+        assert "winotify" in window.settingInterface.pages["notify"].channels.rows
     assert window.searchIndex._entries is not old_entries
-    assert any(r.link == "setting:update_download_proxy" and r.value == data["update_download_proxy"]
-               for r in window._search_popup.results)
+    assert any(r.link == "setting:play_audio" for r in window._search_popup.results)
 
 
 @pytest.mark.parametrize("window", [{"test_tray": True}], indirect=True)
@@ -127,7 +127,7 @@ def test_pages_keep_theme_language_and_task_state(window, editable, qtbot):
     window._evernight.animation_played = True
     for theme in ("light", "dark", "evernight"):
         assert window.set_ui_theme(theme)
-        assert len(window.settingInterface.pages) == len(window.taskInterface.pages) == 10
+        assert len(window.settingInterface.pages) == len(window.taskInterface.pages) == 9
         window.openSearch()
         assert window._search_popup.isVisible() and window.accountsInterface.detail is not None
         window._search_popup.close()
@@ -190,71 +190,9 @@ def test_task_switch_reward_strategy_and_default_control(editable, qtbot):
     assert cfg.use_fuel == original and badge.pill.isHidden()
 
 
-def test_channel_dialog_validation_test_send_save_and_qq_binding(editable, qtbot, monkeypatch):
-    from app.content import notify_model
-    from app.pages.notify import ChannelDialog
-    from module.notification import channels, results
-    from module.notification.qqbot import QqBotOpenIdBinder
-    w = editable
-    monkeypatch.setattr(notify_model, "init_notifiers", Mock())
-    test_send = Mock(return_value=results.Delivery("", True))
-    monkeypatch.setattr(channels, "send_test", test_send)
-    dialog = ChannelDialog(w.notifyModel, "telegram", w)
-    qtbot.addWidget(dialog)
-    dialog.show()
-    dialog.yesButton.click()
-    assert dialog.errors["notify_telegram_token"].isVisible() and dialog.isVisible()
-    dialog.editors["notify_telegram_token"][1].setText("test-token")
-    dialog.editors["notify_telegram_userid"][1].setText("12345")
-    with qtbot.waitSignal(w.notifyModel.testFinished):
-        dialog.testButton.click()
-    assert test_send.call_args.args[2]["notify_telegram_userid"] == "12345"
-    assert dialog.testButton.isEnabled() and dialog.testResult.text()
-    assert not cfg.notify_telegram_token
-    dialog.yesButton.click()
-    qtbot.waitUntil(dialog.isHidden)
-    assert cfg.notify_telegram_token == "test-token"
-    assert "telegram" in w.settingInterface.pages["notify"].channels.rows
-    qq = ChannelDialog(w.notifyModel, "qqbot", w)
-    qtbot.addWidget(qq)
-    qq.show()
-    qq.editors["notify_qqbot_appid"][1].setText("appid")
-    qq.editors["notify_qqbot_client_secret"][1].setText("test-secret")
-    monkeypatch.setattr(notify_model.MessageBox, "exec", lambda _: True)
-    monkeypatch.setattr(QqBotOpenIdBinder, "capture", lambda self, mode, code: "demo-recipient")
-    bind = next(b for b in qq.findChildren(PushButton) if b.text() == localization.tr("自动绑定单聊用户"))
-    with qtbot.waitSignal(w.notifyModel.bound):
-        bind.click()
-        assert w.notifyModel.binding_pending and not w._can_replace_settings()
-    assert qq.editors["notify_qqbot_openid"][1].text() == "demo-recipient"
-    assert not cfg.notify_qqbot_openid
-    qq.cancelButton.click()
 
 
 
-def test_channel_can_be_removed_from_the_list(editable, qtbot, monkeypatch):
-    from app.content import notify_model
-    from app.pages import notify
-    w = editable
-    monkeypatch.setattr(notify_model, "init_notifiers", Mock())
-    panel = w.settingInterface.pages["notify"].channels
-    assert not w.notifyModel.save("telegram", {"notify_telegram_token": "test-token", "notify_telegram_userid": "12345"})
-    qtbot.waitUntil(lambda: "telegram" in panel.rows)
-    asked = []
-    answers = iter([False, True])
-    monkeypatch.setattr(notify.MessageBox, "exec", lambda box: asked.append(box.contentLabel.text()) or next(answers))
-    qtbot.mouseClick(panel.rows["telegram"].removeButton, Qt.MouseButton.LeftButton)
-    assert "telegram" in panel.rows and cfg.notify_telegram_token == "test-token"
-    qtbot.mouseClick(panel.rows["telegram"].removeButton, Qt.MouseButton.LeftButton)
-    qtbot.waitUntil(lambda: "telegram" not in panel.rows)
-    assert not cfg.notify_telegram_token and not cfg.notify_telegram_enable
-    assert not panel.tiles["telegram"]._added and len(asked) == 2 and "填写的内容会一起清除" in asked[0]
-    monkeypatch.setattr(w.notifyModel, "remove", lambda _: {"": "配置写入已暂停"})
-    failed = Mock()
-    monkeypatch.setattr(notify.InfoBar, "error", failed)
-    answers = iter([True])
-    panel._remove("winotify" if sys.platform == "win32" else "telegram")
-    assert failed.call_args.args[1] == "配置写入已暂停"
 
 
 def test_power_order_follows_the_settings(editable, qtbot):

@@ -24,14 +24,14 @@ def adb(monkeypatch):
 
 @pytest.mark.parametrize("values, backend", [
     ({}, "local"),
-    ({"cloud_game_enable": True}, "cloud"),
+    ({"cloud_game_enable": True}, "local"),
     ({"control_backend": "adb", "cloud_game_enable": True}, "adb"),
 ])
 def test_current_backend_follows_legacy_switch_until_explicit(values, backend):
     assert service.current_backend(FakeConfig(**values)) == backend
 
 
-@pytest.mark.parametrize("platform, backend", [("win32", "local"), ("linux", "cloud"), ("darwin", "cloud")])
+@pytest.mark.parametrize("platform, backend", [("win32", "local"), ("linux", "local"), ("darwin", "local")])
 def test_display_connection_falls_back_on_invalid_backend(monkeypatch, platform, backend):
     monkeypatch.setattr(service, "sys", SimpleNamespace(platform=platform))
     config = FakeConfig(control_backend="bogus")
@@ -67,7 +67,7 @@ def test_leaving_adb_restores_legacy_switch_and_pc_profile(backend, legacy):
     changes = service.backend_changes(backend, config)
     assert changes == {"control_backend": None, "cloud_game_enable": backend == "cloud", "ui_profile": "pc_1080"}
     config.set_values(changes)
-    assert service.current_backend(config) == backend
+    assert service.current_backend(config) == "local"
 
 
 @pytest.mark.parametrize("backend", [None, "local"])

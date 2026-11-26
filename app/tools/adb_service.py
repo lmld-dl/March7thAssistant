@@ -87,7 +87,7 @@ def display_connection(config=None):
     try:
         backend = get_control_backend(config)
     except ValueError as exc:
-        backend = "local" if sys.platform == "win32" else "cloud"
+        backend = "local"
         error = str(exc)
     try:
         profile = get_ui_profile(config).name

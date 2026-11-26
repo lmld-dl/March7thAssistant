@@ -61,13 +61,6 @@ def test_tasks_settings_run_page_and_overview_update(editable, qtbot, tmp_path, 
                    and window.homeInterface.model.snapshot.schedule.at.strftime("%H:%M") == "07:17")
     assert "睡眠" in model.summary()[3].text
     assert tuple(r.step for r in model.summary()) == model.STEPS
-    with qtbot.waitSignal(model.changed):
-        cfg.set_value("browser_type", "edge")
-    assert model.cloud().browser == "edge"
-    assert model.set_cloud("chrome", True).ok and host.browserTypeCard.comboBox.currentData() == "chrome"
-    assert host.browserHeadlessCard.switchButton.isChecked()
-    monkeypatch.setattr(window.runController, "isTaskRunning", lambda: True)
-    assert not model.set_backend("cloud").ok
 
 
 def test_first_preset_account_plan_and_notify(editable, qtbot, tmp_path, monkeypatch):
@@ -83,8 +76,6 @@ def test_first_preset_account_plan_and_notify(editable, qtbot, tmp_path, monkeyp
     if sys.platform == "win32":
         assert model.notify_text() == "只有 Windows 通知"
     cfg.set_values({"notify_winotify_enable": False, "notify_bark_enable": True})
-    assert "Bark" in model.notify_text()
-    cfg.set_value("notify_bark_enable", False)
     assert model.notify_text() == "没有通知"
     with qtbot.waitSignal(model.changed):
         signalBus.adbDevicesChanged.emit((SimpleNamespace(model="测试设备", serial="abc", ready=True),))
@@ -122,16 +113,18 @@ def test_unchanged_steps_and_failed_writes(editable, qtbot, tmp_path, monkeypatc
     plan = model.run_plan()
     write = Mock(side_effect=PermissionError("file denied"))
     monkeypatch.setattr(cfg, "set_values", write)
-    assert model.set_backend(model.backend()).ok
+    if sys.platform == "win32":
+        assert model.set_backend(model.backend()).ok
+    else:
+        assert not model.set_backend("local").ok
     assert model.set_game(path, False).ok
-    assert model.set_cloud(cloud.browser, cloud.headless).ok
     assert model.save_tasks(enabled, instance).ok
     assert model.save_run_plan(plan).ok
     write.assert_not_called()
 
     # 配置文件在向导停留期间被编辑，再点下一步保留外部编辑。
     data = copy.deepcopy(cfg.config)
-    data["browser_headless_enable"] = not cloud.headless
+    data["game_launch_method"] = "launcher"
     with Path(cfg.config_path).open("w", encoding="utf-8") as stream:
         cfg.yaml.dump(data, stream)
     dialog = QDialog(editable)
@@ -140,10 +133,9 @@ def test_unchanged_steps_and_failed_writes(editable, qtbot, tmp_path, monkeypatc
     with qtbot.waitSignal(model.changed):
         editable.config_watcher._emit_change()
     assert editable.settingInterface is settings_page and editable._reload_after_setup
-    assert model.set_cloud(cloud.browser, cloud.headless).ok
-    assert cfg.browser_headless_enable != cloud.headless and not write.called
+    assert cfg.game_launch_method == "launcher" and not write.called
     assert not model.set_game(path, True).ok
-    assert cfg.game_launch_method == "direct"
+    assert cfg.game_launch_method == "launcher"
     monkeypatch.setattr(cfg, "set_value", write)
     assert not model.dismiss().ok and model.pending(cfg)
     assert "file denied" in model.close_result.text
@@ -235,7 +227,7 @@ def test_main_window_startup_actions_and_settings_search(editable, qtbot, monkey
     assert window.openSetup() and window._setup_dialog is dialog and not events
     monkeypatch.setattr(window.runController, "isTaskRunning", lambda: True)
     dialog.done_step(False)
-    qtbot.waitUntil(lambda: events == [("update", True), "announcement"])
+    qtbot.waitUntil(lambda: events == ["announcement"])
     assert not model.pending(cfg) and "设置 › 高级" in main.InfoBar.info.call_args.args[1]
     assert main.InfoBar.info.call_args.kwargs["duration"] == 6000
     assert window.navigate("setting:setup_wizard")

@@ -129,7 +129,7 @@ def test_each_check_and_isolated_failure():
     assert get(error="invalid").checks[0].id == "connection"
     cfg.notify_telegram_enable = True
     cfg.scheduled_tasks = [{"time": "14:30", "name": "A"}, {"trigger_mode": "chain", "name": "B", "post_action": "Sleep"}]
-    assert get("cloud").checks == ()
+    assert [item.id for item in get("cloud").checks] == ["push"]
     assert get("cloud").schedule.names == ("A", "B") and get("cloud").schedule.post_action == "Sleep"
     cfg.overview_power = {"value": "?"}
     snapshot = get("cloud")
@@ -163,7 +163,7 @@ def test_recording_does_not_change_action_result(monkeypatch):
     assert runs.observe_step("daily", lambda: 123)() == 123
 
 
-@pytest.mark.parametrize("backend", ["cloud", "local"])
+@pytest.mark.parametrize("backend", ["local"])
 def test_login_check_only_with_observed_evidence_for_this_backend_and_game_day(backend):
     sample = sample_snapshot("failed")
     cfg = _Config(**YAML(typ="safe").load(Path("assets/config/config.example.yaml")))

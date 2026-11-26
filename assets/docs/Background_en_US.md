@@ -70,12 +70,6 @@ Pausing and stopping first release the keys and mouse held by the backend, then 
 - Currency Wars reward orbs are collected with short sweeps that release the mouse after each segment; if a step is not completed, the current stage is kept and checked again in the next round instead of going straight to purchasing or deploying.
 - If you run into recognition or operation problems, switch back to foreground mode first to confirm whether the problem is related to background mode, then report it with the logs.
 
-## Cloud Honkai: Star Rail
-
-With `Cloud Honkai: Star Rail` enabled, tasks such as spending Trailblaze Power, Daily Training, Currency Wars, and Divergent Universe no longer require a fixed window; they support background running and can also run headless. Field farming and Simulated Universe still require the game to stay fullscreen in the foreground.
-
-The cloud game does not depend on a local game window and can also run on macOS, Linux, [Docker](/assets/docs/Docker.md), and [Termux on Android](/assets/docs/Termux.md); see the [Usage Guide](/assets/docs/Tutorial_en_US.md) for how to enable it.
-
 ## Remote Local Multi-User Desktop (Advanced)
 
 > On the same computer (no second computer needed), sign in to another Windows user session through local Remote Desktop and let the game and the assistant run there in foreground mode, without using the keyboard and mouse of your current desktop at all. This requires patching the system to allow multiple simultaneous sign-ins, the setup is more involved, and the patch may stop working after system updates. In most cases, try Windows background mode first.

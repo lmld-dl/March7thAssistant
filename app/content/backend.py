@@ -22,7 +22,6 @@ class BackendOption:
 def options():
     return (
         BackendOption("local", tr("本地客户端"), tr("在这台电脑上运行 PC 版游戏。"), "FIF.APPLICATION", sys.platform == "win32"),
-        BackendOption("cloud", tr("云·星穹铁道"), tr("通过浏览器运行云游戏。"), "FIF.CLOUD", True),
         BackendOption("adb", tr("安卓设备"), tr("通过 ADB 连接手机或模拟器。"), "FIF.PHONE", True),
     )
 

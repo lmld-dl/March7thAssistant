@@ -909,6 +909,7 @@ class RunController(QObject):
                 self.clearLog()
                 self.appendLog("流程编排已从精简客户端移除，该任务未执行\n")
                 return
+            workflow_launch = False
             timeout = int(task.get('timeout', 0) or 0)
             if program.lower() == 'self':
                 if task.get('page_task') and args == 'routine':

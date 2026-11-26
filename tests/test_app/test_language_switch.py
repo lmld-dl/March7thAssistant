@@ -171,25 +171,6 @@ def switch_language(qtbot, window, language):
     assert localization.get_current_language() == language
 
 
-def test_github_token_is_the_last_update_source_card_and_edits_as_password(window, monkeypatch):
-    from app.card.messagebox_custom import MessageBoxEdit
-    from module.config import cfg
-
-    setting = window.settingInterface.pages['update'].host
-    card = setting.githubTokenCard
-    children = setting.updateSourceCard.viewLayout
-    assert children.itemAt(children.count() - 1).widget() is card
-    assert card.contentLabel.text() == ""
-
-    def edit(dialog):
-        assert dialog.lineEdit.echoMode() == dialog.lineEdit.EchoMode.Password
-        dialog.lineEdit.setText("  test-token  ")
-        return True
-
-    monkeypatch.setattr(MessageBoxEdit, "exec", edit)
-    card.button.click()
-    cfg.set_value.assert_called_with("github_token", "test-token")
-    assert card.contentLabel.text() == ""
 
 
 def test_actual_language_combo_keeps_settings_tab_scroll_and_expansion(window, qtbot, monkeypatch):
@@ -238,11 +219,11 @@ def test_latest_language_and_navigation_win_during_animation(window, qtbot):
     window.switchTo(window.settingInterface)
     window._on_ui_language_changed('en_US')
     window._on_ui_language_changed('ja_JP')
-    window.switchTo(window.workflowInterface)
+    window.switchTo(window.toolsInterface)
     old_settings = window.settingInterface
     qtbot.waitUntil(lambda: window.settingInterface is not old_settings, timeout=15000)
     assert localization.get_current_language() == 'ja_JP'
-    assert window.stackedWidget.currentWidget() is window.workflowInterface
+    assert window.stackedWidget.currentWidget() is window.toolsInterface
     assert window._pending_ui_language is None
     # Stable callback points to the new settings page, not the deleted instance.
     qtbot.mouseClick(window.navigationInterface.widget('settingInterface').itemWidget, Qt.MouseButton.LeftButton)
@@ -314,7 +295,6 @@ def test_scheduled_summary_retranslates_without_rearming_schedule(log_page, monk
 
 def test_persistent_pages_keep_models_workers_tabs_and_user_state(window, qtbot, monkeypatch):
     from app import tools_interface as tools_module
-    from module.workflow import summarize_step
     from module.config import cfg
     cfg.set_value.reset_mock()
     cfg.set_values.reset_mock()
@@ -327,12 +307,6 @@ def test_persistent_pages_keep_models_workers_tabs_and_user_state(window, qtbot,
     automatic.switchButton.blockSignals(True)
     automatic.switchButton.setChecked(True)
     automatic.switchButton.blockSignals(False)
-    workflow = window.workflowInterface
-    model = workflow.workflows
-    items = dict(workflow.pathItemMap)
-    selected = next(iter(items.values()))
-    selected.setExpanded(False)
-    workflow.stepTree.setCurrentItem(selected)
     help_page = window.helpInterface
     window.stackedWidget.setAnimationEnabled(False)
     window.switchTo(help_page)
@@ -343,20 +317,14 @@ def test_persistent_pages_keep_models_workers_tabs_and_user_state(window, qtbot,
     worker = object()
     monkeypatch.setattr(updater, '_task', worker)
     monkeypatch.setattr(type(updater), '_last_successful_link', 'fixture-link')
-    window.switchTo(workflow)
+    window.switchTo(tools)
     switch_language(qtbot, window, 'en_US')
-    assert window.stackedWidget.currentWidget() is workflow
+    assert window.stackedWidget.currentWidget() is tools
     assert window.homeInterface is overview and overview.model is overview_model
     assert overview.shortcutsCard.titleLabel.text() == localization.tr("快捷启动")
     assert window.toolsInterface is tools and tools.automaticPlotCard is automatic
     assert automatic.getSwitchState()
     start.assert_not_called()
-    assert workflow.workflows is model
-    assert workflow.pathItemMap == items
-    assert workflow.stepTree.currentItem() is selected and not selected.isExpanded()
-    title, detail = summarize_step(workflow._step_for_path(next(iter(items))))
-    assert selected.text(0) == title
-    assert selected.text(1) == (detail or '')
     assert window.helpInterface is help_page and help_page.docList.current() == 'Background'
     assert help_page.currentPage().doc.language == 'en_US'
     assert help_page.titleLabel.text() == localization.tr('帮助')
@@ -385,7 +353,7 @@ def test_failed_state_restore_does_not_remove_old_settings(window, qtbot, monkey
     qtbot.waitUntil(lambda: warning.called, timeout=15000)
     assert window.settingInterface is old
     assert window.stackedWidget.currentWidget() is old
-    assert window.stackedWidget.count() == 9
+    assert window.stackedWidget.count() == 8
     assert localization.get_current_language() == 'zh_CN'
     assert QApplication.overrideCursor() is None
 
@@ -428,7 +396,7 @@ def test_failed_combo_change_restores_saved_preference_and_retries(
         QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         assert window.settingInterface is old
         assert window.stackedWidget.currentWidget() is old
-        assert window.stackedWidget.count() == 9
+        assert window.stackedWidget.count() == 8
         assert len(window.findChildren(module.SettingInterface)) == 1
         assert localization.get_current_language() == 'zh_CN'
         assert cfg.ui_language_now == 'zh_CN'
@@ -500,7 +468,7 @@ def test_config_reload_failure_disposes_unused_settings(window, monkeypatch, fai
         QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         assert window.settingInterface is old
         assert window.stackedWidget.currentWidget() is old
-        assert window.stackedWidget.count() == 9
+        assert window.stackedWidget.count() == 8
         assert len(window.findChildren(module.SettingInterface)) == 1
     assert warning.call_count == 2
 
@@ -602,82 +570,9 @@ def test_switch_button_visible_text_refreshes_without_toggling(log_page, qtbot, 
     cfg.set_values.assert_not_called()
 
 
-@pytest.mark.parametrize('selected_path', [None, (0,), (1,), (2, 0)])
-def test_generated_workflow_status_retranslates_snapshot_and_preserves_custom_names(
-        log_page, qtbot, monkeypatch, selected_path):
-    from app.content import run_controller as log_module
-    from app import workflow_interface as workflow_module
-    from module.workflow import (build_workflow_task, get_workflow_step_by_path,
-                                 normalize_workflow, summarize_step)
-
-    localization.load_language('zh_CN')
-    data = normalize_workflow({
-        'name': '流程编排 - User 原名',
-        'steps': [
-            {'type': 'wait', 'seconds': 1.0},
-            {'type': 'click_text', 'text': '等待 - User 原文'},
-            {'type': 'for', 'count': 2,
-             'children': [{'type': 'press_key', 'key': 'f', 'key_action': 'press'}]},
-        ],
-    })
-    original = deepcopy(data)
-    monkeypatch.setattr(workflow_module, 'load_workflows', lambda: [data])
-    monkeypatch.setattr(workflow_module, 'get_current_workflow_name', lambda: data['name'])
-    monkeypatch.setattr(workflow_module, 'set_current_workflow_name', lambda *_: None)
-    workflow = workflow_module.WorkflowInterface()
-    qtbot.addWidget(workflow)
-    task = workflow._build_workflow_task(selected_path)
-    original_name = task['name']
-    original_step = get_workflow_step_by_path(original, selected_path) if selected_path else None
-
-    # 模型随后可被编辑；运行中任务的显示上下文必须来自启动时的快照。
-    data['name'] = 'Edited workflow'
-    for step in data['steps']:
-        step.update(seconds=99, text='Edited text', children=[])
-    start = Mock()
-    monkeypatch.setattr(log_module.QProcess, 'start', start)
-    monkeypatch.setattr(log_page, '_injectPauseControlEnv', Mock())
-    commands = Mock()
-    monkeypatch.setattr(log_module, 'write_command', commands)
-    log_page.startTask(task)  # 真实启动分支和 QProcess 对象，不启动游戏进程。
-    start.assert_called_once()
-    process = log_page.process
-
-    for language in ('en_US', 'ja_JP', 'zh_TW', 'ko_KR', 'zh_CN'):
-        localization.load_language(language)
-        expected_name = f"{localization.tr('流程编排')} - {original['name']}"
-        if original_step is not None:
-            expected_name += ' - ' + summarize_step(original_step)[0]
-        expected = localization.tr('正在运行：{name}').format(name=expected_name)
-        log_page.widget.retranslateUi()
-        assert log_page.view().title == expected_name
-        log_page._pause_state = log_module.STATE_PAUSED
-        log_page._syncPauseUi()
-        assert log_page.view().state == 'paused'
-        log_page._pause_state = log_module.STATE_RUNNING
-        log_page._syncPauseUi()
-        assert log_page.view().title == expected_name
-        assert log_page.process is process
-        # 调用方修改任务字典也不能改掉已经启动的任务显示。
-        task['workflow_display']['workflow_name'] = 'Edited task'
-        task['workflow_display']['step'] = {'type': 'wait', 'seconds': 99}
-    commands.assert_not_called()
-    start.assert_called_once()
-
-    # 同样的中文名称也可能是用户输入，不可按前缀猜测其来源。
-    custom = build_workflow_task(original['name'], name=original_name)
-    log_page.startTask(custom)
-    for language in ('en_US', 'ja_JP'):
-        localization.load_language(language)
-        log_page.widget.retranslateUi()
-        assert log_page.view().title == original_name
-    log_page._setRunningStatus('完整运行', translate_name=True)
-    assert log_page.view().title == localization.tr('完整运行')
-
-
 @pytest.mark.parametrize('page_name,label_name', [
     ('toolsInterface', 'toolsLabel'), ('helpInterface', 'titleLabel'),
-    ('warpInterface', 'titleLabel'), ('workflowInterface', 'titleLabel'),
+    ('warpInterface', 'titleLabel'),
 ])
 def test_deferred_language_refresh_resizes_visible_page_title(window, qtbot, page_name, label_name):
     class Worker(QThread):

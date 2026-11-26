@@ -537,19 +537,6 @@ def test_touch_local_start_uses_clicks_and_native_resolution(startup, monkeypatc
     game.StarRailController.assert_not_called()
 
 
-def test_explicit_cloud_start_skips_local_resolution(startup, monkeypatch):
-    game, controller, cfg = startup
-    cfg.control_backend = "cloud"
-    cfg.ui_profile = "touch_720"
-    cloud = Mock()
-    monkeypatch.setattr(game, "cloud_game", cloud)
-
-    game.start_game()
-
-    cloud.start_game_process.assert_called_once_with(headless=None)
-    game.StarRailController.assert_not_called()
-    controller.change_resolution.assert_not_called()
-    controller.check_resolution.assert_not_called()
 
 
 def test_adb_start_uses_adb_bootstrap(startup, monkeypatch):
@@ -593,7 +580,7 @@ def test_adb_start_keeps_waiting_after_a_transient_recovery_probe(startup, monke
         assert adb.capture_frame.call_count == 2
 
 
-@pytest.mark.parametrize("mode", ["master-off", "child-off", "already-running", "manual", "cloud"])
+@pytest.mark.parametrize("mode", ["master-off", "child-off", "already-running", "manual"])
 def test_no_quality_change_for_excluded_launches(startup, monkeypatch, mode):
     game, controller, cfg = startup
     if mode == "master-off":
@@ -602,9 +589,6 @@ def test_no_quality_change_for_excluded_launches(startup, monkeypatch, mode):
         cfg.auto_lower_graphics_enable = False
     elif mode == "already-running":
         controller.switch_to_game.return_value = True
-    elif mode == "cloud":
-        cfg.cloud_game_enable = True
-        monkeypatch.setattr(game, "cloud_game", Mock())
     game.start_game(optimize_graphics=mode != "manual")
     game.begin_temporary_graphics.assert_not_called()
     if mode == "master-off":
@@ -754,7 +738,7 @@ def test_stop_game_restores_after_process_termination(monkeypatch):
 
 def test_all_runtime_battle_reads_use_master_gate():
     # 防止之后增加分支时绕过总开关；自动对话的独立配置不属于这里的三项优化。
-    paths = ["app/main_window.py", "module/game/cloud.py", "tasks/challenge/__init__.py",
+    paths = ["app/main_window.py", "tasks/challenge/__init__.py",
              "tasks/power/instance.py", "tasks/weekly/currency_wars.py",
              "tasks/weekly/divergent_universe.py", "tasks/game/__init__.py"]
     for path in paths:

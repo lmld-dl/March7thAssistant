@@ -24,8 +24,8 @@ from utils.game_options import game_option_enabled
 
 @pytest.mark.parametrize(("legacy", "env", "explicit", "expected"), [
     (False, None, None, "local"),
-    (True, None, None, "cloud"),
-    (False, "true", None, "cloud"),
+    (True, None, None, "local"),
+    (False, "true", None, "local"),
     (True, "false", None, "local"),
     (True, "true", "local", "local"),
     (False, "false", "cloud", "cloud"),
@@ -50,7 +50,8 @@ def test_backend_config_priority(tmp_path, monkeypatch, legacy, env, explicit, e
     config._load_config(save=False)
 
     assert get_control_backend(config) == expected
-    assert config.cloud_game_enable is config.get_value("cloud_game_enable") is (expected == "cloud")
+    stored_cloud = explicit == "cloud" if explicit is not None else legacy
+    assert config.cloud_game_enable is config.get_value("cloud_game_enable") is stored_cloud
     assert config.config["cloud_game_enable"] is legacy
     assert config.config["control_backend"] == explicit
 
@@ -108,7 +109,7 @@ def test_invalid_platform_config_reports_key(lookup, key):
 
 
 @pytest.mark.parametrize("legacy_cloud", [False, True])
-def test_controller_factory_preserves_legacy_selection(monkeypatch, legacy_cloud):
+def test_controller_factory_ignores_legacy_cloud_flag(monkeypatch, legacy_cloud):
     import module.game as game
 
     config = SimpleNamespace(cloud_game_enable=legacy_cloud)
@@ -116,11 +117,15 @@ def test_controller_factory_preserves_legacy_selection(monkeypatch, legacy_cloud
     reload_config = Mock()
     monkeypatch.setattr(game.local_game, "reload_config", reload_config)
 
-    assert game.get_game_controller() is (game.cloud_game if legacy_cloud else game.local_game)
-    if legacy_cloud:
-        reload_config.assert_not_called()
-    else:
-        reload_config.assert_called_once_with(config)
+    assert game.get_game_controller() is game.local_game
+    reload_config.assert_called_once_with(config)
+
+
+def test_controller_factory_rejects_cloud():
+    import module.game as game
+
+    with pytest.raises(ValueError, match="云"):
+        game.get_game_controller("cloud")
 
 
 @pytest.mark.parametrize("mode", ["foreground", "background"])
@@ -155,45 +160,6 @@ def test_local_capture_keeps_legacy_sources(monkeypatch, mode):
         foreground.assert_not_called()
 
 
-@pytest.mark.parametrize("browser_result", ["uncropped", "cropped", "fallback", "missing"])
-def test_cloud_capture_keeps_crop_and_decode_fallback(monkeypatch, browser_result):
-    from module.automation import screenshot as module
-    from module.game import cloud_game
-
-    def encode(size):
-        output = BytesIO()
-        Image.new("RGB", size, color="red").save(output, "PNG")
-        return output.getvalue()
-
-    monkeypatch.setattr(module, "cfg", SimpleNamespace(cloud_game_enable=True))
-    screenshot = module.Screenshot
-    monkeypatch.setattr(screenshot, "get_window", Mock(side_effect=AssertionError("云游戏不查找本地窗口")))
-    crop = (0.25, 0.25, 0.25, 0.5)
-    if browser_result == "cropped":
-        capture = Mock(return_value=(encode((480, 540)), (1920, 1080)))
-    elif browser_result == "fallback":
-        capture = Mock(side_effect=[b"invalid", encode((1920, 1080))])
-    elif browser_result == "missing":
-        capture = Mock(return_value=None)
-    else:
-        capture = Mock(return_value=encode((1920, 1080)))
-    monkeypatch.setattr(cloud_game, "take_screenshot", capture)
-
-    result = screenshot.take_screenshot("game", crop=crop)
-
-    if browser_result == "missing":
-        assert result is False
-    else:
-        image, pos, scale = result
-        assert image.size == (480, 540)
-        assert image.getpixel((0, 0)) == (255, 0, 0)
-        assert pos == (480, 270, 480, 540)
-        assert scale == 1
-    expected = [call(crop=crop, prefer_frame=True)]
-    if browser_result == "fallback":
-        expected.append(call(crop=crop, prefer_frame=False))
-    assert capture.call_args_list == expected
-    assert screenshot.get_window_region(False) == (0, 0, 1920, 1080)
 
 
 def test_adb_registers_input_without_connecting_and_does_not_retry_failure(monkeypatch):
@@ -222,14 +188,6 @@ def test_adb_registers_input_without_connecting_and_does_not_retry_failure(monke
     connect.assert_not_called()
 
 
-def test_adb_does_not_register_cloud_browser_cleanup(monkeypatch):
-    from module.game import cloud
-
-    register = Mock()
-    monkeypatch.setattr(cloud.atexit, "register", register)
-    cloud.CloudGameController(SimpleNamespace(control_backend="adb", script_path=None), Mock())
-
-    register.assert_not_called()
 
 
 @pytest.mark.parametrize("profile", ["pc_1080", "touch_720"])

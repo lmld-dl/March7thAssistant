@@ -12,7 +12,7 @@
 ## v2026.1.19
 - Comprehensive upgrade and optimization of the **GUI**
 - Added **Auto 2x Speed** detection before starting the game
-- Source code run supports **macOS/Linux** and [Docker Deployment](https://m7a.top/#/assets/docs/Docker)
+- Source code run supports **macOS/Linux** and Docker Deployment
 - Added **Settings** option to Tray right-click menu
 - **Cloud Game** headless mode supports QR code login
 - Added estimated waiting time for Cloud Game queue

@@ -5,13 +5,13 @@ from module.instance_limits import GOLDEN_CALYX, CRIMSON_CALYX, STAGNANT_SHADOW,
 from module.localization import get_instance_names, get_raw_instance_names, tr
 from module.task_catalog import BY_ID
 
-TASK_IDS = ("power", "daily", "reward", "activity", "echo", "currencywars", "universe", "challenge", "fight")
+TASK_IDS = ("power", "daily", "reward", "activity", "echo", "currencywars", "universe", "challenge")
 WEEKLY = frozenset(("echo", "currencywars", "universe", "challenge"))
 PRESETS = {"recommended": TASK_IDS[:7], "daily": TASK_IDS[:4], "all": TASK_IDS}
 # 常见配置的下限、上限，单位为分钟。每次完整运行只计一次启动和收尾。
 MINUTES = {
     "startup": (3, 5), "power": (8, 20), "daily": (2, 6), "reward": (1, 3),
-    "activity": (1, 2), "fight": (60, 120), "echo": (6, 12), "currencywars": (30, 90),
+    "activity": (1, 2), "echo": (6, 12), "currencywars": (30, 90),
     "universe": (30, 60), "challenge": (20, 60),
 }
 INSTANCE_TYPES = (GOLDEN_CALYX, CRIMSON_CALYX, STAGNANT_SHADOW, CAVERN, ORNAMENT)
@@ -46,7 +46,6 @@ def tasks(available):
         "reward": tr("委托、邮件、无名勋礼、兑换码等"), "activity": tr("每日签到和双倍掉落"),
         "echo": tr("每周 3 次，优先消耗开拓力"), "currencywars": tr("每周自动完成积分奖励"),
         "universe": tr("每周自动完成积分奖励"), "challenge": tr("混沌回忆等三项，需要先配好队伍"),
-        "fight": tr("需要前台全屏，通常超过 1 小时"),
     }
     names = {"currencywars": tr("货币战争积分"), "universe": tr("差分宇宙积分")}
     return tuple(SetupTask(key, names.get(key) or tr(BY_ID[key].name), descriptions[key], BY_ID[key].icon,

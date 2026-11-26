@@ -24,10 +24,10 @@ def test_header_actions_and_theme_assets(qtbot, monkeypatch):
     header = host.aboutCard
     header.resize(780, header.height())
     window.show()
-    header.updateButton.click()
+    assert header.updateButton.isHidden()
     header.homeButton.click()
     header.changelogButton.click()
-    check.assert_called_once_with(window)
+    check.assert_not_called()
     assert open_url.call_args.args[0].toString() == "https://github.com/moesnow/March7thAssistant"
     window.navigate.assert_called_once_with("doc:Changelog")
     bounce = Mock()

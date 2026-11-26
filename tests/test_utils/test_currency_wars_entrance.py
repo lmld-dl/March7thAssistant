@@ -86,7 +86,8 @@ def test_banner_overlap_on_padded_template_falls_between_detect_and_click():
     score, location = _match(canvas, padded)
     screen_threshold = _screen_match_threshold()
 
-    assert screen_threshold <= score < 0.9
+    # 当前 S2 模板补回留白后相似度低于点击阈值，横幅场景改由「货币战争」文字回退点击。
+    assert score < screen_threshold < 0.9
     assert location == (glyph_origin[0], glyph_origin[1] - padding.shape[0])
 
 
