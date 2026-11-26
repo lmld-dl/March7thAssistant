@@ -1,0 +1,397 @@
+[
+    {
+        "name": "主界面",
+        "id": "main",
+        "image_path": "./assets/touch_720/images/screen/main.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/screen/main.png', 'image', 0.9, crop=(18 / 1920, 60 / 1080, 72 / 1920, 78 / 1080))"
+                ]
+            },
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element((1521 / 1920, 59 / 1080, 0, 0), 'crop')",
+                    "auto.find_element('星际和平指南', 'text', crop=(75 / 1920, 15 / 1080, 240 / 1920, 41 / 1080), max_retries=6, retry_delay=0.3) and auto.click_element('./assets/touch_720/images/guide/enter_guide2.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "列车补给",
+        "id": "monthly_card",
+        "image_path": "./assets/touch_720/images/screen/monthly_card.png",
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.find_element('./assets/touch_720/images/screen/monthly_card.png', 'image', 0.9, crop=(822 / 1920, 57 / 1080, 369 / 1920, 1008 / 1080)) and auto.find_element('./assets/touch_720/images/screen/monthly_card_claim.png', 'image', 0.9, take_screenshot=False) and auto.click_element('./assets/touch_720/images/screen/monthly_card_prompt.png', 'image', 0.9, take_screenshot=False)",
+                    "auto.find_element('./assets/touch_720/images/screen/monthly_card_reward.png', 'image', 0.9, max_retries=16, retry_delay=0.35, crop=(822 / 1920, 57 / 1080, 369 / 1920, 1008 / 1080)) and auto.find_element('./assets/touch_720/images/screen/monthly_card.png', 'image', 0.9, take_screenshot=False) and auto.click_element('./assets/touch_720/images/screen/monthly_card_prompt.png', 'image', 0.9, take_screenshot=False)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "手机菜单",
+        "id": "menu",
+        "image_path": "./assets/touch_720/images/screen/menu.png",
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1827 / 1920, 31.5 / 1080, 57 / 1920, 54 / 1080), 'crop')"
+                ]
+            },
+            {
+                "target_screen": "dispatch",
+                "actions_list": [
+                    "auto.click_element('委托', 'text', max_retries=3, retry_delay=0.3, crop=(1600 / 1920, 474 / 1080, 157 / 1920, 61 / 1080))"
+                ]
+            },
+            {
+                "target_screen": "mail",
+                "actions_list": [
+                    "auto.click_element((1855 / 1920, 340 / 1080, 0, 0), 'crop')"
+                ]
+            },
+            {
+                "target_screen": "visa",
+                "actions_list": [
+                    "auto.click_element((1710 / 1920, 129 / 1080, 0, 0), 'crop')",
+                    "auto.click_element('漫游签证', 'text', max_retries=5, retry_delay=0.3, crop=(1301 / 1920, 144 / 1080, 398 / 1920, 59 / 1080))"
+                ]
+            },
+            {
+                "target_screen": "incoming_message",
+                "actions_list": [
+                    "auto.click_element('短信', 'text', crop=(1121 / 1920, 376 / 1080, 156 / 1920, 646 / 1080), max_retries=3, retry_delay=0.3) or (auto.drag_mouse((1710 / 1920, 474 / 1080), (1710 / 1920, 975 / 1080), 0.6) and (time.sleep(0.7) or auto.click_element('短信', 'text', crop=(1121 / 1920, 376 / 1080, 156 / 1920, 646 / 1080), max_retries=3, retry_delay=0.3)))"
+                ]
+            },
+            {
+                "target_screen": "pass1",
+                "actions_list": [
+                    "auto.click_element('无名勋礼', 'text', crop=(1117 / 1920, 385 / 1080, 650 / 1920, 645 / 1080), max_retries=3, retry_delay=0.3) or (auto.drag_mouse((1710 / 1920, 474 / 1080), (1710 / 1920, 975 / 1080), 0.6) and (time.sleep(0.7) or auto.click_element('无名勋礼', 'text', crop=(1117 / 1920, 385 / 1080, 650 / 1920, 645 / 1080), max_retries=3, retry_delay=0.3)))"
+                ]
+            },
+            {
+                "target_screen": "material",
+                "actions_list": [
+                    "auto.click_element('合成', 'text', crop=(1447 / 1920, 556 / 1080, 153 / 1920, 149 / 1080), max_retries=3, retry_delay=0.3)",
+                    "auto.find_element('合成', 'text', crop=(121 / 1920, 15 / 1080, 78 / 1920, 36 / 1080), max_retries=6, retry_delay=0.3) and auto.click_element((87 / 1920, 312 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "委托",
+        "id": "dispatch",
+        "image_path": "./assets/touch_720/images/screen/dispatch.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "邮箱",
+        "id": "mail",
+        "image_path": "./assets/touch_720/images/screen/mail.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "无名勋礼-奖励",
+        "id": "pass1",
+        "image_path": "./assets/touch_720/images/screen/pass1.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            },
+            {
+                "target_screen": "pass2",
+                "actions_list": [
+                    "auto.click_element((87 / 1920, 317 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "无名勋礼-任务",
+        "id": "pass2",
+        "image_path": "./assets/touch_720/images/screen/pass2.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            },
+            {
+                "target_screen": "pass1",
+                "actions_list": [
+                    "auto.click_element((87 / 1920, 180 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "漫游签证",
+        "id": "visa",
+        "image_path": "./assets/touch_720/images/screen/visa.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "拟造花萼",
+        "id": "calyx",
+        "image_path": [
+            "./assets/touch_720/images/screen/calyx.png",
+            "./assets/touch_720/images/screen/calyx_audition.png"
+        ],
+        "text_fallback": [
+            {"instance_types": ["拟造花萼（金）", "拟造花萼（赤）"], "include": true, "crop": [802, 70, 1233, 116]},
+            {"text": "挑战", "crop": [984, 632, 1165, 683]}
+        ],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/guide3.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "凝滞虚影",
+        "id": "stagnant_shadow",
+        "image_path": "./assets/touch_720/images/screen/stagnant_shadow.png",
+        "text_fallback": [
+            {"instance_types": ["凝滞虚影"], "include": true, "crop": [802, 70, 1233, 116]},
+            {"text": "挑战", "crop": [984, 632, 1165, 683]}
+        ],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/guide3.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "侵蚀隧洞",
+        "id": "cavern",
+        "image_path": "./assets/touch_720/images/screen/cavern.png",
+        "text_fallback": [
+            {"instance_types": ["侵蚀隧洞"], "include": true, "crop": [802, 70, 1233, 116]},
+            {"text": "挑战", "crop": [984, 632, 1165, 683]}
+        ],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/guide3.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "历战余响",
+        "id": "echo",
+        "image_path": "./assets/touch_720/images/screen/echo.png",
+        "text_fallback": [
+            {"instance_types": ["历战余响"], "include": true, "crop": [802, 70, 1233, 116]},
+            {"text": "挑战", "crop": [984, 632, 1165, 683]}
+        ],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/guide3.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "位面饰品提取",
+        "id": "ornament",
+        "image_path": "./assets/touch_720/images/screen/ornament.png",
+        "text_fallback": [
+            {"instance_types": ["饰品提取"], "include": true, "crop": [503, 74, 888, 114]},
+            {"text": "开始挑战", "crop": [940, 630, 1220, 684]}
+        ],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/guide3.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "星际和平指南-每日实训",
+        "id": "guide2",
+        "image_path": "./assets/touch_720/images/screen/guide2.png",
+        "image_crop": [90, 84, 1198, 144],
+        "actions": [
+            {
+                "target_screen": "main",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')",
+                    "time.sleep(0.6)",
+                    "auto.find_element('./assets/touch_720/images/screen/menu.png', 'image', 0.88, max_retries=3, retry_delay=0.3) and auto.click_element((1827 / 1920, 31.5 / 1080, 57 / 1920, 54 / 1080), 'crop')"
+                ]
+            },
+            {
+                "target_screen": "guide3",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide3.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            },
+            {
+                "target_screen": "guide5",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide5.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            },
+            {
+                "target_screen": "guide4",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide4.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            },
+            {
+                "target_screen": "guide6",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide6.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "星际和平指南-生存索引",
+        "id": "guide3",
+        "image_path": "./assets/touch_720/images/screen/guide3.png",
+        "image_crop": [90, 84, 1198, 144],
+        "actions": [
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide2.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "星际和平指南-旷宇纷争",
+        "id": "guide5",
+        "image_path": "./assets/touch_720/images/screen/guide5.png",
+        "image_crop": [90, 84, 1198, 144],
+        "actions": [
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide2.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "星际和平指南-逐光捡金",
+        "id": "guide4",
+        "image_path": "./assets/touch_720/images/screen/guide4.png",
+        "image_crop": [90, 84, 1198, 144],
+        "actions": [
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide2.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "星际和平指南-开拓历程",
+        "id": "guide6",
+        "image_path": "./assets/touch_720/images/screen/guide6.png",
+        "image_crop": [90, 84, 1198, 144],
+        "actions": [
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element('./assets/touch_720/images/guide/enter_guide2.png', 'image', 0.88, crop=(90 / 1280, 84 / 720, 1108 / 1280, 60 / 720), max_retries=3, retry_delay=0.3)"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "获得物品",
+        "id": "item_reward",
+        "image_path": "./assets/touch_720/images/screen/item_reward.png",
+        "actions": [
+            {
+                "target_screen": "guide2",
+                "actions_list": [
+                    "auto.click_element((960 / 1920, 854 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "短信",
+        "id": "incoming_message",
+        "image_path": "./assets/touch_720/images/screen/incoming_message.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "材料合成",
+        "id": "material",
+        "image_path": "./assets/touch_720/images/screen/material.png",
+        "actions": [
+            {
+                "target_screen": "menu",
+                "actions_list": [
+                    "auto.click_element((1848 / 1920, 55 / 1080, 0, 0), 'crop')"
+                ]
+            }
+        ]
+    }
+]

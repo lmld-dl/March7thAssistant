@@ -63,6 +63,10 @@ def start_game_with(monkeypatch, wait_for_window, running=True):
     monkeypatch.setattr(module,'cfg',SimpleNamespace(cloud_game_enable=False,auto_set_resolution_enable=False,
                                                      auto_battle_detect_enable=False,update_via_launcher=False))
     monkeypatch.setattr(module,'StarRailController',Mock(return_value=controller))
+    windows=Mock()
+    windows.return_value.process_running.return_value=False
+    monkeypatch.setattr(module,'WindowsInputApi',windows)
+    monkeypatch.setattr(module,'process_session_id',lambda: 1)
     monkeypatch.setattr(module,'log',Mock())
     return module,controller,backend
 
@@ -82,10 +86,10 @@ def test_background_start_restarts_game_after_process_exit(monkeypatch):
     """等待期间游戏进程退出：与前台模式找不到窗口一样走原有的关闭游戏后重启流程。"""
     from module.automation.background_input import GameWindowLost
     module,controller,backend=start_game_with(monkeypatch,GameWindowLost('游戏进程已退出'))
-    controller.is_game_running.side_effect=[True,False,False]
+    controller.is_game_running.side_effect=[True,False,False,False,False]
     with pytest.raises(RuntimeError,match='启动游戏失败'):
         module.start_game()
-    assert controller.stop_game.call_count==3
+    assert controller.stop_game.call_count==2
     assert controller.start_game_process.call_count==2
 
 
@@ -98,12 +102,11 @@ def test_background_start_does_not_wait_when_game_is_not_running(monkeypatch):
 
 def test_launcher_keeps_own_foreground_handler(monkeypatch):
     import module.automation.launcher_automation as module
-    import module.automation.local_input as local
     monkeypatch.setattr(module,'cfg',config())
     handler=Mock()
     factory=Mock(return_value=handler)
     game_factory=Mock(side_effect=AssertionError('launcher must not borrow game HWND'))
-    monkeypatch.setattr(local,'LocalInput',factory)
+    monkeypatch.setitem(sys.modules, 'module.automation.local_input', SimpleNamespace(LocalInput=factory))
     monkeypatch.setattr(module,'get_game_controller',game_factory)
     launcher=SimpleNamespace(logger=Mock())
     module.LauncherAutomation._init_input(launcher)
@@ -154,6 +157,7 @@ def test_backend_snapshot_enforces_background_capture_after_setting_changes(capt
     c.desktop.assert_not_called()
 
 
+@pytest.mark.skipif(sys.platform!='win32',reason='自动对话仅在 Windows 上启用')
 def test_background_autoplot_uses_available_window_and_releases_on_stop(monkeypatch,qapp):
     from tasks.tool.autoplot import _engine as module
     backend=SimpleNamespace(is_background=True,is_available=Mock(return_value=True),release_all=Mock())
@@ -170,12 +174,10 @@ def test_background_autoplot_uses_available_window_and_releases_on_stop(monkeypa
 
 
 def test_game_start_does_not_kill_game_on_input_interruption(monkeypatch):
-    import tasks.game as module
     from module.automation.background_input import InputInterrupted
-    controller=Mock()
+    module,controller,backend=start_game_with(monkeypatch,None)
+    backend.is_background=False
     controller.switch_to_game.side_effect=InputInterrupted('minimized')
-    monkeypatch.setattr(module,'cfg',SimpleNamespace(cloud_game_enable=False))
-    monkeypatch.setattr(module,'StarRailController',Mock(return_value=controller))
     with pytest.raises(InputInterrupted):module.start_game()
     controller.stop_game.assert_not_called()
     controller.start_game_process.assert_not_called()
@@ -201,6 +203,7 @@ def test_workflow_precheck_waits_for_background_window_and_names_reason(monkeypa
     controller.switch_to_game.side_effect = AssertionError('后台模式不切换前台')
     backend = SimpleNamespace(is_background=True, wait_for_window=Mock(side_effect=errors.get(failure)))
     log = Mock()
+    monkeypatch.setattr(module, 'cfg', config('background'))
     monkeypatch.setattr(module, 'get_game_controller', lambda: controller)
     monkeypatch.setattr(module, 'auto', SimpleNamespace(input_handler=backend))
     monkeypatch.setattr(module, 'log', log)

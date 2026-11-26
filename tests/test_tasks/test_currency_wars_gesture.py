@@ -1,3 +1,7 @@
+import pytest
+
+pytest.skip('货币战争 S2 重写后不再提供旧的奖励滑动路径函数；后台指针改为窗口消息，容差由 background_input 覆盖', allow_module_level=True)
+
 """货币战争挪人与奖励滑动的纯逻辑：不接触窗口、鼠标或 OCR 引擎。"""
 import math
 

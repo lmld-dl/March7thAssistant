@@ -17,10 +17,9 @@
 """
 import importlib.util
 import sys
-import threading
 import time
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -47,7 +46,6 @@ class _FakeGame:
     def __init__(self, back_stack, swallowed_presses=0):
         self.stack = list(back_stack)  # 栈顶即当前界面
         self.swallowed_presses = swallowed_presses
-        self.esc_presses = 0
         self.esc_transitions = []
 
     @property
@@ -55,7 +53,6 @@ class _FakeGame:
         return self.stack[-1]
 
     def press_esc(self):
-        self.esc_presses += 1
         if self.swallowed_presses > 0:
             # 遗器已满提示浮层会吞掉第一次 esc（实测要按两次才能退回上一级）
             self.swallowed_presses -= 1
@@ -131,8 +128,6 @@ def _load_screen_module(auto):
         "module.automation.background_input": _stub(
             "module.automation.background_input",
             InputInterrupted=_InputInterrupted, GameWindowLost=_GameWindowLost),
-        "module.config": _stub("module.config", cfg=MagicMock()),
-        "module.logger": _stub("module.logger", log=MagicMock()),
     }
     spec = importlib.util.spec_from_file_location(
         "screen_under_test", ROOT / "module" / "screen" / "screen.py"
@@ -150,13 +145,7 @@ def _build_screen(monkeypatch, back_stack, swallowed_presses=0):
 
     module = _load_screen_module(MagicMock())
     screen = module.Screen.__new__(module.Screen)
-    screen.screen_map = {}
-    screen.current_screen = None
-    screen.current_screen_threshold = 0
-    screen.wait_screen_change_time = 0.5
-    screen.lock = threading.Lock()
-    screen.logger = MagicMock()
-    screen._setup_screens_from_config(str(SCREENS_CONFIG))
+    screen.__init__(SCREENS_CONFIG, MagicMock())
 
     module.auto = _FakeAuto(screen.screen_map, game)
     return screen, game
@@ -183,45 +172,26 @@ def test_relic_bag_navigation_keeps_menu_entry_untouched(monkeypatch):
 
 
 
-def test_opening_the_phone_menu_presses_esc_again_when_the_first_is_swallowed(monkeypatch):
-    """大世界第一次 ESC 只退出鼠标光标时，不能就此一直停在主界面。"""
-    screen, game = _build_screen(monkeypatch, ["main"], swallowed_presses=1)
+@pytest.mark.parametrize("initial_screen", ["unknown", "guide3"])
+def test_navigation_disables_autotry_on_initial_recognition_and_retry(monkeypatch, initial_screen):
+    screen, game = _build_screen(monkeypatch, ["main", initial_screen])
 
-    screen.change_to("menu")
+    if initial_screen == "guide3":
+        original = screen.perform_operations
 
-    assert game.state == "menu"
-    assert game.esc_presses == 2
+        def transition(operations):
+            original(operations)
+            game.stack.append("unknown")
 
+        monkeypatch.setattr(screen, "perform_operations", transition)
+        monkeypatch.setattr(screen, "get_timeout_operations", lambda *_: [])
 
-def test_opening_the_phone_menu_does_not_close_a_menu_that_just_opened(monkeypatch):
-    """菜单已经打开时不能再补一次 ESC，否则会把它关掉。"""
-    screen, game = _build_screen(monkeypatch, ["main"])
+    with pytest.raises(RuntimeError, match="无法识别当前游戏界面"):
+        screen.change_to("bag_relicset", autotry=False)
 
-    screen.change_to("menu")
-
-    assert game.state == "menu"
-    assert game.esc_presses == 1
-    assert game.esc_transitions == [("main", "menu")]
-
-
-def test_detection_prefers_the_stronger_screen_match(monkeypatch):
-    """主界面锚点先越过阈值时，不能盖过更像手机菜单的匹配。"""
-    screen, _game = _build_screen(monkeypatch, ["main"])
-    auto = type(screen).__init__.__globals__["auto"]
-
-    def find_element(image_path, find_type=None, threshold=None, **kwargs):
-        if not isinstance(image_path, str):
-            return None
-        if image_path.endswith("main.png"):
-            return 0.90
-        if image_path.endswith("/menu/more.png"):
-            return 0.97
-        return None
-
-    auto.find_element = find_element
-
-    assert screen.get_current_screen(autotry=False) is True
-    assert screen.current_screen == "menu"
+    assert game.state == "unknown"
+    # 从指南出发时，只有作为已识别路线的一次 Esc。
+    assert game.esc_transitions == ([("guide3", "main")] if initial_screen == "guide3" else [])
 
 
 def test_background_window_errors_are_not_swallowed_as_unmatched(monkeypatch):
@@ -237,3 +207,194 @@ def test_background_window_errors_are_not_swallowed_as_unmatched(monkeypatch):
     auto.find_element = MagicMock(side_effect=_InputInterrupted("无法读写系统光标"))
     with pytest.raises(_InputInterrupted):
         screen.perform_operations(["auto.find_element('x', 'image')"])
+
+
+INSTANCE_PAGES = [
+    ("calyx", "回忆之蕾·拟造花萼（金）", "挑战"),
+    ("calyx", "存护之蕾·拟造花萼（赤）", "挑战"),
+    ("stagnant_shadow", "职司之形·凝滞虚影", "挑战"),
+    ("cavern", "弦歌之径·侵蚀隧洞", "挑战"),
+    ("echo", "铁骸的锈冢·历战余响", "挑战"),
+    ("ornament", "浴火钢心", "开始挑战"),
+]
+
+
+@pytest.mark.parametrize(("page", "header", "button"), INSTANCE_PAGES)
+@pytest.mark.parametrize("failure", [None, "wrong-instance", "category-only", "missing-title", "wrong-button"])
+def test_touch_instance_checks_title_and_challenge_on_one_frame(monkeypatch, page, header, button, failure):
+    from PIL import Image, ImageDraw
+    from module.ocr import ocr
+
+    auto = MagicMock()
+    module = _load_screen_module(auto)
+    monkeypatch.setattr(module, "cfg", SimpleNamespace(ui_profile="touch_720", control_backend="adb"))
+    screen = module.Screen.__new__(module.Screen)
+    screen.__init__(ROOT / "assets/touch_720/screens.json", MagicMock())
+
+    frame = Image.new("RGB", (1280, 720))
+    draw = ImageDraw.Draw(frame)
+    header_rect = (503, 74, 888, 114) if page == "ornament" else (802, 70, 1233, 116)
+    draw.rectangle(header_rect, fill="gold")
+    draw.rectangle((920, 630, 1240, 685), fill="white")
+    if failure == "wrong-instance":
+        header = "弦歌之径·侵蚀隧洞" if page == "echo" else "铁骸的锈冢·历战余响"
+    elif failure == "category-only":
+        header = screen.get_name(page)
+    elif failure == "missing-title":
+        header = ""
+    elif failure == "wrong-button":
+        button = "退出关卡"
+
+    def capture():
+        auto.screenshot = frame
+        return frame, (0, 0, 1280, 720), 1
+
+    def find_element(*args, take_screenshot=True, **kwargs):
+        if take_screenshot:
+            auto.take_screenshot()
+        return None
+
+    def read_text(pixels):
+        color = tuple(pixels[len(pixels) // 2, len(pixels[0]) // 2])
+        assert color in ((255, 215, 0), (255, 255, 255))
+        text = header if color == (255, 215, 0) else button
+        return [(None, (text, 1.0))]
+
+    auto.take_screenshot.side_effect = capture
+    auto.find_element.side_effect = find_element
+    monkeypatch.setattr(ocr, "recognize_multi_lines", read_text)
+
+    assert screen.check_screen(page) is (failure is None)
+    assert screen.current_screen == (page if failure is None else None)
+    auto.take_screenshot.assert_called_once()
+
+
+@pytest.mark.parametrize(("page", "header", "button"), INSTANCE_PAGES)
+def test_touch_instance_recovers_from_missing_icon_after_failed_task(monkeypatch, page, header, button):
+    from PIL import Image, ImageDraw
+    from module.ocr import ocr
+    from tasks.base import task_steps
+
+    auto = MagicMock()
+    module = _load_screen_module(auto)
+    monkeypatch.setattr(module, "cfg", SimpleNamespace(ui_profile="touch_720", control_backend="adb"))
+    screen = module.Screen.__new__(module.Screen)
+    screen.__init__(ROOT / "assets/touch_720/screens.json", MagicMock())
+    monkeypatch.setattr(task_steps, "screen", screen)
+    monkeypatch.setattr(time, "sleep", lambda *_: None)
+
+    frame = Image.new("RGB", (1280, 720))
+    draw = ImageDraw.Draw(frame)
+    header_rect = (503, 74, 888, 114) if page == "ornament" else (802, 70, 1233, 116)
+    draw.rectangle(header_rect, fill="gold")
+    draw.rectangle((920, 630, 1240, 685), fill="white")
+
+    def read_text(pixels):
+        gold = tuple(pixels[len(pixels) // 2, len(pixels[0]) // 2]) == (255, 215, 0)
+        return [(None, (header if gold else button, 1.0))]
+
+    state = page
+    closes = []
+
+    def find_element(path, kind, *args, **kwargs):
+        if state == "main" and path.endswith("/main.png"):
+            return 1.0 if kind == "image_threshold" else True
+        if state == "guide3" and path.endswith("/guide3.png"):
+            return 1.0 if kind == "image_threshold" else True
+        return None
+
+    def click_close(target, kind):
+        nonlocal state
+        assert kind == "crop"
+        assert target == (1848 / 1920, 55 / 1080, 0, 0)
+        closes.append(state)
+        state = {page: "guide3", "guide3": "main"}[state]
+        return True
+
+    auto.screenshot = frame
+    auto.find_element.side_effect = find_element
+    auto.click_element.side_effect = click_close
+    monkeypatch.setattr(ocr, "recognize_multi_lines", read_text)
+    next_task = MagicMock(return_value=True)
+
+    assert not task_steps.run_steps([(header, lambda: False), ("下一项", next_task)])
+    next_task.assert_called_once_with()
+    assert screen.current_screen == state == "main"
+    assert closes == [page, "guide3"]
+
+
+@pytest.mark.parametrize("values, expected", [
+    ({}, "p"), ({"hotkey_message": "p"}, "p"),
+    ({"hotkey_message": "k"}, "k"), ({"hotkey_message": "f6"}, "f6"),
+])
+def test_message_navigation_uses_configured_key(monkeypatch, values, expected):
+    """真实界面图与导航读取短信按键；旧配置缺键时仍使用 P。"""
+    screen, game = _build_screen(monkeypatch, ["main"])
+    namespace = type(screen).__init__.__globals__
+    namespace["cfg"] = SimpleNamespace(get_game_hotkey=values.get)
+
+    def press_key(key):
+        assert key == expected
+        game.stack.append("incoming_message")
+
+    namespace["auto"].press_key = MagicMock(side_effect=press_key)
+    screen.change_to("incoming_message")
+
+    namespace["auto"].press_key.assert_called_once_with(expected)
+    assert screen.current_screen == game.state == "incoming_message"
+
+
+@pytest.mark.parametrize(("target", "config_key"), [
+    ("map", "hotkey_map"),
+    ("stellar_warp", "hotkey_warp"),
+    ("incoming_message", "hotkey_message"),
+])
+def test_navigation_dispatches_detected_game_hotkey(monkeypatch, target, config_key):
+    from module.config import game_hotkeys
+    from module.config.config import Config
+
+    screen, game = _build_screen(monkeypatch, ["main"])
+    namespace = type(screen).__init__.__globals__
+    config = Config.__new__(Config)
+    config.config = {config_key: "k"}
+    monkeypatch.setattr(game_hotkeys, "detect_game_hotkeys", MagicMock(return_value={config_key: "space"}))
+    namespace["cfg"] = config
+    namespace["auto"].press_key = MagicMock(side_effect=lambda _key: game.stack.append(target))
+
+    screen.change_to(target)
+
+    namespace["auto"].press_key.assert_called_once_with("space")
+    assert screen.current_screen == game.state == target
+    assert config.get_value(config_key) == "k"
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="本地输入仅限 Windows")
+@pytest.mark.parametrize("mode", ["foreground", "background"])
+def test_message_key_reaches_selected_local_input_backend(monkeypatch, mode):
+    """保留统一输入入口：前后台均接收自定义按键，不向真实游戏发送输入。"""
+    from module.automation.automation import Automation
+    from module.game.local import LocalGameController
+
+    controller = object.__new__(LocalGameController)
+    controller.logger = MagicMock()
+    controller.window_name, controller.process_name = "game", "StarRail"
+    controller._config = SimpleNamespace(get_value={
+        "local_control_mode": mode, "background_mouse_protection": False,
+    }.get)
+    handler = controller.get_input_handler()
+    monkeypatch.setattr(handler, "press_key", MagicMock())
+    monkeypatch.setattr(
+        "module.automation.automation.get_game_controller",
+        lambda: SimpleNamespace(get_input_handler=lambda: handler),
+    )
+    auto = object.__new__(Automation)
+    auto._init_input()
+    try:
+        screen, _ = _build_screen(monkeypatch, ["main"])
+        namespace = type(screen).__init__.__globals__
+        namespace["cfg"] = SimpleNamespace(get_game_hotkey={"hotkey_message": "k"}.get)
+        namespace["auto"] = auto
+        screen.perform_operations(screen.get_operations("main", "incoming_message"))
+        handler.press_key.assert_called_once_with("k")
+    finally:
+        auto.close_input()

@@ -78,7 +78,7 @@ class TestAutostartConfigDialog:
         dlg.headlessTaskCombo.setCurrentIndex(1)  # 第二个内置任务
         dlg.accept()
         assert fake_cfg["autostart_open_gui"] is False
-        assert fake_cfg["autostart_headless_task"] == dlg._task_ids[1]
+        assert fake_cfg["autostart_headless_task"] == dlg.headlessTaskCombo.itemData(1)
 
     def test_accept_persists_gui_task(self, qapp, fake_cfg):
         dlg, parent = _build_dialog(qapp, fake_cfg)
@@ -88,7 +88,7 @@ class TestAutostartConfigDialog:
         dlg.accept()
         assert fake_cfg["autostart_open_gui"] is True
         assert fake_cfg["autostart_minimize"] is True
-        assert fake_cfg["autostart_gui_task"] == dlg._task_ids[1]
+        assert fake_cfg["autostart_gui_task"] == dlg.guiTaskCombo.itemData(2)
 
 
 class TestAutostartSettingCard:
@@ -111,6 +111,17 @@ class TestAutostartSettingCard:
         assert card.upgradeButton.isHidden()
         assert not card.switchButton.isHidden()
         assert not card.configButton.isHidden()
+
+    def test_enable_failure_reverts_switch(self, qapp, monkeypatch, fake_cfg):
+        import app.card.autostart_setting_card as card_module
+
+        errors = []
+        monkeypatch.setattr(card_module.autostart, "enable", lambda: False)
+        monkeypatch.setattr(card_module.InfoBar, "error", lambda **kwargs: errors.append(kwargs["content"]))
+        card = self._make_card(qapp, monkeypatch, legacy=False)
+        card.switchButton.setChecked(True)
+        assert card.switchButton.isChecked() is False
+        assert errors == [card_module.tr("请检查日志后重试")]
 
     def test_programmatic_set_value_does_not_toggle(self, qapp, monkeypatch, fake_cfg):
         """回归：程序化同步开关状态不得触发 checkedChanged（曾误弹「开机启动已开启」并重复写配置）"""

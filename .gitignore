@@ -56,8 +56,7 @@ coverage.xml
 cover/
 
 # Translations
-# *.mo
-# *.pot
+/assets/locales/**/LC_MESSAGES/march7th.mo
 
 # Django stuff:
 *.log
@@ -182,9 +181,18 @@ pyrightconfig.json
 /test.py
 
 # March7thAssistant
+/userdata
+**/gacha/[0-9]*.json
+**/gacha/*.bak
+**/gacha/.*.tmp
+**/gacha/.import-pending.json
+/配置已移到 userdata.txt
 /*config.yaml
 /config
 /warp.json
+/warp.json.*.bak
+/characters.json
+/characters.partial.json
 /logs
 /screenshots
 /3rdparty/*OCR-json*
@@ -209,7 +217,7 @@ smtp_temp.bin
 
 .agents/
 # 仅忽略仓库根目录的个人开发说明；assets/agent/AGENTS.md 是随发布包分发的公开文件
-/AGENTS.md
+/AGENTS.override.md
 .claude/
 CLAUDE.md
 

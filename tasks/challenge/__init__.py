@@ -1,3 +1,4 @@
+from utils.game_options import game_option_enabled
 from .memoryofchaos import MemoryOfChaos
 from .memoryone import MemoryOne
 from .purefiction import PureFiction
@@ -8,13 +9,18 @@ from module.config import cfg
 
 class ChallengeManager:
     def __init__(self):
+        technique_key = cfg.get_game_hotkey("hotkey_technique", "e")
         self.game_modes = {
-            "memoryofchaos": MemoryOfChaos(cfg.forgottenhall_team1, cfg.forgottenhall_team2, cfg.forgottenhall_level, cfg.hotkey_technique, cfg.auto_battle_detect_enable),
-            "purefiction": PureFiction(cfg.purefiction_team1, cfg.purefiction_team2, cfg.purefiction_level, cfg.hotkey_technique, cfg.auto_battle_detect_enable,
+            "memoryofchaos": MemoryOfChaos(cfg.forgottenhall_team1, cfg.forgottenhall_team2, cfg.forgottenhall_level, technique_key, game_option_enabled(cfg, "auto_battle_detect_enable"),
+                                          team3=cfg.get_value("forgottenhall_team3", [["DanHeng", -1]]) or [["DanHeng", -1]],
+                                          stellar_enable=bool(cfg.get_value("forgottenhall_stellar_enable", False))),
+            "purefiction": PureFiction(cfg.purefiction_team1, cfg.purefiction_team2, cfg.purefiction_level, technique_key, game_option_enabled(cfg, "auto_battle_detect_enable"),
                                       team3=cfg.get_value("purefiction_team3", [["DanHeng", -1]]) or [["DanHeng", -1]],
                                       stellar_enable=bool(cfg.get_value("purefiction_stellar_enable", False))),
-            "memoryone": MemoryOne(cfg.daily_memory_one_team, cfg.hotkey_technique, cfg.auto_battle_detect_enable),
-            "apocalyptic": Apocalyptic(cfg.apocalyptic_team1, cfg.apocalyptic_team2, cfg.apocalyptic_level, cfg.hotkey_technique, cfg.auto_battle_detect_enable),
+            "memoryone": MemoryOne(cfg.daily_memory_one_team, technique_key, game_option_enabled(cfg, "auto_battle_detect_enable")),
+            "apocalyptic": Apocalyptic(cfg.apocalyptic_team1, cfg.apocalyptic_team2, cfg.apocalyptic_level, technique_key, game_option_enabled(cfg, "auto_battle_detect_enable"),
+                                      team3=cfg.get_value("apocalyptic_team3", [["DanHeng", -1]]) or [["DanHeng", -1]],
+                                      stellar_enable=bool(cfg.get_value("apocalyptic_stellar_enable", False))),
         }
 
     def run(self, mode: Literal["memoryofchaos", "purefiction", "memoryone", "apocalyptic"], count=1):
@@ -25,7 +31,7 @@ class ChallengeManager:
             game_mode.run()
 
 
-def start(mode: Literal["memoryofchaos", "purefiction", "memoryone"], count=1):
+def start(mode: Literal["memoryofchaos", "purefiction", "memoryone", "apocalyptic"], count=1):
     challenge_manager = ChallengeManager()
     challenge_manager.run(mode, count)
 

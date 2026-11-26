@@ -8,6 +8,7 @@ from module.screen import screen
 from module.automation import auto
 from module.config import cfg
 from module.logger import log
+from tasks.base.task_steps import optional_reward
 
 
 class PureFiction(BaseChallenge):
@@ -41,6 +42,7 @@ class PureFiction(BaseChallenge):
 
         if not auto.find_element(self.name, "text", max_retries=10, crop=(689.0 / 1920, 285.0 / 1080, 970.0 / 1920, 474.0 / 1080), include=True):
             return False
+        # 星启模式改在关卡页判断最高关星数（StellarChallenge._open_highest_level）。
         if not self.stellar.enabled and self.check_star_in_ocr_results(auto.ocr_result):
             self.save_timestamp_into_config()
             return False
@@ -112,6 +114,8 @@ class PureFiction(BaseChallenge):
         return count if count is not None and 0 <= count <= 3 else None
 
     def start_challenge(self, level):
+        from utils.runs import DETAIL_TEXT, publish_detail
+        publish_detail(DETAIL_TEXT["challenge"], level=level)
         '''开始挑战'''
         # 每个关卡挑战2次，status 用于判断是否交换配队
         for status in [True, False]:
@@ -227,7 +231,7 @@ class PureFiction(BaseChallenge):
                     ready_frames = 0
             if self.auto_battle_detect_enable and auto.find_element("./assets/images/share/base/not_auto.png", "image", 0.9, crop=(0.0 / 1920, 903.0 / 1080, 144.0 / 1920, 120.0 / 1080)):
                 log.info("尝试开启自动战斗")
-                auto.press_key(cfg.get_value("hotkey_auto_battle", "v"))
+                auto.press_key(cfg.get_game_hotkey("hotkey_auto_battle", "v"))
 
             time.sleep(2)
 
@@ -252,6 +256,7 @@ class PureFiction(BaseChallenge):
         log.error("结算后返回虚构叙事失败")
         raise RuntimeError("结算后返回虚构叙事失败")
 
+    @optional_reward("虚构叙事奖励")
     def collect_rewards(self):
         '''领取奖励'''
         if self.max_level > 0:

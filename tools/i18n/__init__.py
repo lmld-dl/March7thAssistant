@@ -4,8 +4,8 @@
 提供以下子命令（见 ``python -m tools.i18n -h``）：
 
 - ``extract``    扫描源码/数据源中的 tr()/tn()/trc() 字面量，把新文案并入 .pot/.po
-- ``check``      校验 .pot/.po/.mo 与多语言文档，CI 与 pytest 均调用同一套规则
-- ``compile``    编译 .po -> .mo（.mo 需随 .po 一起提交）
+- ``check``      校验 .pot/.po 与多语言文档，并在临时目录验证 gettext 编译结果
+- ``compile``    从 .po 生成各平台运行时读取的 .mo
 
 设计约定：
 - msgid 即中文原文（zh_CN 为源语言），.po/.mo 位于 assets/locales/{lang}/LC_MESSAGES/；
@@ -33,7 +33,7 @@ LOCALES = ["zh_CN", "zh_TW", "ja_JP", "ko_KR", "en_US"]
 
 # 参与提取的源码目录/文件（tests、3rdparty 等不参与）
 SCAN_DIRS = ["app", "module", "tasks", "utils", "tools"]
-SCAN_FILES = ["main.py", "app.py", "build.py"]
+SCAN_FILES = ["main.py", "app.py", "updater.py", "build.py"]
 
 # 视为翻译调用的函数名（含 self.tr(...) 形式）
 TRANSLATION_FUNCS = {"tr", "tn"}
@@ -237,12 +237,33 @@ def collect_code_literals() -> tuple[set[str], set[str], int]:
 #   - 键为元组表示只取这些 dict 键对应的值，避免把图标路径、task_id 等一起登记；
 #   - 必须用 AST 读取、绝不 import —— 否则会把 PySide6 / qfluentwidgets 拖进工具链。
 TABLE_SOURCES = [
-    # 任务名与主页卡片文案：常量里存的是中文原文（msgid），显示时才 tr()
-    ("utils/tasks.py", (("AVAILABLE_TASKS", None),)),
-    ("app/card/card_edit_dialog.py", (
-        ("HOME_EXTRA_TASKS", None),
-        ("DEFAULT_CARDS", ("title", "label", "menu_items")),
-    )),
+    ("app/content/gacha_model.py", (("_HEADERS", None),)),
+    ("app/search_popup.py", (("GROUP_LABELS", None),)),
+    ("app/setting_interface.py", (("DESCRIPTIONS", None),)),
+    ("app/pages/run_mode.py", (("TAGS", None), ("DETAILS", None))),
+    ("app/pages/tasks.py", (("PROGRESS_LABELS", None), ("GROUPS", None))),
+    ("module/search/terms.py", (("SYNONYMS", None),)),
+    ("app/content/settings_state.py", (("MANUAL", None),)),
+    ("module/notification/results.py", (("REASONS", None),)),
+    ("module/search/setting_text.py", (("DESCRIPTIONS", None), ("CHOICES", None), ("PAGE_DESCRIPTIONS", None))),
+    ("utils/runs.py", (("DETAIL_TEXT", None),)),
+    ("module/accounts/reasons.py", (("REASONS", None),)),
+    ("module/accounts/store.py", (("ISSUES", None),)),
+    ("module/accounts/messages.py", (("RESULT", None),)),
+    ("module/accounts/status.py", (("LABELS", None),)),
+    ("module/accounts/differences.py", (("_HIDDEN", None),)),
+    ("module/overview/labels.py", (("TRIGGERS", None), ("RESULTS", None), ("POST_ACTIONS", None))),
+    ("module/overview/shortcuts.py", (("HOME_EXTRA_TASKS", None), ("TOOLS", None), ("MENUS", None))),
+    ("module/task_catalog.py", (("TASK_MENUS", None),)),
+    ("module/overview/plan.py", (("STEP_NAMES", None),)),
+    ("module/overview/cards.py", (("STATUS_TEXT", None), ("SUMMARY_TEXT", None), ("OPTIONS", None))),
+    ("module/overview/snapshot.py", (("PHASE_NAMES", None),)),
+    ("utils/data_migration.py", (("REASONS", None),)),
+    ("module/workflow/__init__.py", (("STEP_TYPE_LABELS", None), ("CONDITION_TYPE_LABELS", None))),
+    ("module/update/version_check.py", (("_CDK_ERROR_MESSAGES", None),)),
+    # 任务名常量存中文原文（msgid），显示时才 tr()
+    ("utils/tasks.py", (("AVAILABLE_TASKS", None), ("CLI_ONLY_TASKS", None), ("UNSUPPORTED_TASK", None))),
+    ("tasks/weekly/currency_wars_strategy.py", (("STRATEGY_NAMES", None),)),
 ]
 
 # 取值会经 tr() 传入的数据文件（display_name 等展示字段即 msgid）
@@ -308,6 +329,30 @@ def collect_table_literals() -> tuple[set[str], dict[str, str]]:
             for value in _collect_table_values(node.value, by_name[matched[0]]):
                 literals.add(value)
                 refs.setdefault(value, f"{rel}:{node.lineno}")
+    # Constructor arguments containing msgids in the desktop content catalogs.
+    constructors = {
+        "module/content_pages.py": {"Page": (1, 4), "Group": (1,)},
+        "module/docs/catalog.py": {"Manual": (1,)},
+        "module/gacha/pools.py": {"Pool": (1, 2)},
+        "module/channel_catalog.py": {"Channel": (1, 3), "Field": (1, 3)},
+        "module/task_catalog.py": {"Task": (1,)},
+        "module/tool_catalog.py": {"Tool": (1, 2)},
+        "module/settings_registry.py": {"_plan": (1,), "_global": (1,)},
+    }
+    for rel, specs in constructors.items():
+        for node in ast.walk(ast.parse((ROOT / rel).read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+                continue
+            for index in specs.get(node.func.id, ()):
+                if len(node.args) <= index:
+                    continue
+                values = _collect_table_values(node.args[index])
+                if node.func.id == "Channel" and index == 1:
+                    # 注册表用渠道名生成开关标题，阅读器逐段翻译完整的设置路径。
+                    values |= {f"启用 {name} 通知" for name in values}
+                for value in values:
+                    literals.add(value)
+                    refs.setdefault(value, f"{rel}:{node.lineno}")
     return literals, refs
 
 
@@ -419,7 +464,7 @@ def prune_dead_keys(dry_run: bool = False) -> dict:
 
     判定：条目键不在 .pot 且不在 legacy_keys.txt 白名单里即为死键。
     TABLE_SOURCES / DATA_SOURCES 的取值经 extract 已进 .pot，不会被误删。
-    只改 .po，删完需运行 compile 同步 .mo。
+    只改 .po，本地运行前可用 compile 更新译文。
     """
     import polib
 
@@ -457,7 +502,7 @@ def run_checks() -> tuple[list[str], list[str]]:
     # 2) 多语言文档：表格行数一致、语言后缀命名合法、译文缺失 —— 仅警告
     warnings.extend(check_docs())
 
-    # 3) gettext 目录（.pot/.po/.mo）
+    # 3) gettext 翻译源和临时编译结果
     try:
         from .po import check_po
         po_errors, po_warnings = check_po(strict)
@@ -469,7 +514,7 @@ def run_checks() -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-# 界面实际加载的文档基名（help_interface / changelog_interface 经 localized_doc_path 读取）。
+# 原生帮助阅读器侧栏的六篇手册，文档源由 module.docs.catalog.source_for 选择。
 # 后缀登记校验、译文完整性校验、zh_TW 生成共用此清单，防止多处清单漂移。
 DOC_BASES = ("Tutorial", "FAQ", "Background", "TasksTable", "Changelog")
 
@@ -479,7 +524,7 @@ def check_docs(docs_dir: Path | None = None) -> list[str]:
 
     - TasksTable 各语言版本表格行数须与基准版一致（防止改漏一份）
     - {Base}_{后缀}.md 的后缀须在 module.localization.languages 注册表声明
-    - 帮助页/更新日志实际加载的文档，声明了 docs_suffix 的语言必须有对应译文
+    - 帮助侧栏列出的文档，声明了 docs_suffix 的语言必须有对应译文
     """
     warnings: list[str] = []
     from module.localization.languages import LANGS
@@ -508,7 +553,7 @@ def check_docs(docs_dir: Path | None = None) -> list[str]:
                     warnings.append(f"文档 {f.name} 的语言后缀 {suf!r} 未在语言注册表声明")
                 break
 
-    # 界面实际加载的文档（app/help_interface.py 与 changelog_interface.py 经 localized_doc_path 读取）
+    # 每篇侧栏文档的译本都应使用该语言登记的后缀。
     for b in DOC_BASES:
         if not (docs_dir / f"{b}.md").is_file():
             continue  # 缺基准文档由其它校验负责
@@ -525,10 +570,10 @@ def check_docs(docs_dir: Path | None = None) -> list[str]:
 # zh_TW 文档生成（繁体由简体基准机械转换，不需要人工翻译）
 # ---------------------------------------------------------------------------
 
-# 界面会加载的文档；zh_TW 版本由简体基准经 OpenCC s2twp 生成（清单与 DOC_BASES 同源）
-ZH_TW_DOC_BASES = DOC_BASES
+# 同步桌面帮助和另有繁体版本的安卓教程。
+ZH_TW_DOC_BASES = (*DOC_BASES, "Android")
 
-# 译文文档第 3 行的声明（界面按行号剥离，位置固定：第 1 行标题 / 第 2 行空行 / 第 3 行声明 / 第 4 行空行）
+# 生成器把转换声明放在标题后的第一个引用块，阅读器按声明文字识别。
 ZH_TW_DOC_NOTE = "> 本文件由簡體中文版經 OpenCC 簡繁轉換產生，用語以台灣習慣為準；內容如有差異，請以簡體中文版為準。"
 
 # 纯表格文档不带声明（与其它语言保持一致）

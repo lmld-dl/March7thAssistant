@@ -1,17 +1,15 @@
-from PySide6.QtCore import Qt, Signal, QUrl, QObject, QThread
+from PySide6.QtCore import Qt, Signal, QUrl, QThread
 from PySide6.QtGui import QIcon, QKeyEvent
 from PySide6.QtWidgets import QPushButton
 from PySide6.QtGui import QDesktopServices
 from qfluentwidgets import SettingCard, FluentIconBase, InfoBar, InfoBarPosition, SwitchButton, IndicatorPosition
-from .messagebox_custom import MessageBoxEdit, MessageBoxEditCode, MessageBoxDate, MessageBoxInstance, MessageBoxInstanceChallengeCount, MessageBoxNotifyTemplate, MessageBoxTeam, MessageBoxFriends, MessageBoxPowerPlan, MessageBoxInstanceTeam
-from tasks.base.tasks import start_task
+from .messagebox_custom import MessageBoxEdit, MessageBoxDate, MessageBoxInstance, MessageBoxInstanceChallengeCount, MessageBoxNotifyTemplate, MessageBoxTeam, MessageBoxFriends, MessageBoxPowerPlan, MessageBoxInstanceTeam
 from module.config import cfg
-from typing import Callable, Union
+from module.config.game_hotkeys import manual_game_hotkey
+from typing import Union
 import datetime
-import json
-import re
-import sys
 from module.localization import tr, tn, get_character_names, instance_display_to_raw
+from utils.game_key_templates import key_prompt_path
 
 
 def get_key_from_value(val, map):
@@ -56,71 +54,30 @@ class DualPushSettingCard(SettingCard):
         self.rightButton.clicked.connect(self.rightClicked.emit)
 
 
-class TriplePushSettingCard(SettingCard):
-    leftClicked = Signal()
-    middleClicked = Signal()
-    rightClicked = Signal()
-
-    def __init__(self, left_text, middle_text, right_text, icon: Union[str, QIcon, FluentIconBase], title, content=None, parent=None):
-        super().__init__(icon, title, content, parent)
-
-        self.leftButton = QPushButton(left_text, self)
-        self.middleButton = QPushButton(middle_text, self)
-        self.rightButton = QPushButton(right_text, self)
-
-        for button in (self.leftButton, self.middleButton, self.rightButton):
-            button.setObjectName('primaryButton')
-
-        self.hBoxLayout.addWidget(self.leftButton, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(10)
-        self.hBoxLayout.addWidget(self.middleButton, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(10)
-        self.hBoxLayout.addWidget(self.rightButton, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(16)
-
-        self.leftButton.clicked.connect(self.leftClicked.emit)
-        self.middleButton.clicked.connect(self.middleClicked.emit)
-        self.rightButton.clicked.connect(self.rightClicked.emit)
-
-
-class PushSettingCardAction(SettingCard):
-    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, content_getter: Callable[[], str], callback: Callable[[], None], parent=None):
-        self._content_getter = content_getter
-        self._callback = callback
-        super().__init__(icon, title, content_getter(), parent)
-
-        self.button = QPushButton(text, self)
-        self.hBoxLayout.addWidget(self.button, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(16)
-
-        self.button.clicked.connect(self.__on_clicked)
-
-    def refreshContent(self):
-        self.contentLabel.setText(self._content_getter())
-        self.contentLabel.adjustSize()
-
-    def __on_clicked(self):
-        self._callback()
-        self.refreshContent()
-
-
 class PushSettingCardStr(CustomPushSettingCard):
-    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname, parent=None, empty_content=None):
+    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname,
+                 parent=None, empty_content=None, *, password=False):
         self.empty_content = empty_content
-        self.configvalue = str(cfg.get_value(configname))
+        self.password = password
+        self.configvalue = str(cfg.get_value(configname) or "")
         super().__init__(text, icon, title, configname, self._display_value(self.configvalue), parent)
         self.button.clicked.connect(self.__onclicked)
 
     def _display_value(self, value):
+        if self.password:
+            return ""
         if value == "" and self.empty_content is not None:
             return self.empty_content
         return value
 
     def __onclicked(self):
-        message_box = MessageBoxEdit(self.title, self.configvalue, self.window())
+        message_box = MessageBoxEdit(self.title, self.configvalue, self.window(), password=self.password)
         if message_box.exec():
-            cfg.set_value(self.configname, message_box.getText())
-            self.configvalue = message_box.getText()
+            value = message_box.getText()
+            if self.password:
+                value = value.strip()
+            cfg.set_value(self.configname, value)
+            self.configvalue = value
             self.contentLabel.setText(self._display_value(self.configvalue))
 
 
@@ -132,13 +89,18 @@ class _CdkValidationThread(QThread):
         self.cdk = cdk
 
     def run(self):
-        self.validationFinished.emit(False, "精简客户端已移除 Mirror酱 更新")
+        try:
+            from module.update.version_check import validate_mirrorchyan_cdk
+            cdk_expired_time = validate_mirrorchyan_cdk(self.cdk)
+            self.validationFinished.emit(True, str(cdk_expired_time))
+        except Exception as e:
+            self.validationFinished.emit(False, str(e))
 
 
 class PushSettingCardMirrorchyan(SettingCard):
-    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, update_callback, configname, parent=None):
+    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, source_card, configname, parent=None):
         self.configvalue = str(cfg.get_value(configname))
-        self.update_callback = update_callback
+        self.source_card = source_card
         super().__init__(icon, title, "", parent)
 
         self.title = title
@@ -229,7 +191,7 @@ class PushSettingCardMirrorchyan(SettingCard):
                 duration=3000,
                 parent=self.window(),
             )
-            source_card = self.update_callback.settingInterface.updateSourceCard
+            source_card = self.source_card
             for i in range(source_card.comboBox.count()):
                 if source_card.comboBox.itemData(i) == "MirrorChyan":
                     source_card.comboBox.setCurrentIndex(i)
@@ -266,239 +228,6 @@ class PushSettingCardMirrorchyan(SettingCard):
         self._start_cdk_validation(self.configvalue)
 
 
-class FetchLatestCodesWorker(QObject):
-    finished = Signal(list, str)
-
-    def __init__(self, server):
-        super().__init__()
-        self.server = server
-
-    def run(self):
-        try:
-            from tasks.daily.redemption import valid_codes_for_server
-            codes = valid_codes_for_server(self.server)
-
-            try:
-                used = cfg.already_used_codes or []
-            except AttributeError:
-                used = []
-
-            codes = [c for c in codes if c not in used]
-            self.finished.emit(codes, "")
-        except Exception as e:
-            self.finished.emit([], str(e))
-
-
-class PushSettingCardCode(CustomPushSettingCard):
-
-    def __init__(self, text, icon, title, configname, parent=None):
-        self.parent = parent
-        super().__init__(text, icon, title, configname, tr("批量使用兑换码，每行一个，自动过滤空格等无效字符"), parent)
-        self.button.clicked.connect(self.__onclicked)
-
-    # ===================== 主入口 =====================
-
-    def __onclicked(self):
-        self.configvalue = '\n'.join(cfg.get_value(self.configname))
-        self.message_box = MessageBoxEditCode(
-            self.title,
-            self.configvalue,
-            self.window()
-        )
-        self.message_box._fetch_cancelled = False
-        self.message_box._fetch_thread = None
-
-        self._connect_buttons()
-        self._connect_lifecycle()
-
-        if self.message_box.exec():
-            self._save_codes()
-
-    # ===================== 按钮绑定 =====================
-
-    def _connect_buttons(self):
-        mb = self.message_box
-        mb.fetchButton.clicked.connect(self._fetch_latest)
-        mb.viewUsedButton.clicked.connect(self._show_used)
-        mb.clearUsedButton.clicked.connect(self._clear_used)
-
-    def _connect_lifecycle(self):
-        mb = self.message_box
-        mb.accepted.connect(self._mark_cancelled)
-        mb.rejected.connect(self._mark_cancelled)
-        # mb.destroyed.connect(self._mark_cancelled)
-
-    # ===================== 获取兑换码 =====================
-
-    def _fetch_latest(self):
-        mb = self.message_box
-
-        if self._is_fetching():
-            self._info_warning(tr('正在获取'), tr('请等待当前获取完成'), mb)
-            return
-
-        server = self._get_server()
-        if not server:
-            return
-
-        worker = FetchLatestCodesWorker(server)
-        thread = QThread(self)
-
-        worker.moveToThread(thread)
-        thread.started.connect(worker.run)
-
-        worker.finished.connect(self._on_fetch_finished)
-        worker.finished.connect(thread.quit)
-
-        thread.finished.connect(worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
-
-        mb.fetchButton.setEnabled(False)
-        mb._fetch_thread = thread
-
-        thread.start()
-
-        self._info_success(tr('开始获取'), tr('正在获取最新兑换码...'), mb)
-
-    def _on_fetch_finished(self, codes, err):
-        mb = self.message_box
-
-        if mb._fetch_cancelled:
-            self._cleanup_fetch()
-            return
-
-        if err:
-            self._info_warning(tr('获取最新兑换码失败'), err, mb)
-        elif not codes:
-            self._info_warning(tr('未获取到兑换码'), '', mb)
-        else:
-            mb.textEdit.setText('\n'.join(codes))
-            self._info_success(
-                tr('获取成功'),
-                tn('已获取 {count} 个兑换码', len(codes)),
-                mb
-            )
-
-        self._cleanup_fetch()
-
-    # ===================== 已使用兑换码 =====================
-
-    def _show_used(self):
-        used = cfg.get_value('already_used_codes') or []
-        if not used:
-            self._info_warning(tr('暂无已使用兑换码'), '', self.message_box)
-            return
-
-        mb = MessageBoxEditCode(
-            tr('已使用兑换码'),
-            '\n'.join(used),
-            self.window()
-        )
-        mb.yesButton.setText(tr('关闭'))
-        mb.cancelButton.hide()
-        mb.fetchButton.hide()
-        mb.viewUsedButton.hide()
-        mb.clearUsedButton.hide()
-        mb.textEdit.setReadOnly(True)
-        mb.exec()
-
-    def _clear_used(self):
-        from qfluentwidgets import MessageBox
-
-        confirm = MessageBox(
-            tr('确认清空已使用兑换码'),
-            tr('此操作不可撤销，是否继续？'),
-            self.window()
-        )
-        confirm.yesButton.setText(tr('确认'))
-        confirm.cancelButton.setText(tr('取消'))
-
-        if confirm.exec():
-            cfg.set_value('already_used_codes', [])
-            self._info_success('', tr('已清空已使用兑换码'), self.message_box)
-
-    # ===================== 保存兑换码 =====================
-
-    def _save_codes(self):
-        text = self.message_box.getText()
-        code = [
-            line.strip()
-            for line in (
-                ''.join(re.findall(r'[A-Za-z0-9\u4e00-\u9fff]', l))
-                for l in text.splitlines()
-            )
-            if line.strip()
-        ]
-
-        cfg.set_value(self.configname, code)
-        self.configvalue = '\n'.join(code)
-
-        if code:
-            start_task("redemption")
-        else:
-            self._info_warning(tr('兑换码为空'), '', self.parent)
-
-    # ===================== 工具方法 =====================
-
-    def _get_server(self):
-        try:
-            if sys.platform == 'win32':
-                from utils.registry.star_rail_setting import get_server_by_registry
-                server = get_server_by_registry()
-                if not server:
-                    self._info_warning(
-                        tr('无法判断服务器类型'),
-                        tr('无法获取最新兑换码'),
-                        self.message_box
-                    )
-            else:
-                server = 'cn'
-            return server
-        except Exception as e:
-            self._info_warning(tr('获取服务器信息失败'), str(e), self.message_box)
-            return None
-
-    def _is_fetching(self):
-        t = getattr(self.message_box, '_fetch_thread', None)
-        return t and t.isRunning()
-
-    def _mark_cancelled(self):
-        mb = self.message_box
-        mb._fetch_cancelled = True
-        t = getattr(mb, '_fetch_thread', None)
-        if t:
-            t.requestInterruption()
-
-    def _cleanup_fetch(self):
-        mb = self.message_box
-        mb.fetchButton.setEnabled(True)
-        mb._fetch_thread = None
-
-    def _info_warning(self, title, content, parent):
-        """title / content 由调用方负责翻译（这里只负责弹 InfoBar）。"""
-        InfoBar.warning(
-            title,
-            content,
-            orient=Qt.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=1500,
-            parent=parent
-        )
-
-    def _info_success(self, title, content, parent):
-        """title / content 由调用方负责翻译（这里只负责弹 InfoBar）。"""
-        InfoBar.success(
-            title,
-            content,
-            orient=Qt.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=1500,
-            parent=parent
-        )
-
-
 class PushSettingCardEval(CustomPushSettingCard):
     def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname, parent=None):
         self.configvalue = str(cfg.get_value(configname))
@@ -512,46 +241,48 @@ class PushSettingCardEval(CustomPushSettingCard):
             self.contentLabel.setText(message_box.getText())
 
 
-class PushSettingCardDate(CustomPushSettingCard):
-    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname, parent=None):
-        self.configvalue = datetime.datetime.fromtimestamp(cfg.get_value(configname))
-        super().__init__(text, icon, title, configname, self.configvalue.strftime('%Y-%m-%d %H:%M'), parent)
-        self.button.clicked.connect(self.__onclicked)
-
-    def __onclicked(self):
-        message_box = MessageBoxDate(self.title, self.configvalue, self.window())
-        if message_box.exec():
-            time = message_box.getDateTime()
-            # Make naive datetime explicit to local timezone to avoid negative timestamps on Windows
-            if time.tzinfo is None or time.tzinfo.utcoffset(time) is None:
-                local_offset = datetime.datetime.now().astimezone().utcoffset() or datetime.timedelta()
-                time = time.replace(tzinfo=datetime.timezone(local_offset))
-            try:
-                timestamp = time.timestamp()
-                display_time = time
-            except (OSError, OverflowError, ValueError):
-                timestamp = 0
-                display_time = datetime.datetime.fromtimestamp(timestamp)
-                InfoBar.warning(
-                    tr('时间无效'),
-                    tr('所选时间无法转换为时间戳，已使用默认时间'),
-                    orient=Qt.Horizontal,
-                    isClosable=True,
-                    position=InfoBarPosition.TOP,
-                    duration=2000,
-                    parent=self.window()
-                )
-            cfg.set_value(self.configname, timestamp)
-            self.configvalue = display_time
-            self.contentLabel.setText(display_time.strftime('%Y-%m-%d %H:%M'))
+def choose_timestamp(title, current, parent):
+    dialog = MessageBoxDate(title, current, parent)
+    if not dialog.exec():
+        return None
+    time = dialog.getDateTime()
+    # Make naive datetime explicit to local timezone to avoid negative timestamps on Windows
+    if time.tzinfo is None or time.tzinfo.utcoffset(time) is None:
+        local_offset = datetime.datetime.now().astimezone().utcoffset() or datetime.timedelta()
+        time = time.replace(tzinfo=datetime.timezone(local_offset))
+    try:
+        timestamp = time.timestamp()
+        display_time = time
+    except (OSError, OverflowError, ValueError):
+        timestamp = 0
+        display_time = datetime.datetime.fromtimestamp(timestamp)
+        InfoBar.warning(
+            tr('时间无效'),
+            tr('所选时间无法转换为时间戳，已使用默认时间'),
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=parent
+        )
+    return timestamp, display_time
 
 
 class PushSettingCardKey(CustomPushSettingCard):
-    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname, parent=None):
-        self.configvalue = str(cfg.get_value(configname))
+    keyChanged = Signal()
+
+    def __init__(self, text, icon: Union[str, QIcon, FluentIconBase], title, configname, parent=None,
+                 *, requires_key_template=False):
+        self.configvalue = str(manual_game_hotkey(cfg, configname))
+        self.requires_key_template = requires_key_template
         super().__init__(text, icon, title, configname, self._format_key_display(self.configvalue), parent)
         self.button.pressed.connect(self.__onpressed)
         self.button.released.connect(self.__onreleased)
+
+    def set_detected_key(self, key: str | None):
+        self.configvalue = str(manual_game_hotkey(cfg, self.configname))
+        self.contentLabel.setText(self._format_key_display(key if key is not None else self.configvalue))
+        self.button.setVisible(key is None)
 
     def __onpressed(self):
         self.button.setText(tr("按下要绑定的按键"))
@@ -562,8 +293,14 @@ class PushSettingCardKey(CustomPushSettingCard):
     def keyPressEvent(self, e: QKeyEvent):
         if self.button.isDown():
             key_name = self._get_key_name(e)
+            if self.requires_key_template and (
+                e.modifiers() & Qt.KeyboardModifier.KeypadModifier or not key_prompt_path(key_name)
+            ):
+                self.button.setText(tr("该按键暂无识别模板"))
+                return
             if key_name:
                 cfg.set_value(self.configname, key_name)
+                self.keyChanged.emit()
                 self.contentLabel.setText(self._format_key_display(key_name))
                 self.button.setText(tr("已改为 {key}").format(key=self._format_key_display(key_name)))
 
@@ -572,14 +309,22 @@ class PushSettingCardKey(CustomPushSettingCard):
         """将存储的小写键名格式化为显示用的大写/首字母大写形式。"""
         if not key_name:
             return key_name
-        # f1-f12 → F1-F12
-        if len(key_name) >= 2 and key_name[0] == 'f' and key_name[1:].isdigit():
-            return 'F' + key_name[1:]
-        # 单个字母 → 大写
-        if len(key_name) == 1 and key_name.isalpha():
-            return key_name.upper()
-        # 其他特殊键 → 首字母大写
-        return key_name[0].upper() + key_name[1:]
+        special_names = {
+            "capslock": "Caps Lock",
+            "shiftleft": "Left Shift",
+            "shiftright": "Right Shift",
+            "ctrlleft": "Left Ctrl",
+            "ctrlright": "Right Ctrl",
+            "altright": "Right Alt",
+            "divide": "Num /",
+            "multiply": "Num *",
+            "subtract": "Num -",
+            "add": "Num +",
+            "decimal": "Num .",
+        }
+        if len(key_name) == 4 and key_name.startswith("num") and key_name[3].isdigit():
+            return f"Num {key_name[3]}"
+        return special_names.get(key_name, key_name[0].upper() + key_name[1:])
 
     def _get_key_name(self, event):
         function_keys = {
@@ -737,89 +482,6 @@ class PushSettingCardFriends(CustomPushSettingCard):
             self.contentLabel.setText(self.translate_to_chinese(self.newConfigValue))
 
 
-class PushSettingCardTeamWithSwap(SettingCard):
-    """Setting card with swap button for team1 and team2 configuration"""
-
-    def __init__(self, icon: Union[str, QIcon, FluentIconBase], title, configname_team1, configname_team2, parent=None):
-        self.template = get_character_names()
-
-        self.configname_team1 = configname_team1
-        self.configname_team2 = configname_team2
-        self.team1_value = cfg.get_value(configname_team1)
-        self.team2_value = cfg.get_value(configname_team2)
-
-        super().__init__(icon, title, self._get_display_text(), parent)
-
-        # Add team1 modify button
-        self.team1Button = QPushButton(tr('修改队伍1'), self)
-        self.hBoxLayout.addWidget(self.team1Button, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(10)
-        self.team1Button.clicked.connect(self.__onTeam1Clicked)
-
-        # Add team2 modify button
-        self.team2Button = QPushButton(tr('修改队伍2'), self)
-        self.hBoxLayout.addWidget(self.team2Button, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(10)
-        self.team2Button.clicked.connect(self.__onTeam2Clicked)
-
-        # Add swap button
-        self.swapButton = QPushButton(tr('交换队伍'), self)
-        self.hBoxLayout.addWidget(self.swapButton, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(16)
-        self.swapButton.clicked.connect(self.__onSwapClicked)
-
-    def translate_to_chinese(self, configvalue):
-        text = str(configvalue)
-        for key, value in self.template.items():
-            text = text.replace(key, value)
-        return text
-
-    def _get_display_text(self):
-        team1_text = self.translate_to_chinese(self.team1_value)
-        team2_text = self.translate_to_chinese(self.team2_value)
-        return tr("队伍1: {team1}\n队伍2: {team2}").format(team1=team1_text, team2=team2_text)
-
-    def _update_display(self):
-        self.team1_value = cfg.get_value(self.configname_team1)
-        self.team2_value = cfg.get_value(self.configname_team2)
-        self.contentLabel.setText(self._get_display_text())
-
-    def __onSwapClicked(self):
-        # Swap team1 and team2 - get fresh values from config to avoid stale data
-        temp_team1 = cfg.get_value(self.configname_team1)
-        temp_team2 = cfg.get_value(self.configname_team2)
-        cfg.set_values({self.configname_team1: temp_team2, self.configname_team2: temp_team1})
-        self._update_display()
-
-        InfoBar.success(
-            tr('交换成功'),
-            tr('队伍1和队伍2已成功交换'),
-            orient=Qt.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self.window()
-        )
-
-    def __onTeam1Clicked(self):
-        self._edit_team(self.configname_team1, tr("队伍1"))
-
-    def __onTeam2Clicked(self):
-        self._edit_team(self.configname_team2, tr("队伍2"))
-
-    def _edit_team(self, configname, team_name):
-        configvalue = cfg.get_value(configname)
-        message_box = MessageBoxTeam(team_name, configvalue, self.template, self.window())
-        if message_box.exec():
-            newConfigValue = []
-            for comboboxs in message_box.comboBox_list:
-                char = get_key_from_value(comboboxs[0].text(), message_box.template)
-                tech = get_key_from_value(comboboxs[1].text(), message_box.tech_map)
-                newConfigValue.append([char, tech])
-            cfg.set_value(configname, newConfigValue)
-            self._update_display()
-
-
 class PushSettingCardPowerPlan(CustomPushSettingCard):
     """体力计划设置卡片"""
 
@@ -840,6 +502,7 @@ class PushSettingCardPowerPlan(CustomPushSettingCard):
             self.configvalue,
             self.window(),
             keep_plan=cfg.get_value("power_plan_keep", False),
+            continue_after_plan=cfg.get_value("power_plan_continue", True),
         )
         if message_box.exec():
             plans = message_box.get_plans()
@@ -847,6 +510,7 @@ class PushSettingCardPowerPlan(CustomPushSettingCard):
             cfg.set_values({
                 self.configname: plans,
                 "power_plan_keep": message_box.should_keep_plan(),
+                "power_plan_continue": message_box.should_continue_after_plan(),
             })
             self.contentLabel.setText(self._get_display_text())
 

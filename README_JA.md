@@ -63,7 +63,7 @@
 
 完全な初心者であれば、上の配布版を使ってください。この先は見なくて構いません。
 
-Python 3.12 以上が必要です。
+Python 3.12～3.14 が必要です。
 
 Windows でターミナルから起動する場合は、管理者権限で PowerShell、Windows Terminal、または CMD を開くことを推奨します。Windows 11 24H2 以降であれば [Sudo for Windows](https://learn.microsoft.com/zh-cn/windows/advanced-settings/sudo/) も利用できます。
 
@@ -72,6 +72,7 @@ Windows でターミナルから起動する場合は、管理者権限で Power
 git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 pip install -r requirements.txt
+python -m tools.i18n compile
 
 # GUI を起動
 python app.py
@@ -82,6 +83,8 @@ python main.py
 # 更新
 git pull
 git submodule update --init --recursive
+pip install -r requirements.txt
+python -m tools.i18n compile
 ```
 
 `uv` を使う場合は、プロジェクト付属の `pyproject.toml` ワークフローをそのまま使うのがおすすめです。
@@ -91,6 +94,7 @@ git submodule update --init --recursive
 git clone --recurse-submodules https://github.com/moesnow/March7thAssistant
 cd March7thAssistant
 uv sync
+uv run python -m tools.i18n compile
 
 # GUI を起動
 uv run python app.py

@@ -5,22 +5,22 @@ from unittest.mock import Mock
 
 import pytest
 
-if sys.platform != 'win32':
-    pytest.skip('GUI 测试仅在 Windows 平台运行', allow_module_level=True)
-
 from PySide6.QtCore import QDateTime, QPoint, QProcess, QTime, QTimer, Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from qfluentwidgets import ScrollArea
 
-from app import log_interface
-from app.log_interface import LogInterface
+from app.content import run_controller
+from app.content.run_controller import RunController
 
 
 @pytest.fixture
-def schedule_runtime(qtbot, monkeypatch):
-    interface = LogInterface.__new__(LogInterface)
-    ScrollArea.__init__(interface)
-    qtbot.addWidget(interface)
+def schedule_runtime(qtbot, monkeypatch, tmp_path):
+    interface = RunController.__new__(RunController)
+    from PySide6.QtCore import QObject
+    QObject.__init__(interface)
+    interface._remote = interface._finish_skipped = False
+    interface._account_arg = None
+    interface._onReadyRead = Mock()
     interface.process = None
     interface._external_task_active = False
     interface._pause_state = 'running'
@@ -47,15 +47,19 @@ def schedule_runtime(qtbot, monkeypatch):
     interface.stopButton = Mock()
     interface.pauseButton = Mock()
     interface._syncPauseUi = Mock()
-    interface.clearLog = Mock()
+    interface.clear_log = Mock()
     interface.logs = []
     interface.appendLog.side_effect = interface.logs.append
     settings = {'scheduled_tasks': []}
-    monkeypatch.setattr(log_interface.cfg, 'get_value', lambda key, default=None: deepcopy(settings.get(key, default)))
-    monkeypatch.setattr(log_interface.cfg, 'set_value', Mock())
-    monkeypatch.setattr(log_interface.notif, 'notify', Mock())
+    config_path = tmp_path / 'config.yaml'
+    config_path.write_text('control_backend: local\n', encoding='utf-8')
+    monkeypatch.setattr(run_controller.cfg, 'config_path', str(config_path))
+    monkeypatch.setattr(run_controller.cfg, 'get_value', lambda key, default=None: deepcopy(settings.get(key, default)))
+    monkeypatch.setattr(run_controller.cfg, 'set_value', Mock())
+    monkeypatch.setattr(run_controller.notif, 'notify', Mock())
+    monkeypatch.setattr('utils.temporary_graphics.recover_temporary_graphics', Mock())
 
-    def start_task(payload):
+    def start_task(payload, **kwargs):
         interface.process = SimpleNamespace(state=lambda: QProcess.Running)
 
     interface.startTask = Mock(side_effect=start_task)
@@ -73,7 +77,7 @@ def schedule_runtime(qtbot, monkeypatch):
 @pytest.fixture
 def schedule_clock(monkeypatch):
     clock = SimpleNamespace(now=QDateTime.fromString('2026-10-17T04:00:10', 'yyyy-MM-ddTHH:mm:ss'))
-    monkeypatch.setattr(log_interface, 'QDateTime', SimpleNamespace(currentDateTime=lambda: clock.now))
+    monkeypatch.setattr(run_controller, 'QDateTime', SimpleNamespace(currentDateTime=lambda: clock.now))
     monkeypatch.setattr(QTime, 'currentTime', lambda: clock.now.time())
     return clock
 
@@ -106,7 +110,6 @@ def test_manual_run_in_trigger_window_is_not_repeated(schedule_runtime, schedule
 @pytest.mark.parametrize('time_text', ['25:00', '04:90', 'invalid', None])
 def test_invalid_schedule_time_is_not_triggered(schedule_runtime, time_text, monkeypatch):
     schedule_runtime.settings['scheduled_tasks'] = [scheduled_task(time=time_text)]
-    monkeypatch.setattr(schedule_runtime, '_updateScheduleStatusLabel', Mock())
     schedule_runtime._checkScheduledTime()
     schedule_runtime.startTask.assert_not_called()
 
@@ -117,11 +120,275 @@ def test_conflict_policy_is_preserved(schedule_runtime, monkeypatch, conflict_mo
     schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
     schedule_runtime.stopTask = Mock()
     now = QDateTime.fromString('2026-10-17T04:00:10', 'yyyy-MM-ddTHH:mm:ss')
-    monkeypatch.setattr(log_interface, 'QDateTime', SimpleNamespace(currentDateTime=lambda: now))
+    monkeypatch.setattr(run_controller, 'QDateTime', SimpleNamespace(currentDateTime=lambda: now))
     monkeypatch.setattr(QTime, 'currentTime', lambda: now.time())
     schedule_runtime._checkScheduledTime()
     schedule_runtime.startTask.assert_not_called()
     assert schedule_runtime.stopTask.called == (conflict_mode == 'stop')
+
+
+@pytest.mark.parametrize('running', [False, True])
+def test_second_plan_of_the_same_minute_is_logged_once(schedule_runtime, schedule_clock, running):
+    schedule_runtime.settings.update(scheduled_on_conflict='stop', scheduled_tasks=[
+        scheduled_task('off', enabled=False), scheduled_task('first'), scheduled_task('second', time='04:00:05'),
+        scheduled_task('child', trigger_mode='chain'), scheduled_task('later', time='05:00')])
+    schedule_runtime.stopTask = Mock()
+    if running:
+        schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime._checkScheduledTime()
+    schedule_runtime._checkScheduledTime()
+    assert schedule_runtime.startTask.call_count == (not running) and schedule_runtime.stopTask.call_count == running
+    assert [line for line in schedule_runtime.logs if '时间相同' in line] == ['计划「second」和「first」时间相同，没有启动\n']
+    if running:
+        assert schedule_runtime._pending_start_task_after_stop[0]['id'] == 'first'
+
+
+def test_unsupported_timed_task_cannot_stop_active_task(schedule_runtime, schedule_clock):
+    blocked = scheduled_task(args='currencywars', kill_processes=['game.exe'], post_action='Shutdown')
+    old = scheduled_task('old')
+    schedule_runtime.settings.update(control_backend='adb', scheduled_tasks=[blocked], scheduled_on_conflict='stop')
+    schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime._pending_task_meta = old
+    schedule_runtime.stopTask = Mock()
+
+    schedule_runtime._checkScheduledTime()
+    schedule_runtime._checkScheduledTime()
+
+    schedule_runtime.startTask.assert_not_called()
+    schedule_runtime.stopTask.assert_not_called()
+    assert schedule_runtime._pending_task_meta is old
+    assert schedule_runtime._pending_start_task_after_stop is None
+    assert schedule_runtime.settings['scheduled_tasks'] == [blocked]
+    assert sum('当前后端不支持，未执行' in line for line in schedule_runtime.logs) == 1
+
+
+def test_desktop_twin_update_schedule_cannot_stop_active_task(schedule_runtime, schedule_clock, monkeypatch):
+    from utils.tasks import supported_tasks
+
+    monkeypatch.setenv('MARCH7TH_DESKTOP_TWIN', '1')
+    blocked = scheduled_task(args='app_update', kill_processes=['game.exe'])
+    schedule_runtime.settings.update(scheduled_tasks=[blocked], scheduled_on_conflict='stop')
+    schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime.stopTask = Mock()
+
+    schedule_runtime._checkScheduledTime()
+
+    schedule_runtime.stopTask.assert_not_called()
+    schedule_runtime.startTask.assert_not_called()
+    assert schedule_runtime._pending_start_task_after_stop is None
+    assert 'app_update' not in supported_tasks(run_controller.cfg)
+    assert any('当前后端不支持，未执行' in line for line in schedule_runtime.logs)
+
+
+@pytest.mark.parametrize('file_contents, message', [
+    ('control_backend: adb\n', '当前后端不支持，未执行'),
+    ('[\n', '配置加载失败'),
+])
+def test_time_conflict_checks_disk_before_stopping_active_task(schedule_runtime, schedule_clock, file_contents, message):
+    from pathlib import Path
+
+    scheduled = scheduled_task(args='currencywars')
+    schedule_runtime.settings.update(control_backend='local', scheduled_tasks=[scheduled], scheduled_on_conflict='stop')
+    schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime.stopTask = Mock()
+    # 另一进程先改了 YAML，主窗口的文件监听仍在等待重载。
+    path = Path(run_controller.cfg.config_path)
+    path.write_text(file_contents, encoding='utf-8')
+
+    schedule_runtime._checkScheduledTime()
+
+    schedule_runtime.startTask.assert_not_called()
+    schedule_runtime.stopTask.assert_not_called()
+    run_controller.cfg.set_value.assert_not_called()
+    assert schedule_runtime.settings['control_backend'] == 'local'
+    assert schedule_runtime._pending_start_task_after_stop is None
+    assert path.read_text(encoding='utf-8') == file_contents
+    assert any(message in line for line in schedule_runtime.logs)
+
+
+@pytest.mark.parametrize('file_contents, overrides', [
+    ('ui_profile: touch_720\n', {'MARCH7TH_CLOUD_GAME_ENABLE': 'true'}),
+    ('control_backend: adb\n', {'MARCH7TH_DESKTOP_TWIN': '1', 'MARCH7TH_CLOUD_GAME_ENABLE': 'true'}),
+])
+def test_time_conflict_disk_snapshot_honors_environment(schedule_runtime, schedule_clock, monkeypatch,
+                                                         file_contents, overrides):
+    from pathlib import Path
+
+    scheduled = scheduled_task(args='currencywars')
+    schedule_runtime.settings.update(scheduled_tasks=[scheduled], scheduled_on_conflict='stop')
+    schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime.stopTask = Mock()
+    Path(run_controller.cfg.config_path).write_text(file_contents, encoding='utf-8')
+    for name, value in overrides.items():
+        monkeypatch.setenv(name, value)
+
+    schedule_runtime._checkScheduledTime()
+
+    schedule_runtime.stopTask.assert_called_once_with(user_initiated=False)
+    assert schedule_runtime._pending_start_task_after_stop is not None
+
+
+@pytest.mark.parametrize('program, args', [('self', 'currencywars'), ('workflow', '示例流程')])
+def test_unsupported_manual_schedule_is_reported_and_retained(schedule_runtime, program, args):
+    blocked = scheduled_task(program=program, args=args, kill_processes=['game.exe'], post_action='Shutdown')
+    schedule_runtime.settings.update(control_backend='adb', scheduled_tasks=[blocked])
+
+    assert not schedule_runtime.runScheduledTask(blocked, manual=True)
+
+    schedule_runtime.startTask.assert_not_called()
+    assert schedule_runtime._pending_task_meta is None
+    assert schedule_runtime._active_task_chain == []
+    assert schedule_runtime._pending_post_action_timer is None
+    assert schedule_runtime.settings['scheduled_tasks'] == [blocked]
+    assert any('当前后端不支持，未执行' in line for line in schedule_runtime.logs)
+
+
+def test_run_now_keyboard_reports_unsupported_schedule(schedule_runtime, qtbot, monkeypatch):
+    from app.content.run_models import ScheduleModel
+    from app.run.schedule import SchedulePage
+    parent = QWidget()
+    qtbot.addWidget(parent)
+    parent.runController = schedule_runtime
+    blocked = scheduled_task(args="currencywars")
+    schedule_runtime.settings.update(control_backend="adb", scheduled_tasks=[blocked])
+    model = ScheduleModel(parent)
+    page = SchedulePage(model, parent)
+    outcomes = []
+    page.runClicked.connect(lambda rid: outcomes.append(model.run_now(rid)))
+    qtbot.keyClick(page.rows[0][0].runButton, Qt.Key.Key_Space)
+    assert len(outcomes) == 1 and not outcomes[0].ok
+    assert any("当前后端不支持" in text for text in schedule_runtime.logs)
+    assert model._tasks() == [blocked]
+    schedule_runtime.startTask.assert_not_called()
+
+
+def test_direct_unsupported_task_cannot_replace_active_task(schedule_runtime):
+    schedule_runtime.settings['control_backend'] = 'adb'
+    active = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime.process = active
+    schedule_runtime.stopTask = Mock()
+    started = Mock()
+    schedule_runtime.taskStarted.connect(started)
+
+    RunController.startTask(schedule_runtime, 'currencywars')
+
+    schedule_runtime.stopTask.assert_not_called()
+    started.assert_not_called()
+    assert schedule_runtime.process is active
+    assert any('当前后端不支持，未执行' in line for line in schedule_runtime.logs)
+
+
+@pytest.mark.parametrize('continue_on_failure', [True, False])
+def test_unsupported_chain_child_respects_failure_policy(schedule_runtime, monkeypatch, continue_on_failure):
+    root = scheduled_task(post_action='Shutdown')
+    blocked = scheduled_task('blocked', trigger_mode='chain', args='currencywars',
+                             kill_processes=['game.exe'], post_action='Shutdown')
+    next_task = scheduled_task('next', trigger_mode='chain')
+    tasks = [root, blocked, next_task]
+    schedule_runtime.settings.update(control_backend='adb', scheduled_tasks=tasks,
+                                     scheduled_chain_continue_on_failure=continue_on_failure)
+    kill = Mock()
+    monkeypatch.setattr(run_controller.sp, 'run', kill)
+    completed = Mock()
+    schedule_runtime.taskSequenceFinished.connect(completed)
+    assert schedule_runtime.runScheduledTask(root)
+    schedule_runtime.process = None
+
+    schedule_runtime._onProcessFinished(0, QProcess.NormalExit)
+    if continue_on_failure:
+        schedule_runtime.process = None
+        schedule_runtime._onProcessFinished(0, QProcess.NormalExit)
+
+    expected = ['root', 'next'] if continue_on_failure else ['root']
+    assert [call.args[0]['id'] for call in schedule_runtime.startTask.call_args_list] == expected
+    completed.assert_called_once_with(1)
+    kill.assert_not_called()
+    assert schedule_runtime._pending_post_action_timer is None
+    assert schedule_runtime.settings['scheduled_tasks'] == tasks
+    assert any('当前后端不支持，未执行（blocked）' in line for line in schedule_runtime.logs)
+
+
+def test_delayed_replacement_rechecks_backend_before_dispatch(schedule_runtime, schedule_clock):
+    pending = scheduled_task(args='currencywars', kill_processes=['game.exe'], post_action='Shutdown')
+    schedule_runtime.settings.update(scheduled_tasks=[pending], scheduled_on_conflict='stop')
+    schedule_runtime.process = SimpleNamespace(state=lambda: QProcess.Running)
+    schedule_runtime.stopTask = Mock()
+    schedule_runtime._checkScheduledTime()
+    schedule_runtime.stopTask.assert_called_once_with(user_initiated=False)
+    assert schedule_runtime._pending_start_task_after_stop is not None
+
+    schedule_runtime.settings['control_backend'] = 'adb'
+    schedule_runtime.process = None
+    schedule_runtime._onProcessFinished(1, QProcess.NormalExit)
+
+    schedule_runtime.startTask.assert_not_called()
+    assert schedule_runtime._pending_start_task_after_stop is None
+    assert schedule_runtime._pending_task_meta is None
+    assert schedule_runtime._pending_post_action_timer is None
+    assert any('当前后端不支持，未执行' in line for line in schedule_runtime.logs)
+
+
+@pytest.mark.parametrize('program', ['self', 'workflow'])
+@pytest.mark.parametrize('reason, status', [
+    ('unsupported_backend', 'blocked'),
+    ('invalid_game_connection', 'blocked'),
+    ('task_failure', 'failed'),
+])
+def test_scheduled_cli_completion_uses_run_record(schedule_runtime, qtbot, monkeypatch, tmp_path, program, reason, status):
+    monkeypatch.chdir(tmp_path)
+    from utils import runs
+    record_dir = tmp_path / 'userdata' / 'logs' / 'runs'
+    monkeypatch.setattr(runs, 'runs_dir', lambda: str(record_dir))
+    monkeypatch.setattr(run_controller, 'is_user_admin', lambda: True)
+    monkeypatch.setattr(schedule_runtime, '_injectPauseControlEnv', Mock())
+    (tmp_path / 'main.py').write_text(
+        'import json, sys\n'
+        'from pathlib import Path\n'
+        'run_id = sys.argv[sys.argv.index("--run-id") + 1]\n'
+        f'runs = Path({str(record_dir)!r})\n'
+        'runs.mkdir(parents=True)\n'
+        f'data = {{"status": {status!r}, "reason": {reason!r}, "error": "child report"}}\n'
+        '(runs / (run_id + ".json")).write_text(json.dumps(data), encoding="utf-8")\n'
+        'sys.exit(1)\n', encoding='utf-8',
+    )
+    kill = Mock()
+    monkeypatch.setattr(run_controller.sp, 'run', kill)
+    schedule_runtime.startTask.side_effect = lambda task: RunController.startTask(schedule_runtime, task)
+    root = scheduled_task(program=program, kill_processes=['game.exe'], post_action='Shutdown')
+
+    assert schedule_runtime.runScheduledTask(root)
+    qtbot.waitUntil(lambda: schedule_runtime.process is None)
+
+    assert schedule_runtime._pending_task_meta is None
+    assert kill.called == (status == 'failed')
+    assert bool(schedule_runtime._pending_post_action_timer) == (status == 'failed')
+    assert any('child report' in line for line in schedule_runtime.logs) == (status == 'blocked')
+    message = '未执行' if status == 'blocked' else '任务已停止'
+    assert schedule_runtime._task_status == ('blocked' if status == 'blocked' else 'stopped')
+
+
+@pytest.mark.parametrize("manual", [False, True])
+def test_schedule_origin_reaches_worker_without_changing_elevation(schedule_runtime, monkeypatch, manual):
+    monkeypatch.setattr(run_controller, 'is_user_admin', lambda: False)
+    task = scheduled_task()
+    assert schedule_runtime.runScheduledTask(task, [task], manual=manual)
+    args = ['daily']
+    schedule_runtime._linkScheduledRun(SimpleNamespace(), args)
+    assert ('--scheduled' in args) == (not manual)
+    assert ('--run-id' in args) == (sys.platform != 'win32')
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="验证 Windows 未提权工作进程的参数")
+def test_scheduled_run_id_does_not_bypass_windows_elevation(schedule_runtime, monkeypatch):
+    monkeypatch.setattr(run_controller, 'is_user_admin', lambda: False)
+    schedule_runtime._pending_task_meta = scheduled_task()
+    arguments = ['daily']
+    process = SimpleNamespace()
+
+    schedule_runtime._linkScheduledRun(process, arguments)
+
+    assert arguments == ['daily']
+    assert not hasattr(process, '_scheduled_run_id')
 
 
 def test_switch_from_standalone_task_keeps_new_chain(schedule_runtime):
@@ -176,11 +443,11 @@ def test_real_failed_process_start_continues_chain(schedule_runtime, tmp_path, q
     root = scheduled_task(program=str(failed_program), timeout=30)
     start_child = schedule_runtime.startTask.side_effect
 
-    def launch(payload):
+    def launch(payload, **kwargs):
         if payload['id'] == 'child':
             start_child(payload)
         else:
-            LogInterface.startTask(schedule_runtime, payload)
+            RunController.startTask(schedule_runtime, payload, **kwargs)
 
     schedule_runtime.startTask.side_effect = launch
     schedule_runtime.runScheduledTask(root, tasks=[root, child])
@@ -192,7 +459,7 @@ def test_real_failed_process_start_continues_chain(schedule_runtime, tmp_path, q
 def test_starting_new_task_cancels_pending_system_action(schedule_runtime, tmp_path):
     schedule_runtime._schedulePostAction('Shutdown')
     timer = schedule_runtime._pending_post_action_timer
-    LogInterface.startTask(schedule_runtime, scheduled_task(program=str(tmp_path / 'missing.exe')))
+    RunController.startTask(schedule_runtime, scheduled_task(program=str(tmp_path / 'missing.exe')))
     assert schedule_runtime._pending_post_action_timer is None
     assert not timer.isActive()
     schedule_runtime._perform_post_action.assert_not_called()
@@ -232,8 +499,8 @@ def test_canceled_post_action_ignores_queued_timeout(schedule_runtime):
 
 def test_poll_reads_task_list_once(schedule_runtime, schedule_clock, monkeypatch):
     schedule_runtime.settings['scheduled_tasks'] = [scheduled_task()]
-    get_value = Mock(wraps=log_interface.cfg.get_value)
-    monkeypatch.setattr(log_interface.cfg, 'get_value', get_value)
+    get_value = Mock(wraps=run_controller.cfg.get_value)
+    monkeypatch.setattr(run_controller.cfg, 'get_value', get_value)
     schedule_runtime._checkScheduledTime()
     task_list_reads = [call for call in get_value.call_args_list if call.args[0] == 'scheduled_tasks']
     assert len(task_list_reads) == 1
@@ -245,8 +512,8 @@ def test_external_launch_preserves_windows_argument_paths(schedule_runtime, monk
         def start(self, program, arguments):
             self.arguments = arguments
 
-    monkeypatch.setattr(log_interface, 'QProcess', RecordingProcess)
-    LogInterface.startTask(schedule_runtime, scheduled_task(program=sys.executable, args=r'--config C:\Users\demo\config.yaml'))
+    monkeypatch.setattr(run_controller, 'QProcess', RecordingProcess)
+    RunController.startTask(schedule_runtime, scheduled_task(program=sys.executable, args=r'--config C:\Users\demo\config.yaml'))
     assert schedule_runtime.process.arguments == ['--config', r'C:\Users\demo\config.yaml']
 
 
@@ -357,29 +624,37 @@ def test_status_label_shows_next_execution_date_for_selected_weekday(schedule_ru
         scheduled_task('monday', weekdays=[1]),
         scheduled_task('sunday', weekdays=[7], time='10:00'),
     ]
-    schedule_runtime._updateScheduleStatusLabel()
-    text = schedule_runtime.scheduleStatusLabel.setText.call_args.args[0]
-    assert '10-18' in text and '10:00' in text
+    from app.content.run_models import ScheduleModel
+    parent = QWidget()
+    parent.runController = schedule_runtime
+    model = ScheduleModel(parent)
+    model.now = lambda: schedule_clock.now.toPython()
+    text = model.next_text()
+    assert '明天 10:00' in text
 
 
 @pytest.mark.parametrize('overlay_enabled', [False, True])
+@pytest.mark.skipif(sys.platform != "win32", reason="游戏内日志开关仅在 Windows 可用")
 def test_log_toolbar_fits_minimum_window_without_wrapping(schedule_runtime, schedule_clock, qtbot, overlay_enabled):
     schedule_runtime.settings['scheduled_tasks'] = [scheduled_task(weekdays=[7])]
     schedule_runtime._overlay_enabled = overlay_enabled
-    schedule_runtime._buffered_logs = ''
-    schedule_runtime.scrollWidget = QWidget()
-    schedule_runtime.vBoxLayout = QVBoxLayout(schedule_runtime.scrollWidget)
-    schedule_runtime._LogInterface__initWidget()
-    schedule_runtime.resize(888, 592)
-    schedule_runtime.show()
-    qtbot.waitUntil(lambda: schedule_runtime.buttonWidget.width() > 0)
-    label = schedule_runtime.scheduleStatusLabel
-    right_edge = label.mapTo(schedule_runtime.viewport(), QPoint(label.width(), 0)).x()
-    assert right_edge <= schedule_runtime.viewport().width()
-    assert label.width() >= label.fontMetrics().horizontalAdvance(label.text())
-    assert not label.wordWrap() and '\n' not in label.text()
-    assert schedule_runtime.logOverlayLabel.text() == log_interface.tr('在游戏内显示日志')
-    assert schedule_runtime.logOverlaySwitch.text == (log_interface.tr('开') if overlay_enabled else log_interface.tr('关'))
-    schedule_runtime._setLogOverlaySwitchValue(not overlay_enabled)
-    assert schedule_runtime.logOverlaySwitch.text == (log_interface.tr('关') if overlay_enabled else log_interface.tr('开'))
-    assert schedule_runtime.manageScheduleButton.text().endswith('(1)')
+    from app.run_interface import RunInterface
+    from module.overview.run_data import RunView
+    parent = QWidget()
+    qtbot.addWidget(parent)
+    parent.runController = schedule_runtime
+    schedule_runtime.view = lambda: RunView()
+    schedule_runtime.log_entries = lambda: []
+    page = RunInterface(parent)
+    page.resize(888, 592)
+    page.show()
+    label = page.nextLabel
+    assert label.mapTo(page, QPoint(label.width(), 0)).x() <= page.width()
+    assert not label.wordWrap() and "\n" not in label.text()
+    assert page.segment.items["schedule"].text().endswith("1")
+    card = page.currentPage.card
+    assert card.overlayLabel.text() == run_controller.tr("在游戏内显示日志")
+    assert card.overlaySwitch.isChecked() == overlay_enabled
+    schedule_runtime.set_overlay(not overlay_enabled)
+    page.currentPage.refresh()
+    assert card.overlaySwitch.isChecked() != overlay_enabled

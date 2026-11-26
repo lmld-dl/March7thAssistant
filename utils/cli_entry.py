@@ -6,7 +6,8 @@
 March7th Assistant.exe 在清单里要求管理员权限，未提权的终端、脚本或 AI Agent 无法直接运行它；
 即使通过 UAC 启动，任务也在新开的控制台窗口里执行，调用方既看不到输出，也拿不到退出码。
 这里把任务交给管理员进程执行，同时跟随 logs/runs/<运行编号>.log 把输出转发到当前终端，
-结束后返回任务的真实退出码。所有结构化输出（JSON）都只含 ASCII 字符，不受终端编码影响。
+结束后返回任务的真实退出码。用户开启「免 UAC 运行」后，管理员进程改由计划任务启动，不再弹出 UAC
+（见 utils/uac_free.py）。所有结构化输出（JSON）都只含 ASCII 字符，不受终端编码影响。
 """
 import codecs
 import json
@@ -15,11 +16,13 @@ import sys
 import tempfile
 import time
 
+from utils import paths
 from utils.pause import (COMMAND_PAUSE, COMMAND_RESUME, COMMAND_STOP, STATE_PAUSED, STATE_PAUSING,
                          STATE_RUNNING, STATE_STOPPING, STOP_GRACE_SECONDS, read_state, write_command)
 from utils.runs import (EXIT_ELEVATION_FAILED, EXIT_FAILED, EXIT_OK, LOCK_UNAVAILABLE, STATUS_RUNNING,
                         effective_status, is_valid_run_id, list_run_ids, load_run, new_run_id, read_active_run,
                         recent_runs, run_file, runs_dir)
+from utils.tasks import UNSUPPORTED_TASK
 
 # 仅由非提权入口处理、不转交给管理员进程的参数
 FRONTEND_ONLY_FLAGS = ("--detach", "--json")
@@ -40,6 +43,7 @@ STATUS_LABELS = {
 REASON_LABELS = {
     "first_run_required": "首次使用需要先打开图形界面 March7th Launcher，由用户本人阅读并确认免责声明",
     "busy": "已有任务正在运行",
+    "unsupported_backend": UNSUPPORTED_TASK,
 }
 
 _SKILL_PATH = os.path.join("assets", "agent", "skills", "march7th-assistant", "SKILL.md")
@@ -89,7 +93,32 @@ def _brief(record) -> dict:
     return brief
 
 
-def _dir_writable(path: str) -> bool:
+def _dir_writable(path: str, *, probe: bool = True) -> bool:
+    while not os.path.exists(path):
+        parent = os.path.dirname(path)
+        if parent == path:
+            return False
+        path = parent
+    if not os.path.isdir(path):
+        return False
+    if not probe:
+        # Query the directory ACL without creating the usual write probe.
+        if os.name == "nt":
+            import ntsecuritycon
+            import pywintypes
+            import win32con
+            import win32file
+            try:
+                handle = win32file.CreateFile(
+                    path, ntsecuritycon.FILE_ADD_FILE,
+                    win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE | win32con.FILE_SHARE_DELETE,
+                    None, win32con.OPEN_EXISTING, win32con.FILE_FLAG_BACKUP_SEMANTICS, None,
+                )
+            except pywintypes.error:
+                return False
+            handle.Close()
+            return True
+        return os.access(path, os.W_OK | os.X_OK)
     try:
         with tempfile.NamedTemporaryFile(dir=path, prefix=".m7a_write_test_", delete=True):
             pass
@@ -109,40 +138,74 @@ def _entrypoints(install_dir: str) -> dict:
     }
 
 
+def _elevation(is_admin: bool, uac_free_state: str) -> str:
+    """运行任务时怎样取得管理员权限：admin 已是管理员 / task 免 UAC 计划任务 / uac 弹出 UAC / not_required 非 Windows。"""
+    from utils import uac_free
+    if sys.platform != "win32":
+        return "not_required"
+    if is_admin:
+        return "admin"
+    return "task" if uac_free_state == uac_free.STATE_ON else "uac"
+
+
 def collect_status() -> dict:
     """汇总安装、配置与运行状态。只读：以只读方式加载配置，不写 config.yaml。"""
+    import base64
+
+    observer = paths.readonly_role()
     os.environ["MARCH7TH_CONFIG_READONLY"] = "1"
     from module.config import cfg
+    from module.config.platform import get_control_backend, get_ui_profile
+    from utils import data_migration, uac_free
     from utils.admin import is_user_admin
+    from utils.agent_skill import last_sync_results
     from utils.install_registry import is_gui_running, registry_path
 
     install_dir = os.path.abspath(os.getcwd())
-    config_path = os.path.abspath("config.yaml")
+    config_path = os.path.abspath(paths.config_path())
     game_path = cfg.get_value("game_path") or ""
+    is_admin = is_user_admin()
+    uac_free_state = uac_free.state()[0]
     status = {
         "schema": 1,
         "version": cfg.version,
         "install_dir": install_dir,
         "frozen": bool(getattr(sys, "frozen", False)),
         "platform": sys.platform,
-        "is_admin": is_user_admin(),
+        "is_admin": is_admin,
+        "elevation": _elevation(is_admin, uac_free_state),
+        "uac_free": uac_free_state,
         "entrypoints": _entrypoints(install_dir),
+        "data_dir": paths.data_dir(),
+        "data_layout": paths.layout().mode,
+        "migration": data_migration.result,
+        "workflows_dir": paths.workflows_dir(),
+        "characters_file": paths.characters_path(),
         "config_file": config_path,
         "config_exists": os.path.exists(config_path),
-        "config_writable": _dir_writable(install_dir),
+        "config_writable": _dir_writable(paths.data_dir(), probe=not observer),
         "config_reference": os.path.abspath(os.path.join("assets", "config", "config.example.yaml")),
         "first_run_completed": bool(cfg.get_value("disclaimer_accepted", False)),
+        "cloud_game_enable": bool(cfg.get_value("cloud_game_enable", False)),
         "game_path": game_path,
         "game_path_exists": bool(game_path) and os.path.exists(game_path),
         "after_finish": cfg.get_value("after_finish"),
         "gui_running": is_gui_running(install_dir),
         "active_run": read_active_run(),
         "recent_runs": [_brief(record) for record in recent_runs(5)],
-        "logs_dir": os.path.abspath("logs"),
+        "logs_dir": os.path.abspath(paths.logs_dir()),
         "runs_dir": runs_dir(),
         "install_registry": registry_path(),
         "agent_skill": os.path.abspath(_SKILL_PATH) if os.path.exists(_SKILL_PATH) else None,
+        "agent_skill_copies": last_sync_results(),
     }
+    try:
+        status["control_backend"] = get_control_backend(cfg)
+        status["ui_profile"] = get_ui_profile(cfg).name
+    except ValueError as error:
+        status["game_connection_error"] = str(error)
+    from module.accounts.status import cli_status
+    status["accounts"] = cli_status(cfg)
     return status
 
 
@@ -229,12 +292,20 @@ def _normalize_exit_code(code) -> int:
 
 # ---------- 提权运行 ----------
 
-def worker_command(argv, run_id: str) -> list:
-    """管理员进程的完整命令行：去掉仅入口处理的参数，附加运行编号与非交互模式。"""
+def worker_args(argv, run_id: str) -> list:
+    """管理员进程的参数：去掉仅入口处理的参数，附加运行编号与非交互模式。"""
     args = [arg for arg in argv if arg not in FRONTEND_ONLY_FLAGS]
+    if "--data-session" not in args:
+        args += paths.child_arguments()
     args += ["--run-id", run_id]
     if "--non-interactive" not in args:
         args.append("--non-interactive")
+    return args
+
+
+def worker_command(argv, run_id: str) -> list:
+    """管理员进程的完整命令行。"""
+    args = worker_args(argv, run_id)
     if getattr(sys, "frozen", False):
         worker = os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "March7th Assistant.exe")
         if not os.path.exists(worker):
@@ -250,18 +321,43 @@ def _launch_elevated(cmd):
 
 
 def run_task_elevated(argv, json_output=False, detach=False, launcher=None, out=None, poll_interval=0.2) -> int:
-    """以管理员身份运行任务，跟随输出并返回任务的退出码（detach 时启动后立即返回）。"""
+    """以管理员身份运行任务，跟随输出并返回任务的退出码（detach 时启动后立即返回）。
+
+    用户开启了免 UAC 运行时由计划任务启动（见 utils/uac_free.py），否则通过 UAC 提权；
+    传入 launcher 时固定用它启动（测试用）。
+    """
+    from utils import uac_free
     from utils.admin import ERROR_CANCELLED
 
     out = out or sys.stdout
     run_id = new_run_id()
-    cmd = worker_command(argv, run_id)
-    _say(out, f"运行任务需要管理员权限，请在 UAC 弹窗中选择「是」。运行编号 {run_id}")
+    task_state, task_info = uac_free.state() if launcher is None else (uac_free.STATE_OFF, None)
+    via_task = task_state == uac_free.STATE_ON
+    if via_task:
+        _say(out, f"已开启免 UAC 运行，由计划任务以管理员权限启动任务。运行编号 {run_id}")
+    else:
+        if task_state == uac_free.STATE_OTHER:
+            _say(out, f"免 UAC 运行是在另一个安装目录开启的（{task_info.get('path')}），对当前目录不生效")
+        elif task_state == uac_free.STATE_DISABLED:
+            _say(out, f"免 UAC 运行的计划任务 {uac_free.TASK_NAME} 已在任务计划程序中被禁用")
+        _say(out, f"运行任务需要管理员权限，请在 UAC 弹窗中选择「是」。运行编号 {run_id}")
     try:
-        process = (launcher or _launch_elevated)(cmd)
+        if via_task:
+            # 任务窗口同样最小化且不抢焦点（计划任务无法指定窗口状态，由管理员进程自己处理）
+            process = uac_free.launch(worker_args(argv, run_id) + ["--minimize-console"], run_id)
+        else:
+            process = (launcher or _launch_elevated)(worker_command(argv, run_id))
+    except KeyboardInterrupt:
+        # 多见于等待计划任务启动的几秒内：任务可能已经启动，按运行编号继续查看即可
+        _say(out, f"已停止等待，任务可能已经在管理员窗口中启动；继续查看：{entry_hint()} --follow {run_id}")
+        return 130
     except OSError as e:
         if getattr(e, "winerror", None) == ERROR_CANCELLED:
             _say(out, "已取消管理员授权（UAC），任务未运行")
+            _say(out, "如需在无人确认时运行任务，可以在图形界面「设置 → 高级」中开启「免 UAC 运行」")
+        elif via_task:
+            _say(out, f"免 UAC 运行未能启动任务：{e}")
+            _say(out, "可以在图形界面「设置 → 高级」中关闭「免 UAC 运行」后重新开启；本次没有改用 UAC，避免无人确认时一直等待")
         else:
             _say(out, f"无法以管理员身份启动任务：{e}")
         if json_output:
@@ -351,7 +447,7 @@ def follow_command(spec: str, json_output=False, out=None, poll_interval=0.5) ->
     return _normalize_exit_code(record.get("exit_code"))
 
 
-_CONTROL_COMMANDS = {"pause": COMMAND_PAUSE, "resume": COMMAND_RESUME, "stop": COMMAND_STOP}
+_CONTROL_COMMANDS = {"pause": COMMAND_PAUSE, "resume": COMMAND_RESUME, "stop": COMMAND_STOP, "skip": "skip"}
 
 
 def control_command(spec: str, action: str, json_output=False, out=None, wait_seconds=10.0) -> int:
@@ -359,7 +455,7 @@ def control_command(spec: str, action: str, json_output=False, out=None, wait_se
     out = out or sys.stdout
     command = _CONTROL_COMMANDS.get(action)
     if command is None:
-        _say(out, f"不支持的操作：{action}（可选 pause / resume / stop）")
+        _say(out, f"不支持的操作：{action}（可选 pause / resume / stop / skip）")
         return EXIT_FAILED
     record, error = resolve_run(spec)
     if record is None:
@@ -373,6 +469,20 @@ def control_command(spec: str, action: str, json_output=False, out=None, wait_se
     if not control_path:
         _say(out, f"运行 {run_id} 不支持暂停 / 停止控制")
         return EXIT_FAILED
+    if command == "skip":
+        from utils.pause import _atomic_write_json
+        rotation = record.get("rotation") or {}
+        index = rotation.get("index")
+        rows = rotation.get("accounts") or []
+        if not isinstance(index, int) or not 0 <= index < len(rows) or rows[index].get("status") != "running":
+            _say(out, "当前没有正在轮流运行的账号")
+            return EXIT_FAILED
+        child = rows[index]["run_id"]
+        _atomic_write_json(control_path + ".skip", {"child_run_id": child})
+        _say(out, "已请求跳过当前账号")
+        if json_output:
+            _print_json(out, {"run_id": run_id, "action": action, "child_run_id": child})
+        return EXIT_OK
     write_command(control_path, command)
 
     # 目标回执，以及可以视为「已收到指令」的回执（暂停中 = 已收到、尚未走到卡点）

@@ -1,3 +1,7 @@
+import pytest
+
+pytest.skip('货币战争 S2 用职级确认取代旧的 level_1 徽标循环；1440p 选关不再走 0.95 阈值', allow_module_level=True)
+
 """货币战争关卡选择：难度 1 徽标的匹配阈值。
 
 实机取证（2560×1440）：整帧缩到 1920 基准图后，正确徽标 level_1.png 的相似度

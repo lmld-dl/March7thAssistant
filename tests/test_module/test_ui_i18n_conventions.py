@@ -16,17 +16,15 @@
    若包装器对入参再 `tr()` 一次，调用点已翻译的文本会二次查表、命中不到条目，
    既浪费又会在 DEBUG 日志里刷「缺失翻译」。
    例外（有意为之）：
-   - `app/card/card_edit_dialog.py::display_label()`：入参本身就是 msgid（常量/配置里存的中文原文），
+   - `module/overview/shortcuts.py::display_name()`：内置名称是常量或配置中保存的 msgid，
      由它负责解析成当前语言；
    - `module/localization/trc()`：无 msgctxt 条目时回退 `tr()`。
+   - `module/search/terms.py::_label()`：输入是搜索词表和建议词的原文，需要按查询语言翻译。
 """
 import ast
 import re
-from pathlib import Path
 
-from tools.i18n import iter_source_files
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
+from tools.i18n import ROOT, iter_source_files
 
 CJK = re.compile(r"[\u3400-\u9fff]")
 
@@ -36,6 +34,7 @@ UI_ATTRS = {
     "setText", "setPlaceholderText", "setToolTip", "setWindowTitle", "setTitle",
     "addItem", "addItems", "setLabel", "setContent", "setSubtitle", "setCaption",
     "setInformativeText", "setDetailedText", "setStatusTip", "setWhatsThis",
+    "QLabel", "PushSettingCardEval", "addSubInterface",
 }
 UI_INFO_OBJECTS = {"InfoBar", "TeachingTip"}
 UI_INFO_KW = {"text", "title", "content", "caption", "label", "placeholder",
@@ -43,8 +42,10 @@ UI_INFO_KW = {"text", "title", "content", "caption", "label", "placeholder",
 
 # ---- 约定 2 的允许例外 ----
 WRAPPER_ALLOWLIST = {
-    ("app/card/card_edit_dialog.py", "display_label"),      # 入参是 msgid，本就是由它解析
+    ("module/accounts/differences.py", "value_text"),          # 只接收持久化的原始设置值和副本名
+    ("module/overview/shortcuts.py", "display_name"),         # 内置快捷启动名称在显示时翻译
     ("module/localization/__init__.py", "trc"),              # 无 msgctxt 条目时回退 tr()
+    ("module/search/terms.py", "_label"),                    # 只接收内置同义词和建议词的 msgid
 }
 
 
@@ -77,6 +78,18 @@ def _wrapped_string_ids(tree) -> set[int]:
     return wrapped
 
 
+def _raw_ui_strings(node):
+    """Inspect display containers and f-strings without descending into tr() calls."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        yield node
+    elif isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        for item in node.elts:
+            yield from _raw_ui_strings(item)
+    elif isinstance(node, ast.JoinedStr):
+        for item in node.values:
+            yield from _raw_ui_strings(item)
+
+
 def _is_log_call(dotted: str) -> bool:
     return (dotted in LOG_CALLEES
             or dotted.startswith("log.")
@@ -92,7 +105,7 @@ def _parsed_sources():
             tree = ast.parse(source, str(path))
         except (SyntaxError, ValueError):
             continue
-        rel = Path(path).resolve().relative_to(REPO_ROOT).as_posix()
+        rel = path.relative_to(ROOT).as_posix()
         yield rel, tree
 
 
@@ -114,9 +127,9 @@ class TestUiLiteralsAreTranslated:
                     candidates += list(node.args)
                     candidates += [kw.value for kw in node.keywords if kw.arg in UI_INFO_KW]
                 for arg in candidates:
-                    if (isinstance(arg, ast.Constant) and isinstance(arg.value, str)
-                            and CJK.search(arg.value) and id(arg) not in wrapped):
-                        offenders.append(f"{rel}:{node.lineno} {dotted}(...) {arg.value[:40]!r}")
+                    for text in _raw_ui_strings(arg):
+                        if CJK.search(text.value) and id(text) not in wrapped:
+                            offenders.append(f"{rel}:{node.lineno} {dotted}(...) {text.value[:40]!r}")
         assert offenders == [], (
             "界面文案必须套 tr()（日志与通知正文除外，见本测试文件顶部说明）:\n"
             + "\n".join(offenders)
@@ -149,3 +162,20 @@ class TestNoWrapperRetranslation:
         assert offenders == [], (
             "包装器不应翻译自己的入参（调用点负责 tr()）:\n" + "\n".join(offenders)
         )
+
+
+def test_display_string_scan_catches_fstrings_and_lists():
+    expr = ast.parse('[("任务日志"), f"设置{value}", tr("已翻译")] ', mode="eval").body
+    assert [node.value for node in _raw_ui_strings(expr)] == ["任务日志", "设置"]
+
+
+def test_export_headers_and_weekdays_are_statically_extractable():
+    from tools.i18n import collect_literals_from_source
+
+    for path, expected in (
+        ("module/gacha/transfer.py", {"总次数", "保底内"}),
+        ("app/card/expandable_switch_setting_card.py",
+         {"周一", "周二", "周三", "周四", "周五", "周六", "周日"}),
+    ):
+        literals, _, _ = collect_literals_from_source((ROOT / path).read_text(encoding="utf-8"))
+        assert expected <= literals

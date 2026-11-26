@@ -15,6 +15,11 @@ if sys.platform == 'win32':
     from utils.registry.game_auto_hdr import get_game_auto_hdr, set_game_auto_hdr
     from utils.registry.gameaccount import gamereg_uid
 from utils.logger.logger import Logger
+from utils.pause import pause_ctl
+
+
+class GameResolutionMismatch(ValueError):
+    """游戏窗口的实际分辨率持续与目标不符。"""
 
 
 class StarRailController(LocalGameController):
@@ -92,8 +97,10 @@ class StarRailController(LocalGameController):
         minimum = (target_width, target_height)
 
         for attempt in range(1, max_checks + 1):
+            pause_ctl.checkpoint()
             resolution = self.get_resolution()
-            if not resolution:
+            pause_ctl.checkpoint()
+            if not resolution or min(resolution) <= 0:
                 raise RuntimeError("游戏分辨率获取失败")
             window_width, window_height = resolution
 
@@ -109,7 +116,9 @@ class StarRailController(LocalGameController):
                 self.log_error(f"将在 {check_interval} 秒后重新检查分辨率（第 {attempt}/{max_checks} 次）")
                 time.sleep(check_interval)
 
-        raise ValueError("游戏分辨率不正确")
+        raise GameResolutionMismatch(
+            f"游戏分辨率不正确（当前 {window_width}x{window_height}，需要 {target_width}x{target_height}）"
+        )
 
     def check_resolution_ratio(self, target_width: int = BASE_WIDTH, target_height: int = BASE_HEIGHT) -> None:
         """
@@ -139,19 +148,22 @@ class StarRailController(LocalGameController):
         raise ValueError("游戏分辨率比例不正确")
 
     def change_auto_battle(self, status: bool) -> None:
-        auto_battle_status = get_auto_battle_open_setting()
-        if auto_battle_status is not None and auto_battle_status != status:
-            set_auto_battle_open_setting(status)
-            self.log_debug(f"修改自动战斗状态: {'开启' if auto_battle_status else '关闭'} --> {'开启' if status else '关闭'}")
-        save_battle_status = get_is_save_battle_speed_setting()
-        if save_battle_status is not None and save_battle_status != status:
-            set_is_save_battle_speed_setting(status)
-            self.log_debug(f"修改沿用自动战斗设置: {'启用' if save_battle_status else '禁用'} --> {'启用' if status else '禁用'}")
-        gamereg_uid_value = gamereg_uid()
-        if gamereg_uid_value:
-            user_speed_up_status = get_user_speed_up_open_setting(str(gamereg_uid_value))
-            if user_speed_up_status is not None and user_speed_up_status != status:
-                set_user_speed_up_open_setting(str(gamereg_uid_value), status)
-                self.log_debug(f"修改战斗二倍速状态: {'开启' if user_speed_up_status else '关闭'} --> {'开启' if status else '关闭'}")
-        else:
-            self.log_debug("未检测到 UID，跳过修改战斗二倍速设置")
+        try:
+            auto_battle_status = get_auto_battle_open_setting()
+            if auto_battle_status is not None and auto_battle_status != status:
+                set_auto_battle_open_setting(status)
+                self.log_debug(f"修改自动战斗状态: {'开启' if auto_battle_status else '关闭'} --> {'开启' if status else '关闭'}")
+            save_battle_status = get_is_save_battle_speed_setting()
+            if save_battle_status is not None and save_battle_status != status:
+                set_is_save_battle_speed_setting(status)
+                self.log_debug(f"修改沿用自动战斗设置: {'启用' if save_battle_status else '禁用'} --> {'启用' if status else '禁用'}")
+            gamereg_uid_value = gamereg_uid()
+            if gamereg_uid_value:
+                user_speed_up_status = get_user_speed_up_open_setting(str(gamereg_uid_value))
+                if user_speed_up_status is not None and user_speed_up_status != status:
+                    set_user_speed_up_open_setting(str(gamereg_uid_value), status)
+                    self.log_debug(f"修改战斗二倍速状态: {'开启' if user_speed_up_status else '关闭'} --> {'开启' if status else '关闭'}")
+            else:
+                self.log_debug("未检测到 UID，跳过修改战斗二倍速设置")
+        except OSError as e:
+            self.log_error(f"无法读取或修改游戏战斗设置，跳过自动战斗与二倍速检测：{e}")

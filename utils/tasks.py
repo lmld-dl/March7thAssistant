@@ -32,14 +32,58 @@ AVAILABLE_TASKS = {
     "game": "启动游戏",
     "redemption": "兑换码",
     "screen_test": "界面可切换性测试",
+    "character_export": "角色面板导出",
 }
+
+CLI_ONLY_TASKS = {"adb_check": "ADB 自检"}
+
+TOUCH_ROUTINE_TASKS = frozenset({"main", "routine", "daily", "power", "screen_test", "game"})
+HOST_TASKS = frozenset()
+UNSUPPORTED_TASK = "当前后端不支持，未执行"
+
+
+def task_is_supported(task_id, config=None):
+    from module.config.platform import get_control_backend, get_ui_profile
+
+    backend = get_control_backend(config)
+    if task_id == "adb_check":
+        return backend == "adb"
+    if task_id in HOST_TASKS:
+        return True
+    if backend == "adb":
+        return task_id in TOUCH_ROUTINE_TASKS
+    if get_ui_profile(config).name == "touch_720":
+        if backend == "cloud":
+            return task_id == "mobileui_update"
+        return task_id in TOUCH_ROUTINE_TASKS or task_id == "mobileui_update"
+    return task_id in AVAILABLE_TASKS
+
+
+def supported_tasks(config=None, *, include_cli=False):
+    tasks = AVAILABLE_TASKS | CLI_ONLY_TASKS if include_cli else AVAILABLE_TASKS
+    return {task_id: name for task_id, name in tasks.items() if task_is_supported(task_id, config)}
+
+
+def tasks_for_listing(*, include_cli=False):
+    import sys
+    from module.config.platform import InvalidGameConnection, get_ui_profile
+
+    try:
+        get_ui_profile()
+        return supported_tasks(include_cli=include_cli)
+    except InvalidGameConnection as error:
+        # 配置待修复时仍可查看原有任务目录，诊断单独写到 stderr。
+        print(error, file=sys.stderr)
+        return AVAILABLE_TASKS
+
 
 # 任务名称映射（兼容旧名称调用方）
 TASK_NAMES = AVAILABLE_TASKS
 
 # 支持「暂停/继续」的内置任务白名单。
-# 外部/自定义程序、游戏更新与启动器类子任务不支持暂停。
-# 判定逻辑见 LogInterface._resolvePauseSupport。
+# 仅针对内置任务 ID；workflow（用户自定义流程）经 workflow 启动路径单独启用
+# （运行于 main.py 进程内、走同一套动作卡点），外部/自定义程序与更新、
+# 启动器、原生界面类子任务不支持暂停。判定逻辑见 RunController._resolvePauseSupport。
 PAUSABLE_TASKS = frozenset({
     "main",
     "routine",
@@ -56,14 +100,15 @@ PAUSABLE_TASKS = frozenset({
     "apocalyptic",
     "redemption",
     "screen_test",
+    "character_export",
 })
 
 
-def task_display_names() -> dict:
+def task_display_names(tasks=None) -> dict:
     """任务ID -> 当前语言显示名。
 
     供 `--list` 等界面输出使用（属界面文案，随 ui_language）；
     日志与配置仍按约定使用 AVAILABLE_TASKS 里的中文原文。
     """
     from module.localization import tr
-    return {task_id: tr(name) for task_id, name in AVAILABLE_TASKS.items()}
+    return {task_id: tr(name) for task_id, name in (AVAILABLE_TASKS if tasks is None else tasks).items()}

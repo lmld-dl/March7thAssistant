@@ -1,7 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
+
 from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
-binaries = []
+sys.path.append(SPECPATH)
+from tools.pyinstaller_openssl import OPENSSL_RUNTIME_HOOKS, python_openssl_binaries
+
+binaries = python_openssl_binaries()
 datas = []
 
 binaries += collect_dynamic_libs('openvino', search_patterns=['openvino_intel_cpu_plugin.dll', 'openvino_onnx_frontend.dll'])
@@ -14,10 +19,13 @@ a = Analysis(
     pathex=[],
     binaries=binaries,
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=[
+        # CredRead 读取已有凭据时，pywin32 会动态导入此模块来转换 LastWritten。
+        'win32timezone',
+    ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=OPENSSL_RUNTIME_HOOKS,
     excludes=[],
     noarchive=False,
     optimize=0,
@@ -41,6 +49,9 @@ def _is_excluded(dest_name: str) -> bool:
 
 a.binaries = [item for item in a.binaries if not _is_excluded(item[0])]
 a.datas = [item for item in a.datas if not _is_excluded(item[0])]
+
+if not any(name == 'win32timezone' for name, _, _ in a.pure):
+    raise RuntimeError("启动器缺少 win32timezone，无法读取已保存的桌面分身凭据")
 
 pyz = PYZ(a.pure)
 

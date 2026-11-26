@@ -1,501 +1,462 @@
-from module.screen import screen
-from module.automation import auto
-from module.logger import log
-from module.config import cfg
-from module.notification.notification import NotificationLevel
-from tasks.base.base import Base
-from tasks.base.team import Team
-from .character import Character
-from .relicset import Relicset
-import time
-from module.localization import get_raw_instance_names
-import json
 import re
+import time
+
+from module.automation import auto
+from module.config import cfg
+from module.localization import get_raw_instance_names
+from module.logger import log
+from module.screen import screen
+from tasks.base.list_drag import changed_ratio, drag_list
+from tasks.base.task_steps import FATAL_GAME_ERRORS, GameRecoveryError
+from tasks.power.battle import battle_speed_visible, ensure_double_speed
+from tasks.power.policy import (
+    BATTLE_TIMEOUT, ENTRY_TIMEOUT, CRIMSON_CALYX, ECHO, ORNAMENT,
+    InstanceTeamUnavailable, InstanceUnavailable, PowerError, RelicBagFull, parse_echo_rewards,
+)
+from tasks.power.readout import read_number
+from tasks.power.character import CHALLENGE, Character
+from tasks.power.relicset import Relicset
+from tasks.power.team import TEAM_ACTIONS, find_current_team_start, select_preset, warn_team_switch
+from utils.game_options import game_option_enabled
+from utils.wait import wait_until
+
+
+CATEGORY = (262 / 1920, 289 / 1080, 422 / 1920, 624 / 1080)
+ENTRY_ROWS = (686 / 1920, 287 / 1080, 980 / 1920, 650 / 1080)
+WAVE_SELECTOR = (1160 / 1920, 828 / 1080, 755 / 1920, 104 / 1080)
+DIALOG = (245 / 1920, 200 / 1080, 1430 / 1920, 645 / 1080)
+INSTANCE_POPUPS = ("开拓力补充", "背包内遗器持有数量已达上限", "长时间未操作", "已处于无法战斗状态")
+ORNAMENT_START_POPUPS = ("仍有角色位空缺", "当前不存在任何存档，是否直接开始战斗")
+CONFIRM = "./assets/images/zh_CN/base/confirm.png"
+FIGHT_AGAIN = "./assets/images/zh_CN/fight/fight_again.png"
+FIGHT_FAIL = "./assets/images/zh_CN/fight/fight_fail.png"
+FIGHT_EXIT = "./assets/images/zh_CN/fight/fight_exit.png"
+PAUSE = "./assets/images/purefiction/battle_pause.png"
+AUTO_DISABLED = "./assets/images/share/base/not_auto.png"
+MAX_START_CLICKS = 5
+MAX_RECONNECTS = 3
 
 
 class Instance:
     @staticmethod
-    def run(instance_type, instance_name, attempts_per_run, runs, from_failure=False, runs_completed=0):
-        if not Instance.validate_instance(instance_type, instance_name):
-            return False
-
-        # 若是任务失败后的重新运行, 则改变运行逻辑
-        if from_failure:
-            log.hr(f"复活后重新进入副本{instance_type} - {instance_name}，剩余{runs - runs_completed}轮", 2)
-        else:
-            log.hr(f"开始刷{instance_type} - {instance_name}，总计{runs}轮，每轮包含{attempts_per_run}次", 2)
-
-            if cfg.instance_team_enable and "饰品提取" not in instance_type:
-                team_number = Instance.get_target_team(instance_type, instance_name)
-                Team.change_to(team_number)
-
-            if cfg.tp_before_instance:
-                Instance.heal_teams()
-
-        if not Instance.prepare_instance(instance_type, instance_name):
-            return False
-
-        if not Instance.start_instance(instance_type, attempts_per_run):
-            return False
-
-        try:
-            for i in range(runs_completed, runs):
-                fight_result = Instance.wait_fight(i + 1)
-
-                # 如果战斗失败则重新运行, 并记录成功运行次数
-                if not fight_result:
-                    if "拟造花萼" in instance_type or "凝滞虚影" in instance_type or "侵蚀隧洞" in instance_type:
-                        auto.click_element("./assets/images/zh_CN/fight/fight_fail.png", "image", 0.9, max_retries=10)
-                        return False
-                    else:
-                        auto.click_element("./assets/images/zh_CN/fight/fight_fail.png", "image", 0.9, max_retries=10)
-                        time.sleep(2)
-                        Instance.run(instance_type, instance_name, attempts_per_run, runs, from_failure=True, runs_completed=i)
-                        break
-
-                if i < runs - 1:
-                    Instance.start_instance_again(instance_type)
-        except RuntimeError:
-            return False
-
-        # 若是任务失败后的重新运行, 则不再重复这些逻辑
-        if not from_failure:
-            Instance.complete_run(instance_type)
-            log.info("副本任务完成")
-
-        return True
-
-    @staticmethod
-    def validate_instance(instance_type, instance_name):
-        if instance_name == "无":
-            log.info(f"{instance_type}未开启")
-            return False
-        return True
-
-    @staticmethod
     def get_target_team(instance_type, instance_name):
-        """获取配置中自动切换目标队伍编号，按照副本名称匹配，无匹配项时返回全局 instance_team_number"""
-        teams = cfg.instance_teams
-
-        for team in teams:
+        for team in cfg.instance_teams:
             if team["instance_name"] == instance_name:
                 return team["team_number"]
-
         return cfg.instance_team_number
 
     @staticmethod
+    def select_category(instance_type):
+        screen.change_to("guide3")
+        if not auto.click_element(instance_type, "text", crop=CATEGORY):
+            if not drag_list(auto, (645 / 1920, 805 / 1080), (645 / 1920, 405 / 1080), crop=CATEGORY):
+                raise PowerError("未能滚动生存索引分类")
+            if not auto.click_element(instance_type, "text", crop=CATEGORY, max_retries=4, retry_delay=0.3):
+                raise PowerError(f"未找到生存索引中的{instance_type}")
+        time.sleep(0.6)
+
+    @staticmethod
     def prepare_instance(instance_type, instance_name):
-        screen.change_to('guide3')
-        time.sleep(1)
+        Instance.select_category(instance_type)
+        names = get_raw_instance_names()[instance_type]
+        names = tuple(name for name in (names.values() if instance_type == CRIMSON_CALYX else names)
+                      if name not in ("无", "跳过"))
 
-        instance_type_crop = (262.0 / 1920, 289.0 / 1080, 422.0 / 1920, 624.0 / 1080)
+        def list_ready():
+            if not auto.find_element(names, "text", crop=ENTRY_ROWS, include=True):
+                return False
+            return (auto.find_element(("传送", "进入", "追踪"), "text", take_screenshot=False, need_ocr=False)
+                    and not auto.find_element(("角色培养", "培养设置"), "text", include=True,
+                                              take_screenshot=False, need_ocr=False))
 
-        if not auto.click_element(instance_type, "text", crop=instance_type_crop):
-            if auto.click_element("凝滞虚影", "text", max_retries=10, crop=instance_type_crop):
-                auto.mouse_scroll(12, -1)
-                # 等待界面完全停止
-                time.sleep(1)
-                auto.click_element(instance_type, "text", crop=instance_type_crop)
-        # 等待界面切换
-        time.sleep(1)
-
-        # 传送
-        instance_name_crop = (686.0 / 1920, 287.0 / 1080, 980.0 / 1920, 650.0 / 1080)
-        # if "拟造花萼（金）" in instance_type:
-        #     auto.click_element(f"./assets/images/share/calyx/golden/{cfg.calyx_golden_preference}.png", "image")
-        #     # 等待界面切换
-        #     time.sleep(1)
-        auto.click_element("./assets/images/screen/guide/power.png", "image", max_retries=10)
-
-        Flag = False
-        # if "拟造花萼（赤）" in instance_type:
-        #     crimson_images = {
-        #         "毁灭之蕾": "./assets/images/share/calyx/crimson/destruction1.png",
-        #         "存护之蕾": "./assets/images/share/calyx/crimson/preservation1.png",
-        #         "巡猎之蕾": "./assets/images/share/calyx/crimson/hunt1.png",
-        #         "丰饶之蕾": "./assets/images/share/calyx/crimson/abundance1.png",
-        #         "智识之蕾": "./assets/images/share/calyx/crimson/erudition1.png",
-        #         "同谐之蕾": "./assets/images/share/calyx/crimson/harmony1.png",
-        #         "虚无之蕾": "./assets/images/share/calyx/crimson/nihility1.png",
-        #         "毁灭之蕾2": "./assets/images/share/calyx/crimson/destruction2.png",
-        #         "虚无之蕾2": "./assets/images/share/calyx/crimson/nihility2.png",
-        #         "同谐之蕾2": "./assets/images/share/calyx/crimson/harmony2.png",
-        #     }
-        #     # 临时解决方案
-        #     if instance_name in crimson_images:
-        #         def func(): return auto.click_element(("传送", "进入", "追踪"), "min_distance_text", crop=instance_name_crop, include=True, source=crimson_images[instance_name], source_type="image")
-        #     else:
-        #         def func(): return auto.click_element(("传送", "进入", "追踪"), "min_distance_text", crop=instance_name_crop, include=True, source=instance_name, source_type="text")
-
-        if "拟造花萼（赤）" in instance_type:
-            def func(): return auto.click_element(("传送", "进入", "追踪"), "min_distance_text", crop=instance_name_crop, include=True, source=instance_name, source_type="text", position="top_right")
-        else:
-            def func(): return auto.click_element(("传送", "进入", "追踪"), "min_distance_text", crop=instance_name_crop, include=True, source=instance_name, source_type="text")
-
-        for i in range(10):
-            if func():
+        wait_until(list_ready, 5, 0.5)
+        auto.click_element("./assets/images/screen/guide/power.png", "image", max_retries=2)
+        is_ornament = instance_type == ORNAMENT
+        start = (1125 / 1920, 810 / 1080)
+        end = (1125 / 1920, (490 if is_ornament else 410) / 1080)
+        unchanged_drags = 0
+        for attempt in range(24):
+            entry = auto.find_element(
+                ("传送", "进入", "追踪"), "min_distance_text", crop=ENTRY_ROWS, include=True,
+                source=instance_name, source_type="text",
+                position="top_right" if instance_type == CRIMSON_CALYX else "bottom_right",
+            )
+            if entry:
                 if auto.matched_text == "追踪":
-                    time.sleep(2)
-                    Base.send_notification_with_screenshot(cfg.notify_template['InstanceNotCompleted'].format(error="指定副本未解锁"), NotificationLevel.ERROR)
-                    auto.press_key("esc")
-                    auto.press_key("esc")
-                    screen.wait_for_screen_change('guide3')
-                    return False
-                Flag = True
-                # 临时解决方案
-                if "拟造花萼（赤）" in instance_type:
-                    template = get_raw_instance_names()
-                    if instance_name in template.get(instance_type, {}):
-                        instance_name = template[instance_type][instance_name]
+                    raise InstanceUnavailable(f"指定副本未解锁：{instance_name}")
+                if not auto.click_element_with_pos(entry):
+                    raise PowerError(f"无法点击副本入口：{instance_name}")
                 break
-            auto.mouse_scroll(12, -1)
-            # 等待界面完全停止
-            time.sleep(1)
-        if not Flag:
-            Base.send_notification_with_screenshot(cfg.notify_template['InstanceNotCompleted'].format(error="未找到指定副本"), NotificationLevel.ERROR)
-            return False
-        # 验证传送是否成功
-        timeout = 120
-        start_time = time.monotonic()
-        success = False
-        if "饰品提取" in instance_type:
-            while time.monotonic() - start_time < timeout:
-                if auto.find_element(instance_name, "text", max_retries=1, include=True, crop=(591.0 / 1920, 98.0 / 1080, 594.0 / 1920, 393.0 / 1080)):
-                    success = True
-                    break
-
-                if auto.find_element("是否切换", "text", max_retries=1, include=True):
-                    log.info("检测到切换角色视角提示，尝试点击确认")
-                    auto.click_element("确认", "text", include=True)
-                    time.sleep(0.5)
-
-                time.sleep(2)
+            # 单次手势可能漏收，连续两次停稳无位移才提前反向。
+            search_down = attempt < 12 and unchanged_drags < 2
+            drag_start, drag_end = (start, end) if search_down else (end, start)
+            before = auto.screenshot.copy()
+            if not drag_list(auto, drag_start, drag_end, crop=ENTRY_ROWS, end_pause=0.2, settle=0.45):
+                raise PowerError("生存索引列表未稳定")
+            if search_down:
+                unchanged_drags = unchanged_drags + 1 if changed_ratio(before, auto.screenshot) <= 0.01 else 0
         else:
-            while time.monotonic() - start_time < timeout:
-                if auto.find_element(instance_name.replace("2", ""), "text", max_retries=1, include=True, crop=(1172.0 / 1920, 5.0 / 1080, 742.0 / 1920, 636.0 / 1080)):
-                    success = True
-                    break
+            raise PowerError(f"未找到指定副本：{instance_name}")
 
-                if "历战余响" in instance_type:
-                    if auto.find_element("不再弹出", "text", max_retries=1, include=True):
-                        log.info("检测到历战余响剧情提示，尝试勾选不再提示")
-                        auto.click_element("不再弹出", "text", include=True)
-                        time.sleep(0.5)
-                        auto.click_element("确认", "text", include=True)
+        if instance_type == CRIMSON_CALYX:
+            instance_name = get_raw_instance_names()[instance_type][instance_name].replace("2", "")
+        title = ((591 / 1920, 98 / 1080, 594 / 1920, 393 / 1080) if is_ornament
+                 else (1172 / 1920, 5 / 1080, 742 / 1920, 636 / 1080))
+        entry_prompts = (("不再弹出", "是否切换", "是否传送") if instance_type == ECHO
+                         else ("是否切换", "是否传送", "不再弹出"))
+        echo_checkbox_attempted = False
 
-                if auto.find_element("是否切换", "text", max_retries=1, include=True):
-                    log.info("检测到切换角色视角提示，尝试点击确认")
-                    auto.click_element("确认", "text", include=True)
+        def ready():
+            nonlocal echo_checkbox_attempted
+            if auto.find_element(instance_name, "text", include=True, crop=title):
+                return True
+            popup = auto.find_element(entry_prompts, "text", include=True, crop=DIALOG)
+            if not popup:
+                return False
+            if instance_type == ECHO and auto.matched_text == "不再弹出":
+                if not echo_checkbox_attempted:
+                    echo_checkbox_attempted = True
+                    if not auto.click_element_with_pos(popup):
+                        log.warning("未能勾选历战余响的不再弹出，继续确认剧情提示")
                     time.sleep(0.5)
-
-                time.sleep(2)
-        if not success:
-            Base.send_notification_with_screenshot(cfg.notify_template['InstanceNotCompleted'].format(error="传送可能失败"), NotificationLevel.ERROR)
-            return False
-
-        return True
-
-    @staticmethod
-    def start_instance(instance_type, attempts_per_run):
-
-        if "饰品提取" in instance_type:
-            time.sleep(1)
-
-            # 如果配置了自动切换队伍，则尝试切换队伍。查找失败不影响后续流程。
-            if cfg.instance_team_enable:
-                log.info("尝试自动切换队伍")
-                instance_name = Instance.get_current_instance_name(instance_type)
-                team = Instance.get_target_team(instance_type, instance_name)
-                if re.fullmatch(r"[01]?[0-9]", str(team)):
-                    team_name = f"队伍{int(team)}"
-                    if auto.click_element((619 / 1920, 780 / 1080, 77 / 1920, 75 / 1080), "crop"):
-                        time.sleep(1.0)
-                        if auto.click_element("预设编队", "text", max_retries=4, retry_delay=0.5, crop=(6 / 1920, 8 / 1080, 578 / 1920, 168 / 1080)):
-                            log.info(f"尝试切换到{team_name}")
-                            time.sleep(1.0)
-                            team_name_crop = (6 / 1920, 116 / 1080, 300 / 1920, 900 / 1080)
-                            auto.click_element((38 / 1920, 128 / 1080, 521 / 1920, 196 / 1080), "crop", action="move")
-                            time.sleep(1.0)
-                            for _ in range(4):  # 尝试滚动寻找队伍
-                                if auto.click_element(team_name, "text", max_retries=4, retry_delay=0.5, crop=team_name_crop):
-                                    log.info(f"切换到{team_name}成功")
-                                    break
-                                log.info(f"未找到{team_name}，尝试滚动")
-                                auto.mouse_scroll(28, -1, False)
-                                time.sleep(1)
-                            time.sleep(1.0)
-                            auto.press_key("esc")
+                confirm = auto.find_element(CONFIRM, "image", 0.9)
+                if confirm:
+                    auto.click_element_with_pos(confirm)
                 else:
-                    log.error(f"队伍编号 {team} 格式错误，应为数字")
+                    auto.click_element("确认", "text", include=True, crop=DIALOG)
+            else:
+                auto.click_element(CONFIRM, "image", 0.9)
+            return False
 
-            # 如果未配置自动切换队伍或切换失败，判断队伍是否为空，如果是空队伍则尝试点击进入并选择队伍1
-            team_slot_crop = (624.0 / 1920, 772.0 / 1080, 267.0 / 1920, 91.0 / 1080)
-            if auto.find_element("./assets/images/share/universe/empty_character_slot.png", "image_count", 0.8, crop=team_slot_crop, pixel_bgr=[233, 233, 233]) == 3:
-                log.info("检测到缺少队伍，尝试进入队伍配置界面")
-                if auto.click_element("./assets/images/share/universe/empty_character_slot.png", "image", 0.8, crop=team_slot_crop, take_screenshot=False):
-                    time.sleep(2)
-                    if auto.click_element("预设编队", "text", max_retries=4, retry_delay=0.5, crop=(6 / 1920, 8 / 1080, 578 / 1920, 168 / 1080)):
-                        log.info("尝试切换到队伍1")
-                        time.sleep(1.0)
-                        if auto.click_element((38 / 1920, 128 / 1080, 521 / 1920, 196 / 1080), "crop"):
-                            time.sleep(1.0)
-                            auto.press_key("esc")
-                time.sleep(1.0)
-
-            Character.borrow("ornament")
-
-            count = attempts_per_run - 1
-            if count > 0:
-                result = auto.find_element("./assets/images/screen/guide/plus.png", "image", 0.8, max_retries=10, crop=(1174.0 / 1920, 775.0 / 1080, 738.0 / 1920, 174.0 / 1080))
-                if not result:
-                    log.warning(f"需要设置连续挑战次数为 {attempts_per_run}，但未识别到“+”按钮，取消本次开始挑战")
-                    return False
-                for i in range(count):
-                    auto.click_element_with_pos(result)
-                    time.sleep(0.5)
-            time.sleep(1)
-
-            if auto.click_element("开始挑战", "text", max_retries=10, crop=(1615 / 1920, 956 / 1080, 243 / 1920, 55 / 1080)):
-                # 快速连续检测多次，增加捕获瞬间提示的概率
-                time.sleep(0.5)
-
-                # 判断点击开始挑战是否成功，可能因缺少角色或背包满导致失败
-                if auto.find_element("仍有角色位空缺", "text", max_retries=1, crop=(481.0 / 1920, 361.0 / 1080, 955.0 / 1920, 356.0 / 1080), include=True):
-                    auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-                    time.sleep(0.5)
-
-                if auto.find_element("当前不存在任何存档，是否直接开始战斗", "text", include=True):
-                    auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-                    time.sleep(0.5)
-
-                # 检测遗器背包已满的提示
-                for _ in range(5):  # 连续快速检测5次
-                    if auto.find_element("背包内遗器持有数量已达上限", "text", max_retries=1, include=True, threshold=0.7):
-                        log.info("检测到背包内遗器已满，准备进行分解")
-                        auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-                        time.sleep(0.5)
-                        # 执行分解四星遗器的操作
-                        relicset_result = Relicset.run()
-
-                        if not relicset_result:
-                            # 没有可分解的低星遗器，触发死循环保护，停止任务
-                            log.warning("背包已满且无可分解的低星遗器，停止任务")
-                            Base.send_notification_with_screenshot(cfg.notify_template['RelicBagFull'], NotificationLevel.ERROR)
-                            return False
-
-                        # 简化的界面恢复逻辑
-                        log.info("遗器分解完成")
-
-                        # 直接回到指南界面，减少中间步骤
-                        log.info("切换到指南界面")
-                        screen.change_to('guide3', 3)
-                        time.sleep(1)
-
-                        # 重新准备副本并开始挑战
-                        # 通过instance_type获取对应的副本名称
-                        instance_name = Instance.get_current_instance_name(instance_type)
-                        if Instance.prepare_instance(instance_type, instance_name):
-                            return Instance.start_instance(instance_type, attempts_per_run)
-                        return False
-                    time.sleep(0.1)
-
-                if auto.find_element("./assets/images/purefiction/prepare_fight.png", "image", 200000, max_retries=60, crop=(0 / 1920, 0 / 1080, 300.0 / 1920, 300.0 / 1080)):
-                    time.sleep(1)
-
-                    # 使用秘技
-                    # 待后续更新支持
-
-                    # 靠近怪物
-                    auto.press_key("w", 3)
-                    for _ in range(3):
-                        auto.press_mouse()
-                        time.sleep(1)
-                    return True
-                elif auto.find_element("开始挑战", "text", max_retries=1, crop=(1615 / 1920, 956 / 1080, 243 / 1920, 55 / 1080)):
-                    Base.send_notification_with_screenshot(cfg.notify_template['InstanceNotCompleted'].format(error="无法开始挑战"), NotificationLevel.ERROR)
-                    auto.press_key("esc")
-                    time.sleep(2)
-                    auto.press_key("esc")
-                    screen.wait_for_screen_change('main')
-                    return False
-        else:
-            if "拟造花萼" in instance_type or "凝滞虚影" in instance_type or "侵蚀隧洞" in instance_type or "历战余响" in instance_type:
-                # 选择挑战次数
-                # challenges_count_max = {
-                #     "拟造花萼（金）": 24,
-                #     "拟造花萼（赤）": 24,
-                #     "凝滞虚影": 8,
-                #     "侵蚀隧洞": 6
-                #     # "历战余响": 3
-                # }
-                count = attempts_per_run - 1
-                # if not 0 <= count <= challenge_count_max - 1:
-                #     Base.send_notification_with_screenshot(cfg.notify_template['InstanceNotCompleted'].format(error="连续挑战次数错误"))
-                #     return False
-                if count > 0:
-                    result = auto.find_element("./assets/images/screen/guide/plus.png", "image", 0.8, max_retries=10, crop=(1174.0 / 1920, 775.0 / 1080, 738.0 / 1920, 174.0 / 1080))
-                    if not result:
-                        log.warning(f"需要设置连续挑战次数为 {attempts_per_run}，但未识别到“+”按钮，取消本次开始挑战")
-                        return False
-                    for i in range(count):
-                        auto.click_element_with_pos(result)
-                        time.sleep(0.5)
-                time.sleep(1)
-
-            if auto.click_element("挑战", "text", max_retries=10, need_ocr=True):
-                if instance_type == "历战余响":
-                    time.sleep(1)
-                    auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-
-                Character.borrow()
-
-                if auto.click_element("开始挑战", "text", max_retries=10, crop=(1518 / 1920, 960 / 1080, 334 / 1920, 61 / 1080)):
-                    # 检测遗器背包已满的提示
-                    if "侵蚀隧洞" in instance_type or "历战余响" in instance_type:
-                        for _ in range(5):  # 连续快速检测5次
-                            if auto.find_element("背包内遗器持有数量已达上限", "text", max_retries=1, include=True, threshold=0.7):
-                                log.info("检测到背包内遗器已满，准备进行分解")
-                                auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-                                time.sleep(0.5)
-                                # 执行分解四星遗器的操作
-                                relicset_result = Relicset.run()
-
-                                if not relicset_result:
-                                    # 没有可分解的低星遗器，触发死循环保护，停止任务
-                                    log.warning("背包已满且无可分解的低星遗器，停止任务")
-                                    Base.send_notification_with_screenshot(cfg.notify_template['RelicBagFull'], NotificationLevel.ERROR)
-                                    return False
-
-                                # 简化的界面恢复逻辑
-                                log.info("遗器分解完成")
-
-                                log.info("切换到指南界面")
-                                screen.change_to('guide3', 3)  # 增加重试次数
-                                time.sleep(1)
-
-                                # 重新准备副本并开始挑战
-                                instance_name = Instance.get_current_instance_name(instance_type)
-                                if Instance.prepare_instance(instance_type, instance_name):
-                                    return Instance.start_instance(instance_type, attempts_per_run)
-                                return False
-                            time.sleep(0.1)
-
-                    # 版本更新后不再需要开怪
-                    # if instance_type == "凝滞虚影":
-                    #     time.sleep(2)
-                    #     for i in range(3):
-                    #         auto.press_mouse()
-
-                    return True
-
-        return False
+        return wait_until(ready, ENTRY_TIMEOUT, 0.8)
 
     @staticmethod
-    def start_instance_again(instance_type):
-        auto.click_element("./assets/images/zh_CN/fight/fight_again.png", "image", 0.88, max_retries=10)
-        if instance_type == "历战余响":
-            time.sleep(1)
-            auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
+    def read_echo_rewards():
+        Instance.select_category(ECHO)
+
+        quota = read_number(auto, (682 / 1920, 275 / 1080, 1002 / 1920, 184 / 1080), parse_echo_rewards,
+                            "未能确认历战余响奖励次数")
+        log.info(f"历战余响本周剩余奖励次数：{quota}/3")
+        return quota
+
+    @staticmethod
+    def select_waves(instance_type, requested):
+        # 从生存索引重新进入副本时，游戏默认选择一场。
+        if requested == 1:
+            return 1
+        plus = auto.find_element("./assets/images/screen/guide/plus.png", "image", 0.82,
+                                 crop=WAVE_SELECTOR, max_retries=3, retry_delay=0.3)
+        if not plus:
+            if instance_type == ECHO:
+                return 1
+            raise ChallengePageUnavailable("未找到增加连续挑战次数的按钮")
+        for _ in range(requested - 1):
+            if not auto.click_element_with_pos(plus):
+                raise PowerError("无法调整连续挑战次数")
+            time.sleep(0.2)
+        return requested
+
+    @staticmethod
+    def select_world_team(instance_type, name):
+        team = Instance.get_target_team(instance_type, name)
+        screen.change_to("configure_team")
+        reason = select_preset(auto, team, activate=True)
+        if reason:
+            Instance.check_team_connection()
+            warn_team_switch(name, team, "主世界编队", reason)
+        else:
+            log.info(f"已确认主世界启用队伍 {str(team).zfill(2)}")
+        return reason
+
+    @staticmethod
+    def leave_challenge_team():
+        if auto.find_element(("快速编队", "开始挑战"), "text", crop=TEAM_ACTIONS):
+            auto.press_key("esc")
+            wait_until(lambda: auto.find_element("挑战", "text", crop=CHALLENGE), 5, 0.35)
+
+    @staticmethod
+    def check_team_connection():
+        if (auto.find_element("连接中断", "text", crop=DIALOG, include=True)
+                and auto.find_element(("尝试重连", "退出游戏"), "text", include=True,
+                                      take_screenshot=False, need_ocr=False)):
+            raise GameRecoveryError("副本准备期间检测到游戏连接中断")
+
+    @staticmethod
+    def _select_ornament_team(team):
+        if not re.fullmatch(r"0?[1-9]|1[0-9]", str(team)):
+            return False
+        presets = (6 / 1920, 8 / 1080, 578 / 1920, 168 / 1080)
+        team_names = (6 / 1920, 116 / 1080, 300 / 1920, 900 / 1080)
+        if not auto.click_element((619 / 1920, 780 / 1080, 77 / 1920, 75 / 1080), "crop"):
+            return False
+
+        selected = False
+        if auto.click_element("预设编队", "text", crop=presets, max_retries=4, retry_delay=0.3):
+            for _ in range(8):
+                if auto.click_element(f"队伍{int(team)}", "text", crop=team_names, max_retries=3, retry_delay=0.3):
+                    selected = True
+                    break
+                if not drag_list(auto, (430 / 1920, 850 / 1080), (430 / 1920, 350 / 1080), crop=team_names):
+                    break
+            auto.press_key("esc")
+        elif not auto.find_element("开始挑战", "text", crop=CHALLENGE):
+            auto.press_key("esc")
+
+        if not auto.find_element("开始挑战", "text", crop=CHALLENGE, max_retries=8, retry_delay=0.3):
+            raise PowerError("退出编队后未能返回饰品提取挑战页")
+        return selected
+
+    @staticmethod
+    def _confirm_practice():
+        if not auto.find_element("次数已耗尽", "text", crop=DIALOG, include=True, max_retries=8, retry_delay=0.3):
+            raise PowerError("未确认历战余响的无奖励挑战提示")
+        if not auto.click_element(CONFIRM, "image", 0.9):
+            raise PowerError("无法确认历战余响无奖励挑战")
+
+    @staticmethod
+    def start_instance(instance_type, name, support, *, practice, world_team, team_failure=None):
+        ornament = instance_type == ORNAMENT
+        start_button = None
+        if ornament:
+            if cfg.instance_team_enable:
+                team = Instance.get_target_team(instance_type, name)
+                if not Instance._select_ornament_team(team):
+                    log.warning(f"未选中饰品提取预设队伍 {team}，保留当前编队")
+            empty = auto.find_element("./assets/images/share/universe/empty_character_slot.png", "image_count", 0.8,
+                                      crop=(624 / 1920, 772 / 1080, 267 / 1920, 91 / 1080), pixel_bgr=[233, 233, 233])
+            if empty and empty >= 3 and not Instance._select_ornament_team(1):
+                raise PowerError("饰品提取没有可用编队，未能选中队伍 1")
+        else:
+            if not auto.click_element("挑战", "text", crop=CHALLENGE, max_retries=5, retry_delay=0.35):
+                if team_failure:
+                    Instance.check_team_connection()
+                Instance.check_popup()
+                raise ChallengePageUnavailable("未找到副本的挑战按钮")
+            if practice:
+                Instance._confirm_practice()
+            start_button = auto.find_element("开始挑战", "text", crop=CHALLENGE, max_retries=12, retry_delay=0.3)
+            if not start_button and not (cfg.instance_team_enable and auto.find_element(
+                "快速编队", "text", crop=TEAM_ACTIONS,
+            )):
+                if team_failure:
+                    Instance.check_team_connection()
+                Instance.check_popup()
+                raise ChallengePageUnavailable("未进入副本编队")
+            if cfg.instance_team_enable and not world_team and team_failure is None:
+                team = Instance.get_target_team(instance_type, name)
+                reason = select_preset(auto, team)
+                if not reason:
+                    start_button = auto.find_element("开始挑战", "text", crop=CHALLENGE,
+                                                     max_retries=4, retry_delay=0.35)
+                    if not start_button:
+                        reason = "未确认目标队伍可出战"
+                if reason:
+                    Instance.check_team_connection()
+                    raise TeamPresetUnavailable(f"副本未能使用队伍 {str(team).zfill(2)}（{reason}）")
+                log.info(f"已确认副本选中队伍 {str(team).zfill(2)}")
+
+        borrowed = False
+        if support.should_borrow(cfg):
+            borrowed = Character.borrow("ornament" if ornament else "standard", for_training=support.pending)
+            start_button = None
+        if team_failure:
+            Instance.check_team_connection()
+            start_button = find_current_team_start(auto, CHALLENGE)
+            if not start_button:
+                raise InstanceTeamUnavailable(f"{name}：无法确认当前副本有可出战的队伍，已跳过本项")
+            log.info(f"{name}：已确认当前副本编队可出战，继续挑战")
+        Instance._click_start_challenge(ornament=ornament, button=start_button, verify_team=bool(team_failure))
+        if ornament:
+            Instance._engage_ornament_boss()
+        return borrowed
+
+    @staticmethod
+    def _click_start_challenge(*, ornament, button=None, verify_team=False):
+        if button is None:
+            button = auto.find_element("开始挑战", "text", crop=CHALLENGE, max_retries=5, retry_delay=0.35)
+        if not button:
+            Instance.check_popup()
+            raise ChallengePageUnavailable("未找到开始挑战按钮")
+
+        popups = INSTANCE_POPUPS + ("连接中断",)
+        if ornament:
+            popups += ORNAMENT_START_POPUPS
+        for _ in range(MAX_START_CLICKS):
+            auto.click_element_with_pos(button)
+            time.sleep(0.5)
+            # 弹窗交给后续流程处理，补点前以最后一帧的按钮位置为准。
+            if auto.find_element(popups, "text", crop=DIALOG, include=True):
+                return
+            button = (find_current_team_start(auto, CHALLENGE) if verify_team else
+                      auto.find_element("开始挑战", "text", crop=CHALLENGE, max_retries=2, retry_delay=0.25))
+            if not button:
+                return
+        log.warning(f"已尝试点击开始挑战 {MAX_START_CLICKS} 次，按钮仍可见，等待游戏转场")
+
+    @staticmethod
+    def _engage_ornament_boss():
+        def ready():
+            Instance.check_popup()
+            if auto.find_element(ORNAMENT_START_POPUPS, "text", crop=DIALOG, include=True):
+                auto.click_element(CONFIRM, "image", 0.9)
+            return auto.find_element("./assets/images/purefiction/prepare_fight.png", "image", 200000,
+                                     crop=(0, 0, 300 / 1920, 300 / 1080))
+
+        if not wait_until(ready, 45, 0.5):
+            raise PowerError("未进入饰品提取首领场地")
+        auto.press_key("w", 3)
+        for _ in range(3):
+            auto.press_mouse()
+            time.sleep(0.6)
+
+    @staticmethod
+    def check_popup(*, check_disconnect=False) -> bool:
+        labels = INSTANCE_POPUPS
+        if check_disconnect:
+            labels += ("连接中断",)
+        found = auto.find_element(labels, "text", crop=DIALOG, include=True, threshold=0.75)
+        if not found:
+            return False
+        label = auto.matched_text
+        if label == "连接中断":
+            return bool(auto.find_element(("尝试重连", "退出游戏"), "text", include=True,
+                                          take_screenshot=False, need_ocr=False))
+        if label == "开拓力补充":
+            auto.click_element("取消", "text", crop=(0.25, 0.67, 0.24, 0.2), max_retries=4, retry_delay=0.25)
+            raise PowerError("检测到非预期开拓力补充，已停止挑战")
+        if label == "背包内遗器持有数量已达上限":
+            raise RelicBagFull("遗器背包已满")
+        if label == "已处于无法战斗状态":
+            auto.click_element(CONFIRM, "image", 0.9)
+            return False
+        raise PowerError("检测到游戏超时弹窗")
+
+    @staticmethod
+    def clean_full_bag():
+        if not cfg.relic_bag_cleanup_enable:
+            auto.press_key("esc")
+            return False
+        if not auto.click_element(CONFIRM, "image", 0.9):
+            return False
+        return Relicset.run()
+
+    @staticmethod
+    def start_instance_again(practice=False):
+        if not auto.click_element(FIGHT_AGAIN, "image", 0.88, max_retries=3, retry_delay=0.3):
+            raise PowerError("无法点击再来一次")
+        if practice:
+            Instance._confirm_practice()
 
     @staticmethod
     def complete_run(instance_type):
-        # 速度太快，点击按钮无效
-        time.sleep(1)
-        auto.click_element("./assets/images/zh_CN/fight/fight_exit.png", "image", 0.9, max_retries=10)
-        time.sleep(4)
-        # 版本更新后挑战不需要传送，但要按一次esc返回主界面
+        if not auto.click_element(FIGHT_EXIT, "image", 0.9, max_retries=6, retry_delay=0.35):
+            raise PowerError("未找到退出关卡按钮")
+        time.sleep(2)
+        if screen.check_screen("main"):
+            return
         auto.press_key("esc")
-        time.sleep(2)
-        screen.wait_for_screen_change('main')
-        # 从副本返回主界面后，按esc太快无效
-        time.sleep(2)
+        screen.change_to("main", max_recursion=1)
 
     @staticmethod
-    def wait_fight(num, timeout=1800):
-        log.info("进入战斗")
-        time.sleep(5)
+    def exit_defeat():
+        if not auto.click_element(FIGHT_EXIT, "image", 0.9, max_retries=4, retry_delay=0.3):
+            if not auto.click_element(FIGHT_FAIL, "image", 0.9, max_retries=3, retry_delay=0.3):
+                raise PowerError("已战败，未能退出关卡")
+        time.sleep(1.5)
+        screen.change_to("main", max_recursion=1)
 
-        start_time = time.monotonic()
-        while time.monotonic() - start_time < timeout:
-            if auto.find_element("./assets/images/zh_CN/fight/fight_again.png", "image", 0.88):
-                log.info("战斗完成")
-                log.info(f"第{num}次副本完成")
+    @staticmethod
+    def wait_fight(*, repeated=False):
+        deadline = time.monotonic() + ENTRY_TIMEOUT
+        in_battle = False
+        next_popup_check = 0.0
+        next_controls = 0.0
+        reconnects = 0
+        while time.monotonic() < deadline:
+            victory = auto.find_element(FIGHT_AGAIN, "image", 0.88)
+            if victory and (not repeated or in_battle):
                 return True
-            elif auto.find_element("./assets/images/zh_CN/fight/fight_fail.png", "image", 0.9):
-                log.info("战斗失败")
-                log.info(f"获取剩余体力并重新计算轮次")
+            awaiting_repeat = repeated and not in_battle
+            result_visible = victory or (awaiting_repeat and auto.find_element(
+                FIGHT_EXIT, "image", 0.9, take_screenshot=False,
+            ))
+            if auto.find_element(FIGHT_FAIL, "image", 0.9, take_screenshot=False):
                 return False
-            elif cfg.auto_battle_detect_enable and auto.find_element("./assets/images/share/base/not_auto.png", "image", 0.9, crop=(0.0 / 1920, 903.0 / 1080, 144.0 / 1920, 120.0 / 1080)):
-                log.info("尝试开启自动战斗")
-                auto.press_key(cfg.get_value("hotkey_auto_battle", "v"))
-            elif auto.find_element("已处于无法战斗状态", "text", max_retries=1, include=True, threshold=0.7):
-                log.info("队伍中存在无法战斗的角色，尝试继续战斗。")
-                auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-            elif auto.find_element("长时间未操作", "text", max_retries=1, include=True, threshold=0.75):
-                log.error("检测到云游戏超时弹窗")
-                Base.send_notification_with_screenshot("检测到云游戏超时弹窗\n"
-                                                       "战斗已中断，请：\n"
-                                                       "- 检查是否被初次挑战教程卡住\n"
-                                                       "- 检查配队是否正确\n"
-                                                       "- 尝试减少连续挑战次数", NotificationLevel.ERROR)
-                raise RuntimeError("云游戏不活跃超时")
-            # 检测遗器背包已满的提示
-            # 每次战斗检测循环中进行多次快速检测
-            for _ in range(3):
-                if auto.find_element("背包内遗器持有数量已达上限", "text", max_retries=1, include=True, threshold=0.7):
-                    log.info("检测到背包内遗器已满，准备进行分解")
-                    auto.click_element("./assets/images/zh_CN/base/confirm.png", "image", 0.9)
-                    time.sleep(0.5)
-                    # 执行分解四星遗器的操作
-                    relicset_result = Relicset.run()
+            now = time.monotonic()
+            if now >= next_popup_check:
+                next_popup_check = now + 2
+                if Instance.check_popup(check_disconnect=True):
+                    if reconnects >= MAX_RECONNECTS:
+                        raise PowerError("游戏连接中断，重连失败，已中止当前战斗")
+                    reconnects += 1
+                    log.warning(f"战斗中检测到游戏连接中断，尝试重连（{reconnects}/{MAX_RECONNECTS}）")
+                    if not auto.click_element("尝试重连", "text", include=True,
+                                              take_screenshot=False, need_ocr=False):
+                        auto.click_element(CONFIRM, "image", 0.9, take_screenshot=False)
+                    time.sleep(5)
+                    continue
+            if result_visible:
+                time.sleep(0.55)
+                continue
 
-                    if not relicset_result:
-                        # 没有可分解的低星遗器，触发死循环保护，停止任务
-                        log.warning("背包已满且无可分解的低星遗器，停止任务")
-                        Base.send_notification_with_screenshot(cfg.notify_template['RelicBagFull'], NotificationLevel.ERROR)
-                        raise RuntimeError("背包已满且无可分解的低星遗器")
-
-                    # 简化处理：直接返回失败允许重试
-                    log.info("战斗中检测到遗器已满并完成分解，返回战斗失败状态")
-
-                    # 直接返回失败，让上层逻辑处理重新开始战斗
-                    return False
-
-                time.sleep(0.1)
-
-            time.sleep(2)
-
-        log.error("战斗超时")
-        raise RuntimeError("战斗超时")
-
-    @staticmethod
-    def get_current_instance_name(instance_type):
-        """获取当前副本类型对应的副本名称"""
-        if instance_type in cfg.instance_names:
-            return cfg.instance_names[instance_type]
-        return "默认副本"  # 如果找不到，返回默认值
-
-    @staticmethod
-    def _detect_space_anchor():
-        threshold = 3000000
-        if auto.click_element("./assets/images/share/power/space_anchor/SpaceAnchor1.png", "image", threshold, action="click", max_retries=2):
-            if auto.click_element("传送", "text", max_retries=10, need_ocr=True):
-                return True
-        if auto.click_element("./assets/images/share/power/space_anchor/SpaceAnchor2.png", "image", threshold, action="click", max_retries=2):
-            if auto.click_element("传送", "text", max_retries=10, need_ocr=True):
-                return True
-        return False
+            pause = auto.find_element(PAUSE, "image", 0.88, crop=(0.95, 0, 0.05, 0.09), scale_range=(0.65, 1.05))
+            controls_due = now >= next_controls and game_option_enabled(cfg, "auto_battle_detect_enable")
+            disabled_auto = controls_due and auto.find_element(
+                AUTO_DISABLED, "image", 0.9, crop=(0, 903 / 1080, 144 / 1920, 120 / 1080),
+            )
+            speed_visible = False
+            if not in_battle and not pause and not disabled_auto:
+                try:
+                    speed_visible = battle_speed_visible(auto)
+                except FATAL_GAME_ERRORS:
+                    raise
+                except RuntimeError as error:
+                    log.warning(f"暂时无法识别战斗倍速控件：{error}")
+            if pause or disabled_auto or speed_visible:
+                if not in_battle:
+                    log.info("进入战斗")
+                    in_battle = True
+                    deadline = now + BATTLE_TIMEOUT
+                if controls_due:
+                    if disabled_auto:
+                        auto.press_key(cfg.get_game_hotkey("hotkey_auto_battle", "v"))
+                    if not speed_visible:
+                        try:
+                            ensure_double_speed(auto)
+                        except FATAL_GAME_ERRORS:
+                            raise
+                        except RuntimeError as error:
+                            log.warning(f"暂时无法检测战斗倍速，继续等待本场结算：{error}")
+                    next_controls = now + 3
+            time.sleep(0.55)
+        if repeated and not in_battle:
+            raise PowerError("等待进入新战斗超时，未确认再来一次的结算")
+        raise PowerError("战斗结算超时" if in_battle else "等待进入战斗超时")
 
     @staticmethod
     def heal_teams():
         log.hr("正在寻找传送锚点", 2)
-        screen.change_to("map")  # 此处如果出现异常无返回值，不知道会有什么问题
+        screen.change_to("map")
         if not Instance._detect_space_anchor():
-            # 一般情况下只有在星穹列车内才会找不到传送锚点，此时传送至模拟宇宙再试
-            # 不使用差分宇宙是避免部分小号没有开差分宇宙的锚点
-            log.info("未找到传送锚点，传送至模拟宇宙再试")
-            screen.change_to('universe_main')
-            # screen.change_to('divergent_main')
+            log.info("当前地图未找到传送锚点，传送至模拟宇宙再试")
+            screen.change_to("universe_main")
             screen.change_to("map")
-            Instance._detect_space_anchor()
-            return
+            if not Instance._detect_space_anchor():
+                log.warning("未找到可传送的恢复锚点，继续准备副本")
+        screen.change_to("main")
+
+    @staticmethod
+    def _detect_space_anchor():
+        for name in ("SpaceAnchor1", "SpaceAnchor2"):
+            if auto.click_element(f"./assets/images/share/power/space_anchor/{name}.png", "image", 3000000, max_retries=2):
+                if auto.click_element("传送", "text", max_retries=10):
+                    return True
+        return False
+
+
+class TeamPresetUnavailable(PowerError):
+    """副本编队未能确认所选预设，可以尝试主世界切队。"""
+
+
+class ChallengePageUnavailable(PowerError):
+    """进入副本后未找到开打前所需的界面，尚未发起战斗。"""

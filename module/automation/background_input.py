@@ -1,17 +1,11 @@
-"""星铁窗口消息输入。保持任务层的屏幕坐标、分开按下/释放及滚轮接口。
-
-后台指针跟随 BetterGI 的 PostMessage 通道：客户区坐标放进 WM_MOUSEMOVE / WM_*BUTTON* /
-WM_MOUSEWHEEL 的 lParam，发给游戏窗口句柄。不调用 SetCursorPos，不把游戏切到前台，因此不会占用
-系统光标。游戏不在前台时仍补发 WM_ACTIVATE（否则 Unity 会丢掉这次输入）；大世界可能因此自行把
-光标锁到窗口中央，结束后若观察到这次锁定，再把光标归还。
-"""
+"""星铁窗口消息输入。保持任务层的屏幕坐标、分开按下/释放及滚轮接口。"""
 import math
 import threading
 import time
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from .input_base import InputBase
+from .input_base import InputBase, input_deadline_reached, limit_input_deadline, record_input_dispatch
 from .windows_input import (WINDOW_EMPTY, WINDOW_EXITED, WINDOW_HIDDEN, WINDOW_MINIMIZED, WINDOW_MISSING,
                             CursorUnavailable, WindowGoneError)
 from utils.pause import pause_ctl
@@ -52,6 +46,10 @@ _KEYS = {'esc': 27, 'escape': 27, 'enter': 13, 'return': 13, 'space': 32, 'tab':
          'shift': 16, 'ctrl': 17, 'control': 17, 'alt': 18,
          'shiftleft': 160, 'shiftright': 161, 'ctrlleft': 162, 'ctrlright': 163,
          'altleft': 164, 'altright': 165, 'capslock': 20, 'numlock': 144,
+         ';': 0xba, '=': 0xbb, ',': 0xbc, '-': 0xbd, '.': 0xbe, '/': 0xbf, '`': 0xc0,
+         '[': 0xdb, '\\': 0xdc, ']': 0xdd, "'": 0xde,
+         **{f'num{i}': 0x60 + i for i in range(10)},
+         'multiply': 0x6a, 'add': 0x6b, 'subtract': 0x6d, 'decimal': 0x6e, 'divide': 0x6f,
          **{f'f{i}': 111 + i for i in range(1, 25)}}
 
 
@@ -81,17 +79,11 @@ def _wheel_param(direction):
     return (delta & 0xffff) << 16
 
 
-# 光标读回与写入位置的容差（像素）。窗口消息不靠系统光标落点。
-# 过夜运行里 GetCursorPos 相对预期只漂了 4～6px（例如预期 (1281, 1156)、实际 (1277, 1150)）。
-# 旧容差 3px 会把这种抖动当成光标被移走并中断手势。手势不再读光标做失败判断；
-# 这里只用于「游戏是否把光标锁到窗口中央」以及归还时是否还停在写入点附近。
+# 光标读回与写入位置的容差（像素）。实测游戏不回写光标，日志中的 1~4 像素偏差来自鼠标轻微抖动，
+# 不影响点击落点，不应视为冲突；超过容差才说明光标被移走。
+# 窗口消息不靠系统光标落点。过夜运行里 GetCursorPos 会漂 4～6px，
+# 3px 容差会把这种抖动当成光标被移走。手势本身不再用它判断失败。
 _CURSOR_TOLERANCE = 8
-
-# 按住拖动的默认采样。整段约 0.1 秒、步长 16px、最多 6 步：
-# 前台 moveTo 也是这个停顿，长跳变不能排出数百个同步消息。
-HELD_DRAG_PACE_SECONDS = 0.1
-HELD_DRAG_STEP_PX = 16
-HELD_DRAG_MAX_STEPS = 6
 
 
 def _near(actual, expected):
@@ -125,18 +117,18 @@ _WINDOW_TEXT = {
 # 窗口暂时不可用（最小化、隐藏、重建）时，截图和输入最多等待多久（秒），与前台截图找不到窗口时的重试时限一致。
 WINDOW_WAIT_SECONDS = 60
 
-# 本线程内后台输入的阻塞等待上限（秒），用于等待窗口恢复。
-# None 表示任务进程的默认行为：窗口最多等 WINDOW_WAIT_SECONDS（可随时暂停或停止）。
-# 点击、拖动和滚轮不再等待系统鼠标空闲。
+# 本线程内后台输入的阻塞等待上限（秒），包括等待鼠标空闲和等待窗口恢复；
+# None 表示任务进程的默认行为：鼠标一直等到空闲、窗口最多等 WINDOW_WAIT_SECONDS（可随时暂停或停止）。
 _input_wait_limit = ContextVar('background_input_wait_limit', default=None)
 
 
 @contextmanager
-def input_wait_limit(seconds):
-    """临时限制后台输入的阻塞等待：图形界面线程里的调用不能长时间阻塞，超时按未完成返回或报告原因。"""
+def input_wait_limit(seconds, *, deadline=None):
+    """限制后台输入的阻塞等待，并按可选的单调时钟截止时间检查输入。"""
     token = _input_wait_limit.set(max(0.0, float(seconds)))
     try:
-        yield
+        with limit_input_deadline(deadline):
+            yield
     finally:
         _input_wait_limit.reset(token)
 
@@ -144,6 +136,7 @@ def input_wait_limit(seconds):
 class BackgroundInput(InputBase):
     handles_pause = True
     is_background = True
+    reports_dispatch = True
 
     def __init__(self, logger, title, process_name, *, protect_mouse=False, api=None, banner=None, controller=None):
         self.logger, self.title, self.process_name = logger, title, process_name
@@ -166,6 +159,7 @@ class BackgroundInput(InputBase):
         self._pointer_active = False
         self._committed = False
         self._settle_until = 0
+        self._parked_at = None  # 本次会话最后一次写入光标是停放指针时，记下停放点
         self._mouse_notice = False
         self._mouse_failures = 0
         self._mouse_interrupted = False
@@ -234,7 +228,10 @@ class BackgroundInput(InputBase):
                 raise GameWindowLost('游戏进程已退出，游戏窗口已关闭')
             if time.monotonic() >= deadline:
                 self._window_wait_expired = timeout > 0
-                raise self._window_timeout(problem, timeout)
+                error = self._window_timeout(problem, timeout)
+                # 零秒探测只确认当前取不到画面。进程退出和持续不可用仍在上面单独报告。
+                error.frame_only = timeout <= 0
+                raise error
             paused_at = time.monotonic()
             self._pause.checkpoint()
             # 暂停期间不计入等待时长。
@@ -257,6 +254,8 @@ class BackgroundInput(InputBase):
 
     def _check(self):
         self._pause.check_stop()
+        if input_deadline_reached(time.monotonic()):
+            raise InputInterrupted('后台输入等待已达到任务总时限')
         if self._closed:
             raise InputInterrupted('后台输入已取消')
         if self._pause.is_paused():
@@ -267,6 +266,13 @@ class BackgroundInput(InputBase):
                 raise _WindowLost('游戏窗口已关闭、最小化或改变位置')
             if self.api.foreground() != foreground:
                 raise _ForegroundChanged()
+            if self._pointer_active:
+                if self._protection is not None and not self._protection.active:
+                    raise _MouseConflict('鼠标保护已到期')
+                if self._written_cursor is not None:
+                    actual = self.api.cursor()
+                    if not _near(actual, self._written_cursor):
+                        raise _MouseConflict(f'光标位置不同步（预期 {self._written_cursor}，实际 {actual}）')
 
     def _geometry(self, target):
         return self.api.client_to_screen(target, (0, 0)), self.api.size(target)
@@ -289,33 +295,19 @@ class BackgroundInput(InputBase):
         if not self.api.usable(target):
             raise _WindowLost('游戏窗口已关闭、最小化或改变位置')
         self._adopt_target(target)
-        foreground, cursor = self.api.foreground(), self._read_cursor()
+        foreground, cursor = self.api.foreground(), self.api.cursor()
         self._foreground_identity = self.api.identity(foreground)
         activated = foreground != target.hwnd
         self._session = (target, foreground, cursor, activated, self._geometry(target))
         self._user_cursor = cursor
         if activated:
-            self.api.post(target, 0x0006, 1)  # WM_ACTIVATE / WA_ACTIVE，与 BetterGI Activate() 相同
+            self.api.post(target, 0x0006, 1)  # WM_ACTIVATE / WA_ACTIVE
             self._wait(.08)
-            # 大世界可能自行把光标锁到窗口中央。只记录这次锁定，点击本身不移动系统光标。
-            self._note_cursor_snap(target, cursor)
-
-    def _read_cursor(self):
-        try:
-            return self.api.cursor()
-        except CursorUnavailable:
-            return None
-
-    def _note_cursor_snap(self, target, before):
-        if before is None:
-            return
-        current = self._read_cursor()
-        if current is None:
-            return
-        width, height = self.api.size(target)
-        center = self.api.client_to_screen(target, ((width - 1)//2, (height - 1)//2))
-        if _near(current, center) and not _near(before, center):
-            self._written_cursor = center
+            # 大世界激活可能由游戏自己居中光标，只有该位置仍归本次操作时才恢复。
+            width, height = self.api.size(target)
+            center = self.api.client_to_screen(target, ((width - 1)//2, (height - 1)//2))
+            if _near(self.api.cursor(), center) and not _near(cursor, center):
+                self._written_cursor = center
 
     def _adopt_target(self, target):
         if self._target_identity is not None and self._target_identity != target:
@@ -323,6 +315,7 @@ class BackgroundInput(InputBase):
         self._target_identity = target
 
     def _end(self):
+        parked_at, self._parked_at = self._parked_at, None
         if self._session is None:
             self._release_protection()
             return
@@ -349,10 +342,12 @@ class BackgroundInput(InputBase):
                 alive = False
             except Exception as e:
                 errors.append(e)
+        deactivated = False
         if alive and activated and self.api.foreground() != target.hwnd:
             try:
                 self.api.post(target, 0x0006, 0)
                 time.sleep(.05)  # 与实测一致：给异步失活消息一次处理机会再恢复光标。
+                deactivated = True
             except WindowGoneError:
                 alive = False
             except Exception as e:
@@ -367,12 +362,23 @@ class BackgroundInput(InputBase):
             if (self._written_cursor is not None and self.api.foreground() == foreground
                     and self._foreground_identity is not None
                     and self.api.identity(foreground) == self._foreground_identity):
-                carried = _carried_cursor(self._user_cursor or cursor, self._written_cursor, self.api.cursor())
+                user, current = self._user_cursor or cursor, self.api.cursor()
+                # 停放指针时用户光标原本落在游戏画面范围内：归还会让游戏重新显示那里的悬停，光标留在停放点。
+                kept = (parked_at is not None and parked_at == self._written_cursor and _near(current, parked_at)
+                        and self._cursor_in_game(target, user))
+                carried = None if kept else _carried_cursor(user, self._written_cursor, current)
                 if carried is not None:
                     self.api.move(carried)
         except Exception as error:
             if self.logger:
                 self.logger.warning(f'恢复光标位置失败：{error}')
+        # 每次会话结束都还原游戏线程的激活状态：进程随时可能被结束，用户也随时可能切到游戏。同样只是善后。
+        if deactivated:
+            try:
+                self.api.release_activation(target)
+            except Exception as error:
+                if self.logger:
+                    self.logger.debug(f'清除游戏激活状态失败：{error}')
         self._written_cursor = None
         self._pointer_active = False
         self._settle_until = 0
@@ -470,9 +476,57 @@ class BackgroundInput(InputBase):
         return InputInterrupted('无法读写系统光标（可能处于锁屏或 UAC 等安全桌面），'
                                 f'后台模式运行期间需要保持系统解锁：{error}')
 
-    def _prepare_mouse(self, context):
-        """确认窗口仍是本次输入的目标。系统光标不参与定位，用户正在移动鼠标也不等待。"""
+    def _wait_mouse_idle(self, context, timeout=None):
+        position = self.api.cursor()
+        quiet_since = started = time.monotonic()
+        while True:
+            self._check_mouse_context(context)
+            now, current = time.monotonic(), self.api.cursor()
+            # 与静止起点比较，抖动不算使用，缓慢拖动累计超出容差仍算。
+            if not _near(current, position) or self.api.mouse_buttons_down():
+                position, quiet_since = current, now
+            if now - quiet_since >= .25:
+                return True
+            if timeout is not None and now - started >= timeout:
+                return False
+            time.sleep(.02)
+
+    def _show_mouse_notice(self, target, protection=False):
+        from module.localization import tr
+        message = (tr('正在短暂保护鼠标，键盘和暂停热键仍可用') if protection
+                   else tr('等待鼠标空闲，任务将自动继续'))
+        if self._mouse_notice == message:
+            return
+        if self.logger:
+            self.logger.warning(message)
+        try:
+            self.banner.show(target, message=message)
+            self._mouse_notice = message
+        except Exception as error:
+            if self.logger:
+                self.logger.warning(f'无法显示后台输入提示：{error}')
+
+    def _prepare_mouse(self, context, failures):
         self._check_mouse_context(context)
+        if self._mouse_down or self._protection is not None:
+            self._check()
+            return
+        limit = _input_wait_limit.get()
+        if failures < 3:
+            if not self._wait_mouse_idle(context, timeout=.5 if limit is None else min(.5, limit)):
+                raise _MouseConflict('鼠标尚未空闲')
+            return
+        if self.protect_mouse and not self.api.mouse_buttons_down():
+            self._show_mouse_notice(context[0], protection=True)
+            try:
+                self._protection = self.api.protect_mouse(timeout=2, on_expire=self._protection_expired)
+                return
+            except Exception as error:
+                if self.logger:
+                    self.logger.warning(f'无法启用鼠标保护，改为等待鼠标空闲：{error}')
+        self._show_mouse_notice(context[0])
+        if not self._wait_mouse_idle(context, timeout=limit):
+            raise _MouseConflict('鼠标持续使用中')
 
     def release_all(self):
         with self._lock:
@@ -497,35 +551,59 @@ class BackgroundInput(InputBase):
         try:
             with self._lock:
                 context = self._mouse_context() if pointer else None
-                self._committed = self._mouse_down
+                held_keys = self._keys[:]
+                failures = self._mouse_failures if pointer else 0
                 try:
-                    if pointer:
-                        self._prepare_mouse(context)
-                    self._begin(context[0] if context else None)
-                    outcome = operation()
-                    done = True
-                    self._mouse_failures = 0
-                    self._window_notice = None
-                    if not self._keys and not self._mouse_down:
-                        self._finish()
-                    elif not self._mouse_down and self._protection is not None:
-                        self._wait(max(0, self._settle_until - time.monotonic()))
-                        self._release_protection()
-                    return outcome
-                except _MouseConflict as error:
-                    committed = self._committed
-                    self._end()
-                    if done:
-                        return outcome
-                    self._mouse_failures += 1
-                    if committed:
-                        self._mouse_interrupted = True
-                    if self.logger:
-                        self.logger.warning(f'后台鼠标手势已中断：{error}；已释放输入，等待界面确认后重试')
-                    return False
-                except BaseException:
-                    self._end()
-                    raise
+                    while True:
+                        self._committed = self._mouse_down
+                        try:
+                            if pointer:
+                                self._prepare_mouse(context, failures)
+                                self._check_mouse_context(context)
+                            self._begin(context[0] if context else None)
+                            # 重试前已释放所有输入，恢复显式按住的键（例如 Alt + 点击）。
+                            for vk in held_keys:
+                                if vk not in self._keys:
+                                    self._key(vk, True, report_dispatch=False)
+                            outcome = operation()
+                            done = True
+                            if pointer:
+                                self._mouse_failures = 0
+                            self._window_notice = None
+                            if not self._keys and not self._mouse_down:
+                                self._finish()
+                            elif not self._mouse_down and self._protection is not None:
+                                self._wait(max(0, self._settle_until - time.monotonic()))
+                                self._release_protection()
+                            return outcome
+                        except _MouseConflict as error:
+                            committed = self._committed
+                            self._end()
+                            if done:
+                                return outcome  # 操作已完整发出，收尾时的光标变化不重放
+                            failures += 1
+                            self._mouse_failures = failures
+                            if committed:
+                                self._mouse_interrupted = True
+                                if self.logger:
+                                    self.logger.warning(f'后台鼠标手势已中断：{error}；已释放输入，等待界面确认后重试')
+                                return False
+                            # 限定了等待时长（图形界面线程）时不在本次调用里反复重试，交给下一轮。
+                            limited = _input_wait_limit.get() is not None
+                            if failures > 3 or limited:
+                                if self.logger:
+                                    log = self.logger.debug if limited else self.logger.warning
+                                    log(f'后台指针无法稳定定位：{error}；本次操作未发出，等待界面确认后重试')
+                                return False
+                            if self.logger:
+                                self.logger.debug(f'后台鼠标输入尚未就绪：{error}；准备重试（{min(failures, 3)}/3）')
+                        except BaseException:
+                            self._end()
+                            raise
+                finally:
+                    if self._mouse_notice:
+                        self.banner.hide(immediate=True)
+                        self._mouse_notice = False
         except _RECOVERABLE as error:
             return self._interrupted(error, done, outcome)
         except CursorUnavailable as error:
@@ -539,17 +617,32 @@ class BackgroundInput(InputBase):
         if not 0 <= point[0] < width or not 0 <= point[1] < height:
             raise _WindowLost('输入位置超出游戏客户区')
         self._point = (round(point[0]), round(point[1]))
+        self._pointer_active = True
         self.api.send_mouse(target, 0x0200, 1 if self._mouse_down else 0, _position(self._point))
+
+    def _carry_user_motion(self):
+        """写入光标前，把用户自上次写入（或会话开始）以来的移动计入归还位置，例如激活等待期间的移动。"""
+        if self._user_cursor is None:
+            return
+        anchor = self._written_cursor if self._written_cursor is not None else self._user_cursor
+        current = self.api.cursor()
+        carried = _carried_cursor(self._user_cursor, anchor, current)
+        self._user_cursor = carried if carried is not None else current
 
     def _move_screen(self, x, y):
         self._move_client(self.api.screen_to_client(self._session[0], (round(x), round(y))))
 
-    def mouse_move(self, x, y, pace=None, step_px=None):
-        pace = HELD_DRAG_PACE_SECONDS if pace is None else _duration(pace)
-        step_px = HELD_DRAG_STEP_PX if step_px is None else float(step_px)
-        if not math.isfinite(step_px) or step_px <= 0:
-            raise ValueError('拖动采样间距必须为正数')
+    def _cursor_in_game(self, target, point):
+        """光标是否落在游戏客户区内。游戏被其他窗口盖住时，归还到这里的光标仍可能被游戏读到并显示悬停，
+        所以不看上面盖着什么。读不到时按不在处理。"""
+        try:
+            x, y = self.api.screen_to_client(target, point)
+            width, height = self.api.size(target)
+            return 0 <= x < width and 0 <= y < height
+        except Exception:
+            return False
 
+    def mouse_move(self, x, y):
         def move():
             if not self._mouse_down:
                 return self._move_screen(x, y)
@@ -559,21 +652,47 @@ class BackgroundInput(InputBase):
             if not (0 <= end[0] < width and 0 <= end[1] < height):
                 raise _WindowLost('输入位置超出游戏客户区')
             start = self._point
-            steps = max(1, min(HELD_DRAG_MAX_STEPS, math.ceil(math.dist(start, end) / step_px)))
+            # move 的 .1 秒最多约六帧；长跳转不能排出数百个同步消息。
+            steps = max(1, min(6, math.ceil(math.dist(start, end) / 16)))
             started = time.monotonic()
-            # 分开调用 down/move/up 的扫动同样需要持续时间。前台 moveTo 默认停顿 HELD_DRAG_PACE_SECONDS。
+            # 分开调用 down/move/up 的扫动同样需要持续时间。前台 moveTo 默认停顿 .1 秒。
             for step in range(1, steps + 1):
                 self._move_client(tuple(round(a+(b-a)*step/steps) for a,b in zip(start,end)))
-                self._wait(max(0, started + pace*step/steps - time.monotonic()))
+                self._wait(max(0, started + .1*step/steps - time.monotonic()))
         return self._perform(move, pointer=True)
+
+    def mouse_park(self, x, y):
+        """把指针停到（x，y），移开会让游戏显示悬停的指针。用户光标原本落在游戏画面范围内时（即使游戏被其他窗口
+        盖住）留在停放点，因为归还到原处会让游戏重新显示那里的悬停（例如卡面抬起）；在游戏画面外时照常归还。"""
+        def park():
+            self._move_screen(x, y)
+            self._parked_at = None if self._mouse_down else self._written_cursor
+        return self._perform(park, pointer=True)
+
+    def _dispatch_time(self):
+        self._pause.check_stop()
+        now = time.monotonic()
+        if input_deadline_reached(now):
+            raise InputInterrupted('后台输入等待已达到任务总时限')
+        return now
 
     def _down(self):
         self._check()
-        # 先登记，再投递；投递过程出错也会尝试释放。
-        self._committed = True
-        self._mouse_interrupted = False
-        self._mouse_down = True
-        self.api.send_mouse(self._session[0], 0x0201, 1, _position(self._point))
+        attempted_at = self._dispatch_time()
+        was_committed, was_down = self._committed, self._mouse_down
+        self._committed = self._mouse_down = True
+        rejected = False
+        try:
+            self.api.send_mouse(self._session[0], 0x0201, 1, _position(self._point))
+        except PermissionError:
+            # 系统明确拒绝发送。超时或窗口在处理时消失仍可能已经投递。
+            rejected = True
+            self._committed, self._mouse_down = was_committed, was_down
+            raise
+        finally:
+            if not rejected:
+                self._mouse_interrupted = False
+                record_input_dispatch(attempted_at)
         self._last_click = (self._session[0], self._point, self._session[4])
 
     def mouse_down(self, x, y):
@@ -631,16 +750,10 @@ class BackgroundInput(InputBase):
         duration = _duration(wait_time)
         def click():
             target = self._session[0]
-            try:
-                captured = bool(self.api.cursor_locked(target))
-            except (CursorUnavailable, OSError):
-                captured = False
+            captured = self.api.cursor_locked(target)
             if captured:
-                # 视角锁定时点击落在锁定点（通常是窗口中央），不复用上一张 UI 的位置，也不移动系统光标。
-                try:
-                    self._point = self.api.screen_to_client(target, self.api.cursor())
-                except CursorUnavailable:
-                    self._point = tuple(value // 2 for value in self.api.size(target))
+                # 不带坐标的普攻不应复用上一张 UI 的点击位置，也不能与视角锁定争夺光标。
+                self._point = self.api.screen_to_client(target, self.api.cursor())
                 self._pointer_active = False
             else:
                 point = self._point or tuple(value//2 for value in self.api.size(target))
@@ -653,36 +766,53 @@ class BackgroundInput(InputBase):
             return True
         return self._perform(click, pointer=True)
 
-    def mouse_drag(self, start_x, start_y, end_x, end_y, duration=.5):
+    def mouse_drag(self, start_x, start_y, end_x, end_y, duration=.5, end_pause=0.0, repeats=1):
         duration = _duration(duration)
+        end_pause = _duration(end_pause)
         def drag():
-            self._move_screen(start_x, start_y)
-            start = self._point
-            end = self.api.screen_to_client(self._session[0], (round(end_x), round(end_y)))
-            self._down()
             steps = max(1, round(duration * 60))
-            for step in range(1, steps + 1):
-                self._move_client(tuple(round(a+(b-a)*step/steps) for a,b in zip(start,end)))
-                self._wait(duration/steps)
-            self._up_mouse()
+            for index in range(repeats):
+                self._move_screen(start_x, start_y)
+                start = self._point
+                end = self.api.screen_to_client(self._session[0], (round(end_x), round(end_y)))
+                self._down()
+                for step in range(1, steps + 1):
+                    self._move_client(tuple(round(a+(b-a)*step/steps) for a,b in zip(start,end)))
+                    self._wait(duration/steps)
+                if end_pause and index == repeats - 1:
+                    self._wait(end_pause)
+                self._up_mouse()
             return True
         return self._perform(drag, pointer=True)
 
-    def _key(self, vk, down, cleanup=False):
+    def _key(self, vk, down, cleanup=False, *, report_dispatch=True):
         if not cleanup:
             self._check()
-        if down and vk not in self._keys:
-            # 通过切窗/暂停检查后才登记；发送过程失败仍会尝试释放。
-            self._keys.append(vk)
         flags = (self.api.scan_code(vk) << 16) | 1
-        if vk in (33,34,35,36,37,38,39,40,45,46,163,165):
+        if vk in (33,34,35,36,37,38,39,40,45,46,111,163,165):
             flags |= 1 << 24
         alt = vk in (18,164,165) or any(key in self._keys for key in (18,164,165))
         if alt:
             flags |= 1 << 29
         if not down:
             flags |= (1 << 30) | (1 << 31)
-        self.api.post(self._session[0], (0x0104 if down else 0x0105) if alt else (0x0100 if down else 0x0101), vk, flags)
+        attempted_at = self._dispatch_time() if down and report_dispatch else None
+        added = down and vk not in self._keys
+        if added:
+            self._keys.append(vk)
+        rejected = False
+        try:
+            self.api.post(self._session[0], (0x0104 if down else 0x0105) if alt else (0x0100 if down else 0x0101),
+                          vk, flags)
+        except OSError as error:
+            # PostMessageW 同步报告是否入队。回执超时仍可能已经投递。
+            rejected = not isinstance(error, TimeoutError)
+            if rejected and added:
+                self._keys.remove(vk)
+            raise
+        finally:
+            if attempted_at is not None and not rejected:
+                record_input_dispatch(attempted_at)
         if not down and not cleanup:
             self._settle_until = time.monotonic() + .12
 
@@ -788,3 +918,92 @@ class BackgroundInput(InputBase):
         with self._lock:
             self._end()  # 滚轮是独立手势：先松开仍按住的键鼠，保留虚拟指针。
         return self._perform(scroll)
+
+    def _scroll_foreground(self, remaining, direction, pause, context):
+        self._check_mouse_context(context)
+        target, foreground, original, _geometry = context
+        self._adopt_target(target)
+        cursor = self.api.cursor()
+        temporary = foreground != target.hwnd
+        watch = None
+        owned_cursor = None
+        acquired = False
+        succeeded = False
+
+        def check():
+            self._pause.check_stop()
+            if self._closed:
+                raise InputInterrupted('后台输入已取消')
+            if self._pause.is_paused():
+                raise _PauseRequested()
+            if not self.api.usable(target):
+                raise _WindowLost('游戏窗口已关闭或最小化，滚轮操作已取消')
+            if (watch and watch.lost) or self.api.foreground() != target.hwnd:
+                raise _ForegroundChanged()
+            if owned_cursor is not None and not _near(self.api.cursor(), owned_cursor):
+                raise _MouseConflict('滚轮位置发生变化')
+            if self._protection is not None and not self._protection.active:
+                raise _MouseConflict('鼠标保护已到期')
+
+        try:
+            if temporary:
+                # 必须先显示提示且成功建立焦点观察，才允许切换游戏到前台。
+                self.banner.show(target)
+            watch = self.api.watch_foreground(target)
+            expected = original.hwnd if original else 0
+            if temporary:
+                if not self.api.focus(target, expected, watch):
+                    if watch.lost or self.api.foreground() != expected:
+                        raise _ForegroundChanged()
+                    raise InputInterrupted('无法安全切换游戏到前台，滚轮操作已取消')
+            acquired = True
+            watch.arm()
+            watch.sync()
+            check()
+            if temporary:
+                # 之前的后台悬停发送过 WA_INACTIVE。仅系统前台句柄变化不足以
+                # 恢复游戏内部输入状态，需在确认前台归属后补齐激活并等待处理。
+                self.api.post(target, 0x0006, 1)
+                self._wait(.08, check)
+            point = self._point or tuple(value//2 for value in self.api.size(target))
+            width, height = self.api.size(target)
+            if not (0 <= point[0] < width and 0 <= point[1] < height):
+                raise _WindowLost('滚轮位置超出游戏客户区，请重新定位')
+            # 切换前台期间用户仍在移动时，以写入前的位置作为归还基准；激活后游戏自己把光标居中的情况除外。
+            current = self.api.cursor()
+            if not _near(current, self.api.client_to_screen(target, ((width - 1)//2, (height - 1)//2))):
+                cursor = current
+            owned_cursor = self.api.client_to_screen(target, point)
+            self.api.move(owned_cursor)
+            self._wait(.05, check)
+            while remaining[0]:
+                check()
+                remaining[0] -= 1  # 已发出的滚轮不能因鼠标冲突重放。
+                self.api.scroll(direction, pause)
+                check()
+            # 系统注入的滚轮异步分发，pause=False 时不能发完立刻挪开光标/失活。
+            self._wait(.2, check)
+            succeeded = True
+            return True
+        finally:
+            try:
+                if watch:
+                    watch.sync()
+                requested = watch is not None and watch.focus_requested == target.hwnd
+                still_owned = (acquired or requested) and watch and not watch.lost and self.api.foreground() == target.hwnd
+                if still_owned and owned_cursor is not None:
+                    carried = _carried_cursor(cursor, owned_cursor, self.api.cursor())
+                    if carried is not None:
+                        self.api.move(carried)
+                if (temporary and still_owned and original and self.api.usable(original)
+                        and not watch.lost and self.api.foreground() == target.hwnd):
+                    if not self.api.focus(original, target.hwnd, watch) and self.logger:
+                        if watch.lost or self.api.foreground() != target.hwnd:
+                            self.logger.debug('滚轮结束时前台窗口已变化，保留当前窗口')
+                        else:
+                            self.logger.warning('滚轮操作结束，但系统未允许恢复原窗口')
+            finally:
+                if watch:
+                    watch.close()
+                if temporary and self._banner is not None:
+                    self._banner.hide(immediate=not succeeded)
